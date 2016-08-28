@@ -21,8 +21,8 @@ static int getUUIDCommand(int argc, byte argv[], byte outv[])
     String uuid = getUUID();
     int uuidLength = uuid.length();
     for (int i = 0; i < uuidLength; i++)
-        outv[i] = uuid.charAt(i);
-    return (uuidLength > 0) ? uuidLength : -1;
+        outv[i + 1] = byte(uuid.charAt(i));
+    return uuidLength + 1;
 }
 
 static int setUUIDCommand(int argc, byte argv[], byte outv[])
@@ -85,12 +85,11 @@ void executeCommands()
                 {
                     byte opcode = commandBuffer[0];
                     int outputLength = 0;
+                    outputBuffer[0] = opcode;
                     if (commandsList[opcode] != NULL)
                         outputLength = commandsList[opcode](commandLength, commandBuffer, outputBuffer);
-                    if (outputLength != 0)
+                    if (outputLength > 0)
                     {
-                        if (outputLength < 0)
-                            outputLength = 0;
                         Serial.write(ROBOTCOM_OUTPUT_START_BYTE);
                         Serial.write(outputLength);
                         Serial.write(outputBuffer, outputLength);
