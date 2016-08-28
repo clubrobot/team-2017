@@ -4,28 +4,29 @@
 #define ROBOTCOM_EMPTY_PIN 0
 #define ROBOTCOM_BAUD_RATE 115200
 
-#define ROBOTCOM_COMMAND_START 0x52
-#define ROBOTCOM_COMMAND_MAX_OPCODE 256
+#define ROBOTCOM_COMMAND_START_BYTE byte('R')
+#define ROBOTCOM_COMMAND_MAX_OPCODE 16  // at most 256
+#define ROBOTCOM_COMMAND_MAX_LENGTH 32  // at most 256
 
-#define ROBOTCOM_UUID_MAX_DIGIT 16
-#define ROBOTCOM_UUID_LENGTH 9
-#define ROBOTCOM_UUID_EEPROM 0x0000
+#define ROBOTCOM_OUTPUT_START_BYTE  byte('A')
+#define ROBOTCOM_OUTPUT_MAX_LENGTH  32  // at most 256
 
-class RobotCom
+#define ROBOTCOM_UUID_ADDRESS 0x0000
+#define ROBOTCOM_UUID_GET_OPCODE 0x00
+#define ROBOTCOM_UUID_SET_OPCODE 0x01
+
+namespace RobotCom
 {
-    typedef String (*Command)(String args);
+typedef int (*Command)(int, byte[], byte[]);
 
-public:
-    static void init();
-    static void addCommand(char opcode, Command cmd);
-    static void executeCommands();
-    static String getUUID();
-    
-private:
-    static void generateUUID();
+void init(String uuid);
 
-    static String buffer;
-    static Command commands[ROBOTCOM_COMMAND_MAX_OPCODE];
-};
+void addCommand(char opcode, Command command);
+void executeCommands();
+
+String getUUID();
+void setUUID(String uuid);
+
+}; // namespace RobotCom
 
 #endif // __ROBOTCOM_H__
