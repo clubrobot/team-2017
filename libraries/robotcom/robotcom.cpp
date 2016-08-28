@@ -51,6 +51,11 @@ void init(String uuid)
     addCommand(ROBOTCOM_UUID_SET_OPCODE, setUUIDCommand);
 }
 
+void init(void)
+{
+    init(randomUUID());
+}
+
 void addCommand(char opcode, Command command)
 {
     // Add a command to execute when receiving the specified opcode
@@ -109,6 +114,23 @@ String getUUID()
             return uuid;
     }
     return "";
+}
+
+String randomUUID()
+{
+    // Initialize the random number generator
+    randomSeed(analogRead(ROBOTCOM_EMPTY_PIN));
+    
+    // Generate the UUID from a list of random hexadecimal numbers
+    String uuid = "";
+    for (int i = 0; i < ROBOTCOM_UUID_LENGTH; i++)
+    {
+        if (i % 5 == 4)
+            uuid += '-';
+        else
+            uuid += String(random(16), HEX);
+    }
+    return uuid;
 }
 
 void setUUID(String uuid)
