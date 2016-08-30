@@ -60,7 +60,7 @@ class RobotCom:
 	
 	def get_uuid(self, timeout = 1):
 		self.send(UUID_GET_OPCODE)
-		return self.poll(UUID_GET_OPCODE, timeout)
+		return self.poll(UUID_GET_OPCODE, timeout).decode('charmap')
 
 	def set_uuid(self, uuid):
 		self.send(UUID_SET_OPCODE, uuid)
