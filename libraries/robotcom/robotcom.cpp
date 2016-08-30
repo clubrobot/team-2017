@@ -40,7 +40,7 @@ static int setUUIDCommand(int argc, byte argv[], byte outv[])
 void init(String uuid)
 {
     // Initialize serial port
-    Serial.begin(ROBOTCOM_BAUD_RATE);
+    Serial.begin(ROBOTCOM_BAUDRATE);
     
     // Initialize UUID stuff
     if (getUUID() == "")
