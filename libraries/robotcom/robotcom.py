@@ -58,7 +58,12 @@ class RobotCom:
 		except Empty:
 			return None
 	
+	def flush(self, opcode):
+		while self.poll(opcode) is not None:
+			pass
+	
 	def get_uuid(self, timeout = 1):
+		self.flush(UUID_GET_OPCODE)
 		self.send(UUID_GET_OPCODE)
 		uuid = self.poll(UUID_GET_OPCODE, timeout)
 		if uuid is not None:
