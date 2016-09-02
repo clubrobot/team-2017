@@ -22,6 +22,7 @@ class RobotCom:
 											stopbits	= serial.STOPBITS_ONE)
 		self.serial.port	= port
 		self.serial.timeout	= 1
+		self.daemon			= None
 
 	def connect(self, timeout = 2):
 		self.serial.open()
@@ -29,14 +30,22 @@ class RobotCom:
 		self.daemon.daemon = True
 		self.daemon.start()
 		if self.poll(GET_UUID_OPCODE, timeout) is None:
+			self.disconnect()
 			raise TimeoutError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.serial.port))
 
 	def disconnect(self):
 		self.daemon.stop_event.set()
 		self.daemon.join()
+		self.daemon = None
 		self.serial.close()
 
+	def is_connected(self):
+		return self.serial.is_open
+
 	def send(self, opcode, *params):
+		if not self.is_connected():
+			raise RuntimeError('\'{}\' is not connected.'.format(self.serial.port))
+
 		prefix = COMMAND_START_BYTE
 		content = bytes([opcode])
 
@@ -56,6 +65,9 @@ class RobotCom:
 		return self.serial.write(prefix + content)
 	
 	def poll(self, opcode, timeout = 0):
+		if not self.is_connected():
+			raise RuntimeError('\'{}\' is not connected.'.format(self.serial.port))
+			
 		queue = self.daemon.get_queue(opcode)
 		block = (timeout is None or timeout > 0)
 		try:
@@ -130,6 +142,8 @@ class Daemon(Thread):
 if __name__ == '__main__':
 	from pprint import pprint
 
-	with RobotCom('/dev/ttyUSB0') as ard0, RobotCom('/dev/ttyUSB1') as ard1:
+	ard0 = RobotCom('/dev/ttyUSB0')
+	ard1 = RobotCom('/dev/ttyUSB1')
+	with ard0:
 		print(ard0.get_uuid())
 		print(ard1.get_uuid())
