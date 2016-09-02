@@ -13,8 +13,9 @@
 
 #define ROBOTCOM_UUID_LENGTH    9
 #define ROBOTCOM_UUID_ADDRESS   0x0000
-#define ROBOTCOM_UUID_GET_OPCODE 0x00
-#define ROBOTCOM_UUID_SET_OPCODE 0x01
+
+#define ROBOTCOM_GET_UUID_OPCODE 0x00
+#define ROBOTCOM_SET_UUID_OPCODE 0x01
 
 namespace RobotCom
 {
@@ -22,6 +23,8 @@ typedef int (*Command)(int, byte[], byte[]);
 
 void init(String uuid);
 void init(void);
+
+int send(int argc, byte argv[]);
 
 void addCommand(char opcode, Command command);
 void executeCommands();

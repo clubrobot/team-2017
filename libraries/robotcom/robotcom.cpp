@@ -47,13 +47,26 @@ void init(String uuid)
         setUUID(uuid);
     
     // Add UUID accessors
-    addCommand(ROBOTCOM_UUID_GET_OPCODE, getUUIDCommand);
-    addCommand(ROBOTCOM_UUID_SET_OPCODE, setUUIDCommand);
+    addCommand(ROBOTCOM_GET_UUID_OPCODE, getUUIDCommand);
+    addCommand(ROBOTCOM_SET_UUID_OPCODE, setUUIDCommand);
+
+    // Tell it's ready by sending the UUID
+    byte opcode = ROBOTCOM_GET_UUID_OPCODE;
+    send(getUUIDCommand(1, &opcode, outputBuffer), outputBuffer);
 }
 
 void init(void)
 {
     init(randomUUID());
+}
+
+int send(int argc, byte argv[])
+{
+    int count = 0;
+    count += Serial.write(ROBOTCOM_OUTPUT_START_BYTE);
+    count += Serial.write(argc);
+    count += Serial.write(argv, argc);
+    return count;
 }
 
 void addCommand(char opcode, Command command)
@@ -89,11 +102,7 @@ void executeCommands()
                     if (commandsList[opcode] != NULL)
                         outputLength = commandsList[opcode](commandLength, commandBuffer, outputBuffer);
                     if (outputLength > 0)
-                    {
-                        Serial.write(ROBOTCOM_OUTPUT_START_BYTE);
-                        Serial.write(outputLength);
-                        Serial.write(outputBuffer, outputLength);
-                    }
+                        send(outputLength, outputBuffer);
                 }
                 inputBufferLength = 0;
             }
