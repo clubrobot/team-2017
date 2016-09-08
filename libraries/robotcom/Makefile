@@ -1,17 +1,30 @@
-ARDUINO_LIBRARY_FOLDER	= ~/Arduino/libraries
-ARDUINO_LIBRARY_NAME	= RobotCom
+ARDUINO_LIBRARIES_DIRECTORY	= ~/Arduino/libraries
+ARDUINO_LIBRARIES_NAME		= RobotCom
 
 PYTHON = python3
-PYTHON_LIBRARY_FOLDER = $(shell $(PYTHON) -m site --user-site)
+PYTHON_LIBRARIES_DIRECTORY	= $(shell $(PYTHON) -m site --user-site)
+
+EXECUTABLES_DIRECTORY		= /usr/local/bin
+
+UDEV_RULES_DIRECTORY		= /etc/udev/rules.d
 
 install-all: install-raspberry install-arduino
 
-install-arduino: robotcom.cpp robotcom.h
-	mkdir -p $(ARDUINO_LIBRARY_FOLDER)/$(ARDUINO_LIBRARY_NAME)
-	cp robotcom.cpp robotcom.h $(ARDUINO_LIBRARY_FOLDER)/$(ARDUINO_LIBRARY_NAME)
+install-arduino-library: robotcom.cpp robotcom.h
+	mkdir -p $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
+	cp robotcom.cpp robotcom.h $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
 
-install-raspberry: robotcom.py
+install-python-library: robotcom.py
 	$(PYTHON) -m pip install pyserial
-	cp robotcom.py $(PYTHON_LIBRARY_FOLDER)
+	mkdir -p $(PYTHON_LIBRARIES_DIRECTORY)
+	cp robotcom.py $(PYTHON_LIBRARIES_DIRECTORY)
 
-.PHONY: install-all install-arduino install-raspberry
+install-getuuid: getuuid
+	cp getuuid $(EXECUTABLES_DIRECTORY)
+	chmod +x $(EXECUTABLES_DIRECTORY)/getuuid
+
+install-udev-rules: robotcom.rules
+	cp robotcom.rules $(UDEV_RULES_DIRECTORY)
+	udevadm control --reload-rules
+
+.PHONY: install-all install-arduino install-raspberry install-raspberry-udev
