@@ -8,4 +8,4 @@ for port in sys.argv[1:]:
 		with RobotCom(port) as com:
 			print(com.get_uuid())
 	except:
-		print()
+		continue
