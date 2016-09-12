@@ -1,4 +1,4 @@
-ARDUINO_LIBRARIES_DIRECTORY	= ~/Arduino/libraries
+ARDUINO_LIBRARIES_DIRECTORY	= $(shell grep -Po '(?<=sketchbook.path=).*' $(HOME)/.arduino15/preferences.txt)/libraries
 ARDUINO_LIBRARIES_NAME		= RobotCom
 
 PYTHON = python3
