@@ -3,3 +3,11 @@
 
 # Python files
 __pycache__
+
+# Arduino build files
+build-*
+*.o
+*.d
+*.elf
+*.hex
+*.sizeok
