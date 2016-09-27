@@ -14,3 +14,7 @@ build-*
 *.elf
 *.hex
 *.sizeok
+
+# OS X files
+.DS_Store
+._*
