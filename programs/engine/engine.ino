@@ -1,5 +1,5 @@
-//#include <Arduino.h>
-//#include <robotcom.h>
+#include <Arduino.h>
+#include <robotcom.h>
 
 byte shiftInFixed(byte dataPin, byte clockPin);
 void updateCounter(byte xy);
@@ -60,11 +60,34 @@ long leftCounter = 0;
 	return 5;
   }
 */
+
+int moteurDroitPWM(int argc, byte argv[], byte outv[])
+{
+  	analogWrite(EN2, (argc>2)?argv[1]:0);
+    if(argc>2)
+    {
+      digitalWrite(IN2_1, !argv[2]);
+    	digitalWrite(IN2_2, argv[2]);
+    }
+    return 0;
+}
+int moteurGauchePWM(int argc, byte argv[], byte outv[])
+{
+  	analogWrite(EN1, (argc>2)?argv[1]:0);
+    if(argc>2)
+    {
+      digitalWrite(IN1_1, !argv[2]);
+    	digitalWrite(IN1_2, argv[2]);
+    }
+    return 0;
+}
+
 void setup()
 {
-  //RobotCom::init();
+  RobotCom::init();
   //RobotCom::addCommand(0x02, getCodedWheel);
-  
+  RobotCom::addCommand(0x03, moteurDroitPWM);
+  RobotCom::addCommand(0x04, moteurGauchePWM);
   // Initialisation du compteur en quadrature
   pinMode(RSTX, OUTPUT);
   pinMode(RSTY, OUTPUT);
@@ -107,9 +130,9 @@ void setup()
 
 void loop()
 {
-  //RobotCom::executeCommands();
-  updateCounter(0); 
-  updateCounter(1); 
+  RobotCom::executeCommands();
+  //updateCounter(0); 
+  //updateCounter(1); 
 
 
 
