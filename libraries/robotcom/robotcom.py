@@ -26,6 +26,7 @@ class RobotCom:
 
 	def connect(self, timeout = 2):
 		self.serial.open()
+		self.send(GET_UUID_OPCODE);
 		self.daemon = Daemon(self.serial)
 		self.daemon.daemon = True
 		self.daemon.start()
