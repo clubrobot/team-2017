@@ -26,12 +26,12 @@ engine.connect()
 def key_up_event(stdscr):
 	stdscr.addstr(2, 60, 'UP   ')
 	engine.send(3, 128, 1)
-	engine.send(4, 128, 1)
+	engine.send(4, 255, 1)
 
 def key_down_event(stdscr):
 	stdscr.addstr(2, 60, 'DOWN ')
 	engine.send(3, 128, 0)
-	engine.send(4, 128, 0)
+	engine.send(4, 255, 0)
 
 def key_left_event(stdscr):
 	stdscr.addstr(2, 60, 'LEFT ')

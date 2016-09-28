@@ -43,8 +43,7 @@ void init(String uuid)
     Serial.begin(ROBOTCOM_BAUDRATE);
     
     // Initialize UUID stuff
-    if (getUUID() == "")
-        setUUID(uuid);
+    setUUID(uuid);
     
     // Add UUID accessors
     addCommand(ROBOTCOM_GET_UUID_OPCODE, getUUIDCommand);
@@ -57,7 +56,11 @@ void init(String uuid)
 
 void init(void)
 {
-    init(randomUUID());
+	String uuid = getUUID();
+	if (uuid == "")
+		uuid = randomUUID());
+	
+	init(uuid);
 }
 
 int send(int argc, byte argv[])
