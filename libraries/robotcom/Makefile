@@ -30,4 +30,4 @@ rules: robotcom.rules
 	cp robotcom.rules $(UDEV_RULES_DIRECTORY)
 	udevadm control --reload-rules
 
-.PHONY: libarduino libpython getuuid rules
+.PHONY: arduinolib pythonlib getuuid rules
