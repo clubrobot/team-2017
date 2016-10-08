@@ -1,6 +1,7 @@
 USER = $(shell whoami)
 
-ARDUINO_LIBRARIES_DIRECTORY	= $(shell grep -Po '(?<=sketchbook.path=).*' $(HOME)/.arduino15/preferences.txt)/libraries
+ARDUINO_SKETCHBOOK_PATH		= $(shell grep -Po '(?<=sketchbook.path=).*' $(HOME)/.arduino15/preferences.txt)
+ARDUINO_LIBRARIES_DIRECTORY	= $(ARDUINO_SKETCHBOOK_PATH)/libraries
 ARDUINO_LIBRARIES_NAME		= RobotCom
 
 PYTHON = $(shell readlink $(shell which python3))
