@@ -14,11 +14,11 @@ EXECUTABLES_DIRECTORY		= /usr/local/bin
 
 UDEV_RULES_DIRECTORY		= /etc/udev/rules.d
 
-libarduino: robotcom.cpp robotcom.h
+arduinolib: robotcom.cpp robotcom.h
 	mkdir -p $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
 	cp robotcom.cpp robotcom.h $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
 
-libpython: robotcom.py
+pythonlib: robotcom.py
 	mkdir -p $(PYTHON_LIBRARIES_DIRECTORY)
 	cp robotcom.py $(PYTHON_LIBRARIES_DIRECTORY)
 
