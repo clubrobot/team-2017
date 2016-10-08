@@ -26,7 +26,7 @@ void init(void);
 
 int send(int argc, byte argv[]);
 
-void addCommand(char opcode, Command command);
+void addCommand(byte opcode, Command command);
 void executeCommands();
 
 String getUUID();

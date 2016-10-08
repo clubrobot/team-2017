@@ -58,7 +58,7 @@ void init(void)
 {
 	String uuid = getUUID();
 	if (uuid == "")
-		uuid = randomUUID());
+		uuid = randomUUID();
 	
 	init(uuid);
 }
@@ -72,7 +72,7 @@ int send(int argc, byte argv[])
     return count;
 }
 
-void addCommand(char opcode, Command command)
+void addCommand(byte opcode, Command command)
 {
     // Add a command to execute when receiving the specified opcode
     if (opcode < ROBOTCOM_COMMAND_MAX_OPCODE)
@@ -116,7 +116,7 @@ void executeCommands()
 String getUUID()
 {
     String uuid = "";
-    for (int i = 0; i < EEPROM.length(); i++)
+    for (int i = 0; i < int(EEPROM.length()); i++)
     {
         char ch = EEPROM.read(ROBOTCOM_UUID_ADDRESS + i);
         if (ch != '\0' && ch != 0xFF)
