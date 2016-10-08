@@ -14,19 +14,19 @@ EXECUTABLES_DIRECTORY		= /usr/local/bin
 
 UDEV_RULES_DIRECTORY		= /etc/udev/rules.d
 
-arduinolib: robotcom.cpp robotcom.h
+arduinolib:
 	mkdir -p $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
 	cp robotcom.cpp robotcom.h $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
 
-pythonlib: robotcom.py
+pythonlib:
 	mkdir -p $(PYTHON_LIBRARIES_DIRECTORY)
 	cp robotcom.py $(PYTHON_LIBRARIES_DIRECTORY)
 
-getuuid: getuuid
+getuuid:
 	cp getuuid $(EXECUTABLES_DIRECTORY)
 	chmod +x $(EXECUTABLES_DIRECTORY)/getuuid
 
-rules: robotcom.rules
+rules:
 	cp robotcom.rules $(UDEV_RULES_DIRECTORY)
 	udevadm control --reload-rules
 
