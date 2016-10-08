@@ -2,10 +2,13 @@
 
 BOARD_TAG		= nano
 BOARD_SUB   	= atmega328
-MONITOR_PORT	= /dev/ttyUSB0
 
+# Replace "$(shell ...)" by a constant tty symlink such as "/dev/arduino/<name>"
+MONITOR_PORT	= $(shell find /dev -name 'ttyUSB*' | head -n 1)
+
+# Add all the libraries which are used in the sketch
+# Notice the backslashes
 ARDUINO_LIBS 	+=	EEPROM \
-					RobotCom \
-					FrequencyTimer2
+					RobotCom
 
 include $(ARDMK_DIR)/Arduino.mk
