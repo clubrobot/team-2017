@@ -22,11 +22,11 @@ pythonlib:
 	mkdir -p $(PYTHON_LIBRARIES_DIRECTORY)
 	cp robotcom.py $(PYTHON_LIBRARIES_DIRECTORY)
 
-getuuid:
+getuuid: pythonlib
 	cp getuuid $(EXECUTABLES_DIRECTORY)
 	chmod +x $(EXECUTABLES_DIRECTORY)/getuuid
 
-rules:
+udevrules: getuuid
 	cp robotcom.rules $(UDEV_RULES_DIRECTORY)
 	udevadm control --reload-rules
 
