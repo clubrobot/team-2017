@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPOSITORY=$(dirname $BASH_SOURCE)
+REPOSITORY=$(dirname "$BASH_SOURCE")
 
 # Download Arduino IDE
 
@@ -11,26 +11,29 @@ case $(uname -m) in
 	*		) exit 1;;
 esac
 
-URL=https://downloads.arduino.cc/arduino-1.6.12-$OS.tar.xz
-wget $URL
+ARDUINO_URL=https://downloads.arduino.cc/arduino-1.6.12-$OS.tar.xz
+ARDUINO_TAR=$(basename "$ARDUINO_URL")
+wget "$ARDUINO_URL" -O "$ARDUINO_TAR"
 
 # Install Arduino IDE
 
-tar xf arduino-1.6.12-$OS.tar.xz
-rm arduino-1.6.12-$OS.tar.xz
-sudo mv arduino-1.6.12 /opt
-echo export ARDUINO_DIR='/opt/arduino-1.6.12' >> $HOME/.bashrc
+ARDUINO_SRC=$(tar -tf "$ARDUINO_TAR" | head -1)
+ARDUINO_SRC=${ARDUINO_SRC%/} # Remove trailing '/'
+tar -xvf "$ARDUINO_TAR"
+rm "$ARDUINO_TAR"
+sudo mv "$ARDUINO_SRC" /opt
+echo export ARDUINO_DIR="/opt/$ARDUINO_SRC" >> "$HOME/.bashrc"
 
 # Launch Arduino IDE and give it time to settle in
 
-/opt/arduino-1.6.12/arduino &
+"/opt/$ARDUINO_SRC/arduino" &
 sleep 10
 pkill -n java
 
 # Install Arduino-Makefile
 
 sudo apt-get install arduino-mk
-echo export ARDMK_DIR='/usr/share/arduino' >> $HOME/.bashrc
+echo export ARDMK_DIR="/usr/share/arduino" >> "$HOME/.bashrc"
 
 # Install Python libraries
 
@@ -38,7 +41,7 @@ pip3 install pyserial
 
 # Install RobotCom components
 
-cd $REPOSITORY/libraries/robotcom
+cd "$REPOSITORY/libraries/robotcom"
 make arduinolib
 make pythonlib
 sudo make udevrules
