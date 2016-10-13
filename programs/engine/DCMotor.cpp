@@ -2,7 +2,7 @@
 
 DCMotor::DCMotor(int enablePin, int input1Pin, int input2Pin)
 :	m_enable(false)
-,	m_power(0)
+,	m_ratio(0)
 ,	m_driverMode(FAST_DECAY)
 
 ,	m_enablePin(enablePin)
@@ -23,12 +23,12 @@ void DCMotor::enable(bool enable)
 
 void DCMotor::setSpeed(float ratio)
 {
-	if (power < -1.0)
-		m_power = -1.0;
-	else if (power > 1.0)
-		m_power = 1.0;
+	if (ratio < -1.0)
+		m_ratio = -1.0;
+	else if (ratio > 1.0)
+		m_ratio = 1.0;
 	else
-		m_power = power;
+		m_ratio = ratio;
 	updatePins();
 }
 
@@ -40,31 +40,31 @@ void DCMotor::setDriverMode(DriverMode mode)
 
 void DCMotor::updatePins()
 {
-	if (m_enable && m_power != 0)
+	if (m_enable && m_ratio != 0)
 	{
-		if (m_driverMode == FAST_DECAY && m_power > 0)
+		if (m_driverMode == FAST_DECAY && m_ratio > 0)
 		{
-			analogWrite(m_enablePin, int(255 * power));
+			analogWrite(m_enablePin, int(255 * m_ratio));
 			digitalWrite(m_input1Pin, HIGH);
 			digitalWrite(m_input2Pin, LOW);
 		}
-		else if (m_driverMode == FAST_DECAY && m_power < 0)
+		else if (m_driverMode == FAST_DECAY && m_ratio < 0)
 		{
-			analogWrite(m_enablePin, -int(255 * power);
+			analogWrite(m_enablePin, -int(255 * m_ratio));
 			digitalWrite(m_input1Pin, LOW);
 			digitalWrite(m_input2Pin, HIGH);
 		}
-		else if (m_driverMode == SLOW_DECAY && m_power > 0)
+		else if (m_driverMode == SLOW_DECAY && m_ratio > 0)
 		{
 			digitalWrite(m_enablePin, HIGH);
-			analogWrite(m_input1Pin, int(255 * power));
+			analogWrite(m_input1Pin, int(255 * m_ratio));
 			analogWrite(m_input2Pin, 0);
 		}
-		else if (m_driverMode == SLOW_DECAY && m_power < 0)
+		else if (m_driverMode == SLOW_DECAY && m_ratio < 0)
 		{
 			digitalWrite(m_enablePin, HIGH);
 			analogWrite(m_input1Pin, 0);
-			analogWrite(m_input2Pin, -int(255 * power));
+			analogWrite(m_input2Pin, -int(255 * m_ratio));
 		}
 	}
 	else

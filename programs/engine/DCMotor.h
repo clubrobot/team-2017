@@ -13,7 +13,6 @@ public:
 
 	void enable(bool enable = true);
 	void setSpeed(float ratio);
-	void setDirection(Direction direction);
 	void setDriverMode(DriverMode mode);
 
 private:
