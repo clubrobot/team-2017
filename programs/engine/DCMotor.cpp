@@ -1,13 +1,13 @@
 #include "DCMotor.h"
 
-DCMotor::DCMotor(int enablePin, int input1Pin, int input2Pin)
+DCMotor::DCMotor(int EN, int IN1, int IN2)
 :	m_enable(false)
 ,	m_ratio(0)
 ,	m_driverMode(FAST_DECAY)
 
-,	m_enablePin(enablePin)
-,	m_input1Pin(input1Pin)
-,	m_input2Pin(input2Pin)
+,	m_enablePin(EN)
+,	m_input1Pin(IN1)
+,	m_input2Pin(IN2)
 {
 	pinMode(m_enablePin, OUTPUT);
 	pinMode(m_input1Pin, OUTPUT);
@@ -73,9 +73,9 @@ void DCMotor::updatePins()
 	}
 }
 
-DCDriver::DCDriver(int resetPin, int faultPin)
-:	m_resetPin(resetPin)
-,	m_faultPin(faultPin)
+DCDriver::DCDriver(int RESET, int FAULT)
+:	m_resetPin(RESET)
+,	m_faultPin(FAULT)
 {
 	pinMode(m_resetPin, OUTPUT);
 	pinMode(m_faultPin, INPUT);

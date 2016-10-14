@@ -9,7 +9,7 @@ public:
 
 	enum DriverMode {FAST_DECAY, SLOW_DECAY};
 
-	DCMotor(int enablePin, int input1Pin, int input2Pin);
+	DCMotor(int EN, int IN1, int IN2);
 
 	void enable(bool enable = true);
 	void setSpeed(float ratio);
@@ -32,10 +32,9 @@ class DCDriver
 {
 public:
 
-	DCDriver(int resetPin, int faultPin);
+	DCDriver(int RESET, int FAULT);
 
 	void reset();
-
 	bool isFaulty();
 
 private:
