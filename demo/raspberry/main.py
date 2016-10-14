@@ -2,19 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import curses
-
 import robotcom
-
-
-heart = '''
-  ####  ####    
-##  ##########  
-##  ##########  
-##  ##########  
-  ##  ######    
-    ######      
-      ##        
-'''
 
 # Connect the Arduino
 
@@ -25,29 +13,28 @@ engine.connect()
 
 def key_up_event(stdscr):
 	stdscr.addstr(2, 60, 'UP   ')
-	engine.send(3, 128, 1)
-	engine.send(4, 255, 1)
+	engine.send(2, 0, 128, 0)
+	engine.send(2, 1, 128, 0)
 
 def key_down_event(stdscr):
 	stdscr.addstr(2, 60, 'DOWN ')
-	engine.send(3, 128, 0)
-	engine.send(4, 255, 0)
+	engine.send(2, 0, 128, 1)
+	engine.send(2, 1, 128, 1)
 
 def key_left_event(stdscr):
 	stdscr.addstr(2, 60, 'LEFT ')
-	engine.send(3, 128, 0)
-	engine.send(4, 128, 1)
+	engine.send(2, 0, 128, 1)
+	engine.send(2, 1, 128, 0)
 
 def key_right_event(stdscr):
 	stdscr.addstr(2, 60, 'RIGHT')
-	engine.send(3, 128, 1)
-	engine.send(4, 128, 0)
+	engine.send(2, 0, 128, 0)
+	engine.send(2, 1, 128, 1)
 
 def key_space_event(stdscr):
 	stdscr.addstr(2, 60, 'SPACE')
-	engine.send(3)
-	engine.send(4)
-
+	engine.send(2, 0, 0, 0)
+	engine.send(2, 1, 0, 0)
 
 # Setup and launch the user interface
 
