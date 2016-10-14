@@ -28,4 +28,20 @@ private:
 	const int	m_input2Pin;
 };
 
+class DCDriver
+{
+public:
+
+	DCDriver(int resetPin, int faultPin);
+
+	void reset();
+
+	bool isFaulty();
+
+private:
+
+	const int m_resetPin;
+	const int m_faultPin;
+};
+
 #endif // __DCMOTOR_H__

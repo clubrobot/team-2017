@@ -12,7 +12,7 @@ DCMotor::DCMotor(int enablePin, int input1Pin, int input2Pin)
 	pinMode(m_enablePin, OUTPUT);
 	pinMode(m_input1Pin, OUTPUT);
 	pinMode(m_input2Pin, OUTPUT);
-	digitalWrite(m_enablePin, LOW);
+	updatePins();
 }
 
 void DCMotor::enable(bool enable)
@@ -71,4 +71,25 @@ void DCMotor::updatePins()
 	{
 		digitalWrite(m_enablePin, LOW);
 	}
+}
+
+DCDriver::DCDriver(int resetPin, int faultPin)
+:	m_resetPin(resetPin)
+,	m_faultPin(faultPin)
+{
+	pinMode(m_resetPin, OUTPUT);
+	pinMode(m_faultPin, INPUT);
+	reset();
+}
+
+void DCDriver::reset()
+{
+	digitalWrite(m_resetPin, LOW);
+	delayMicroseconds(10); // One may adjust this value.
+	digitalWrite(m_resetPin, HIGH);
+}
+
+bool DCDriver::isFaulty()
+{
+	return (digitalRead(m_faultPin) == LOW);
 }
