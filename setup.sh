@@ -37,7 +37,7 @@ echo export ARDMK_DIR="/usr/share/arduino" >> "$HOME/.bashrc"
 
 # Add the current user to the dialout group
 
-sudo gpasswd --add $USER dialout
+sudo usermod -a -G dialout $USER
 
 # Install Python libraries
 
