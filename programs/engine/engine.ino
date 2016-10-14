@@ -33,7 +33,7 @@ int setMotorSpeedCommand(int argc, byte argv[], byte outv[])
 		const byte dir	= argv[3]; // 0 = forward, 1 = backward
 
 		// Procedure
-		DCMotor& motor = (code) ? leftMotor : rightMotor;
+		DCMotor& motor = (code == 0) ? leftMotor : rightMotor;
 		if (dir == 0)
 			motor.setSpeed(+float(PWM) / 255);
 		else
@@ -54,7 +54,7 @@ int getWheelValueCommand(int argc, byte argv[], byte outv[])
 		int outputLength = sizeof(value);
 
 		// Function
-		RotaryEncoder& wheel = (code) ? leftWheel : rightWheel;
+		RotaryEncoder& wheel = (code == 0) ? leftWheel : rightWheel;
 		value = wheel.getCounter();
 
 		return outputLength + 1;
