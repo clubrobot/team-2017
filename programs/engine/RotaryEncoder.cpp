@@ -20,9 +20,15 @@ RotaryEncoder::RotaryEncoder(Axis axis, int XY, int SEL1, int SEL2, int OE, int 
 	pinMode(m_counterOutputEnablePin, OUTPUT);
 	pinMode(m_counterResetPin, OUTPUT);
 
+	digitalWrite(m_counterOutputEnablePin, HIGH);
+	resetCounter();
+
 	pinMode(m_registerDataPin, INPUT);
 	pinMode(m_registerLatchPin, OUTPUT);
 	pinMode(m_registerShiftPin, OUTPUT);
+
+	digitalWrite(m_registerLatchPin, LOW);
+	digitalWrite(m_registerShiftPin, LOW);
 }
 
 void RotaryEncoder::updateCounter()
@@ -45,7 +51,8 @@ void RotaryEncoder::updateCounter()
 
 void RotaryEncoder::resetCounter()
 {
-	// TODO: how to achieve this? Must read the datasheet!
+	digitalWrite(m_counterResetPin, LOW);
+	digitalWrite(m_counterResetPin, HIGH);
 }
 
 long RotaryEncoder::getCounter() const
