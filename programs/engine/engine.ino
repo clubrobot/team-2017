@@ -50,14 +50,14 @@ int getWheelValueCommand(int argc, byte argv[], byte outv[])
 		const byte code	= argv[1]; // 0 = left wheel, 1 = right wheel
 
 		// Outputs
-		long& value = *((long*)(&argv[1]));
-		int outputLength = sizeof(value);
+		long& value = *((long*)(&outv[1]));
+		int outc = sizeof(value);
 
 		// Function
 		RotaryEncoder& wheel = (code == 0) ? leftWheel : rightWheel;
 		value = wheel.getCounter();
 
-		return outputLength + 1;
+		return outc + 1;
 	}
 	return 1;
 }
@@ -72,4 +72,6 @@ void setup()
 void loop()
 {
 	RobotCom::executeCommands();
+	leftWheel.updateCounter();
+	rightWheel.updateCounter();
 }
