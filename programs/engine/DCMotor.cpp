@@ -1,7 +1,7 @@
 #include "DCMotor.h"
 
 DCMotor::DCMotor(int EN, int IN1, int IN2)
-:	m_enable(false)
+:	m_enable(true)
 ,	m_ratio(0)
 ,	m_driverMode(FAST_DECAY)
 
