@@ -18,13 +18,14 @@ DCMotor rightMotor		(  9,   10,   11 );
 //						| RESET | FAULT |
 DCDriver driver			(    12,     A7 );
 
-//						|             Axis | XY | SEL1 | SEL2 | OE | RST |  Q | PL | CP |
-RotaryEncoder leftWheel	( RotaryEncoder::Y,  A0,     7,     8,  A5,   A3,  13,   4,   2, 10000, -22.7);
-RotaryEncoder rightWheel( RotaryEncoder::X,  A0,     7,     8,  A5,   A2,  13,   4,   2, 10000, 22.67);
+//						|             axis | XY | SEL1 | SEL2 | OE | RST |  Q | PL | CP | counts | radius |
+RotaryEncoder leftWheel	( RotaryEncoder::Y,  A0,     7,     8,  A5,   A3,  13,   4,   2,   10000,   -22.7 );
+RotaryEncoder rightWheel( RotaryEncoder::X,  A0,     7,     8,  A5,   A2,  13,   4,   2,   10000,   22.67 );
 
 // Odometry
 
-Odometry odometry(leftWheel, rightWheel, 318);
+//					| left encoder | right encoder | axle track |
+Odometry odometry	(    leftWheel,     rightWheel,         318 );
 unsigned long time = 0;
 
 // Commands
@@ -95,4 +96,3 @@ void loop()
 	// Delay
 	delayMicroseconds(5000);*/
 }
-
