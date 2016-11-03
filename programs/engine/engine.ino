@@ -1,13 +1,9 @@
 #include <Arduino.h>
-#include <math.h>
 #include <robotcom.h>
-
-#ifndef M_PI
-#define M_PI		3.14159265358979323846
-#endif
 
 #include "DCMotor.h"
 #include "RotaryEncoder.h"
+#include "Odometry.h"
 
 // Opcodes declaration
 
@@ -28,10 +24,8 @@ RotaryEncoder rightWheel( RotaryEncoder::X,  A0,     7,     8,  A5,   A2,  13,  
 
 // Odometry
 
+Odometry odometry(leftWheel, rightWheel, 318);
 unsigned long time = 0;
-float x = 0;
-float y = 0;
-float a = 0;
 
 // Commands
 
@@ -90,30 +84,13 @@ void loop()
 	const unsigned long dt = now - time;
 	time = now;
 
-	// Compute the distance traveled by every rotary encoder
-	const long leftCounter = leftWheel.getCounter();
-	const long rightCounter = rightWheel.getCounter();
-
-	leftWheel.updateCounter();
-	rightWheel.updateCounter();
-
-	const long deltaLeftCounter = leftWheel.getCounter() - leftCounter;
-	const long deltaRightCounter = rightWheel.getCounter() - rightCounter;
-
-	const float dL = -deltaLeftCounter / 10000.0 * 2.0 * M_PI * 22.7; // mm
-	const float dR = deltaRightCounter / 10000.0 * 2.0 * M_PI * 22.67; // mm
-	const float dM = (dL + dR) / 2;
-
-	// Compute ...
-	x += dM * cos(a);
-	y += dM * sin(a);
-	a += (dR - dL) / 318;/*
+	odometry.integrate();/*
 	Serial.print("x: ");
-	Serial.print(x);
+	Serial.print(odometry.getState().x);
 	Serial.print("\ty: ");
-	Serial.print(y);
+	Serial.print(odometry.getState().y);
 	Serial.print("\ta: ");
-	Serial.println(a);
+	Serial.println(odometry.getState().theta);
 
 	// Delay
 	delayMicroseconds(5000);*/
