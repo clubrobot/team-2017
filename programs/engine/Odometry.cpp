@@ -33,13 +33,11 @@ void Odometry::setState(const State& state)
 
 void Odometry::integrate()
 {
-	// Computation
-
 	const float dL = m_leftEncoder.getTraveledDistance();
 	const float dR = m_rightEncoder.getTraveledDistance();
 	const float dM = (dL + dR) / 2;
 
 	m_state.x += dM * cos(m_state.theta);
 	m_state.y += dM * sin(m_state.theta);
-	m_state.theta += (dR - dL) / 318;
+	m_state.theta += (dR - dL) / m_axleTrack;
 }
