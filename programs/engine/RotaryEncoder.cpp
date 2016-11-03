@@ -1,6 +1,12 @@
 #include "RotaryEncoder.h"
+#include <math.h>
 
-RotaryEncoder::RotaryEncoder(Axis axis, int XY, int SEL1, int SEL2, int OE, int RST, int Q, int PL, int CP)
+#ifndef M_PI
+#define M_PI		3.14159265358979323846
+#endif
+
+
+RotaryEncoder::RotaryEncoder(Axis axis, int XY, int SEL1, int SEL2, int OE, int RST, int Q, int PL, int CP, long countsPerRevolution, float wheelRadius)
 :	m_counterAxis(axis)
 ,	m_counterValue(0)
 
@@ -13,6 +19,9 @@ RotaryEncoder::RotaryEncoder(Axis axis, int XY, int SEL1, int SEL2, int OE, int 
 ,	m_registerDataPin(Q)
 ,	m_registerLatchPin(PL)
 ,	m_registerShiftPin(CP)
+
+,	m_countsPerRevolution(countsPerRevolution)
+,	m_wheelRadius(wheelRadius)
 {
 	pinMode(m_counterAxisPin, OUTPUT);
 	pinMode(m_counterByteSelect1Pin, OUTPUT);
@@ -58,6 +67,16 @@ void RotaryEncoder::resetCounter()
 long RotaryEncoder::getCounter() const
 {
 	return m_counterValue;
+}
+
+float RotaryEncoder::getTraveledDistance()
+{
+	long oldCounter = getCounter();
+	updateCounter();
+	long counts = getCounter() - oldCounter;
+	
+	float distance = counts / m_countsPerRevolution * 2.0 * M_PI * m_wheelRadius;
+	return distance;
 }
 
 byte RotaryEncoder::readShiftRegister(int Q, int PL, int CP)

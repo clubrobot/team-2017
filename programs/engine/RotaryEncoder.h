@@ -9,13 +9,15 @@ public:
 
 	enum Axis {X = 0, Y = 1};
 
-	RotaryEncoder(Axis axis, int XY, int SEL1, int SEL2, int OE, int RST, int Q, int PL, int CP);
+	RotaryEncoder(Axis axis, int XY, int SEL1, int SEL2, int OE, int RST, int Q, int PL, int CP, long countsPerRevolution, float wheelRadius);
 
 	void updateCounter();
 	void resetCounter();
 	long getCounter() const;
 
 	static byte readShiftRegister(int Q, int PL, int CP);
+
+	float getTraveledDistance();
 
 private:
 
@@ -31,6 +33,9 @@ private:
 	const int m_registerDataPin;		// Serial data input from the 74HC165 register.
 	const int m_registerLatchPin;		// Active LOW. Latch signal for the 74HC165 register.
 	const int m_registerShiftPin;		// LOW-to-HIGH edge-triggered. Clock signal for the 74HC165 register.
+
+	const long	m_countsPerRevolution;
+	const float m_wheelRadius;
 };
 
 #endif // __ROTARYENCODER_H__
