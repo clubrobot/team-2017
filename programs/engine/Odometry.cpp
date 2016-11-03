@@ -6,7 +6,7 @@
 #endif
 
 
-Odometry::Odometry(const RotaryEncoder& leftEncoder, const RotaryEncoder& rightEncoder, float axleTrack)
+Odometry::Odometry(RotaryEncoder& leftEncoder, RotaryEncoder& rightEncoder, float axleTrack)
 :	m_state(0, 0, 0)
 ,	m_leftEncoder(leftEncoder)
 ,	m_rightEncoder(rightEncoder)

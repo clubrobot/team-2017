@@ -18,7 +18,7 @@ public:
 		float theta;	
 	};
 
-	Odometry(const RotaryEncoder& leftEncoder, const RotaryEncoder& rightEncoder, float axleTrack);
+	Odometry(RotaryEncoder& leftEncoder, RotaryEncoder& rightEncoder, float axleTrack);
 
 	const State& getState() const;
 
@@ -30,8 +30,8 @@ public:
 private:
 
 	State m_state;
-	RotaryEncoder m_leftEncoder;
-	RotaryEncoder m_rightEncoder;
+	RotaryEncoder& m_leftEncoder;
+	RotaryEncoder& m_rightEncoder;
 
 	const float m_axleTrack;
 };
