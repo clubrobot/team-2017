@@ -5,27 +5,31 @@
 #include "RotaryEncoder.h"
 #include "Odometry.h"
 
+// Robot characteristics
+
+#define COUNTS_PER_REVOLUTION	10000
+#define LEFT_ENCODER_RADIUS		(-22.7)
+#define RIGHT_ENCODER_RADIUS	(+22.67)
+
 // Opcodes declaration
 
 #define SET_MOTOR_SPEED_OPCODE 0x02
 #define GET_WHEEL_VALUE_OPCODE 0x03
 
 // Global variables
-//						| EN | IN1 | IN2 |
-DCMotor leftMotor		(  6,    5,    3 );
-DCMotor rightMotor		(  9,   10,   11 );
+//							| EN | IN1 | IN2 |
+DCMotor leftMotor			(  6,    5,    3 );
+DCMotor rightMotor			(  9,   10,   11 );
 
-//						| RESET | FAULT |
-DCDriver driver			(    12,     A7 );
+//							| RESET | FAULT |
+DCDriver driver				(    12,     A7 );
 
-//						|             axis | XY | SEL1 | SEL2 | OE | RST |  Q | PL | CP | counts | radius |
-RotaryEncoder leftWheel	( RotaryEncoder::Y,  A0,     7,     8,  A5,   A3,  13,   4,   2,   10000,   -22.7 );
-RotaryEncoder rightWheel( RotaryEncoder::X,  A0,     7,     8,  A5,   A2,  13,   4,   2,   10000,   22.67 );
+//							|             Axis | XY | SEL1 | SEL2 | OE | RST |  Q | PL | CP |
+RotaryEncoder leftEncoder	( RotaryEncoder::Y,  A0,     7,     8,  A5,   A3,  13,   4,   2, COUNTS_PER_REVOLUTION, LEFT_ENCODER_RADIUS);
+RotaryEncoder rightEncoder	( RotaryEncoder::X,  A0,     7,     8,  A5,   A2,  13,   4,   2, COUNTS_PER_REVOLUTION, RIGHT_ENCODER_RADIUS);
 
-// Odometry
+Odometry odometry(leftEncoder, rightEncoder, COUNTS_PER_REVOLUTION);
 
-//					| left encoder | right encoder | axle track |
-Odometry odometry	(    leftWheel,     rightWheel,         318 );
 unsigned long time = 0;
 
 // Commands
@@ -61,7 +65,7 @@ int getWheelValueCommand(int argc, byte argv[], byte outv[])
 		int outc = sizeof(value);
 
 		// Function
-		RotaryEncoder& wheel = (code == 0) ? leftWheel : rightWheel;
+		RotaryEncoder& wheel = (code == 0) ? leftEncoder : rightEncoder;
 		value = wheel.getCounter();
 
 		return outc + 1;
@@ -85,14 +89,9 @@ void loop()
 	const unsigned long dt = now - time;
 	time = now;
 
-	odometry.integrate();/*
-	Serial.print("x: ");
-	Serial.print(odometry.getState().x);
-	Serial.print("\ty: ");
-	Serial.print(odometry.getState().y);
-	Serial.print("\ta: ");
-	Serial.println(odometry.getState().theta);
+	// Integrate odometry
+	odometry.integrate();
 
 	// Delay
-	delayMicroseconds(5000);*/
+	delayMicroseconds(5000);
 }
