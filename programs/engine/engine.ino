@@ -7,6 +7,7 @@
 
 // Robot characteristics
 
+#define WHEELS_AXLE_TRACK		318
 #define COUNTS_PER_REVOLUTION	10000
 #define LEFT_ENCODER_RADIUS		(-22.7)
 #define RIGHT_ENCODER_RADIUS	(+22.67)
@@ -28,7 +29,7 @@ DCDriver driver				(    12,     A7 );
 RotaryEncoder leftEncoder	( RotaryEncoder::Y,  A0,     7,     8,  A5,   A3,  13,   4,   2, COUNTS_PER_REVOLUTION, LEFT_ENCODER_RADIUS);
 RotaryEncoder rightEncoder	( RotaryEncoder::X,  A0,     7,     8,  A5,   A2,  13,   4,   2, COUNTS_PER_REVOLUTION, RIGHT_ENCODER_RADIUS);
 
-Odometry odometry(leftEncoder, rightEncoder, COUNTS_PER_REVOLUTION);
+Odometry odometry(leftEncoder, rightEncoder, WHEELS_AXLE_TRACK);
 
 unsigned long time = 0;
 
