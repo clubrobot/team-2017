@@ -1,16 +1,8 @@
 #include <Arduino.h>
 #include <robotcom.h>
 
-#include "DCMotor.h"
-#include "RotaryEncoder.h"
+#include "WheeledBase.h"
 #include "Odometry.h"
-
-// Robot characteristics
-
-#define WHEELS_AXLE_TRACK		318
-#define COUNTS_PER_REVOLUTION	10000
-#define LEFT_ENCODER_RADIUS		(-22.7)
-#define RIGHT_ENCODER_RADIUS	(+22.67)
 
 // Opcodes declaration
 
@@ -18,18 +10,10 @@
 #define GET_WHEEL_VALUE_OPCODE 0x03
 
 // Global variables
-//							| EN | IN1 | IN2 |
-DCMotor leftMotor			(  6,    5,    3 );
-DCMotor rightMotor			(  9,   10,   11 );
 
-//							| RESET | FAULT |
-DCDriver driver				(    12,     A7 );
+WheeledBase base; // See WheeledBase.cpp for initialization details
 
-//							|             Axis | XY | SEL1 | SEL2 | OE | RST |  Q | PL | CP |
-RotaryEncoder leftEncoder	( RotaryEncoder::Y,  A0,     7,     8,  A5,   A3,  13,   4,   2, COUNTS_PER_REVOLUTION, LEFT_ENCODER_RADIUS);
-RotaryEncoder rightEncoder	( RotaryEncoder::X,  A0,     7,     8,  A5,   A2,  13,   4,   2, COUNTS_PER_REVOLUTION, RIGHT_ENCODER_RADIUS);
-
-Odometry odometry(leftEncoder, rightEncoder, WHEELS_AXLE_TRACK);
+Odometry odometry(base.leftEncoder, base.rightEncoder, base.axleTrack);
 
 unsigned long time = 0;
 
@@ -45,7 +29,7 @@ int setMotorSpeedCommand(int argc, byte argv[], byte outv[])
 		const byte dir	= argv[3]; // 0 = forward, 1 = backward
 
 		// Procedure
-		DCMotor& motor = (code == 0) ? leftMotor : rightMotor;
+		DCMotor& motor = (code == 0) ? base.leftMotor : base.rightMotor;
 		if (dir == 0)
 			motor.setSpeed(+float(PWM) / 255);
 		else
@@ -66,7 +50,7 @@ int getWheelValueCommand(int argc, byte argv[], byte outv[])
 		int outc = sizeof(value);
 
 		// Function
-		RotaryEncoder& wheel = (code == 0) ? leftEncoder : rightEncoder;
+		RotaryEncoder& wheel = (code == 0) ? base.leftEncoder : base.rightEncoder;
 		value = wheel.getCounter();
 
 		return outc + 1;
