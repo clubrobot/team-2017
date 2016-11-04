@@ -3,17 +3,20 @@
 
 #include "WheeledBase.h"
 #include "Odometry.h"
+#include "Control.h"
 
 // Opcodes declaration
 
 #define SET_MOTOR_SPEED_OPCODE 0x02
 #define GET_WHEEL_VALUE_OPCODE 0x03
 
-// Global variables
 
-WheeledBase base; // See WheeledBase.cpp for initialization details
+// Load the different modules
 
-Odometry odometry(base);
+WheeledBase	base; // See WheeledBase.cpp for initialization details
+
+Odometry	odometry(base);
+Control		control(base, odometry);
 
 // Commands
 
@@ -69,6 +72,9 @@ void loop()
 
 	// Integrate odometry
 	odometry.update();
+
+	// Integrate engineering control
+	control.step();
 
 	// Delay
 	delayMicroseconds(5000);
