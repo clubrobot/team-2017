@@ -4,6 +4,7 @@
 #include <Arduino.h>
 
 #include "RotaryEncoder.h"
+#include "WheeledBase.h"
 
 class Odometry
 {
@@ -15,25 +16,37 @@ public:
 		State(float x, float y, float theta) : x(x), y(y), theta(theta){}
 
 		float x, y;
-		float theta;	
+		float theta;
 	};
 
-	Odometry(RotaryEncoder& leftEncoder, RotaryEncoder& rightEncoder, float axleTrack);
+	struct Movement
+	{
+		Movement() : dx(0), dy(0), omega(0){}
+		Movement(float dx, float dy, float omega) : dx(dx), dy(dy), omega(omega){}
 
-	const State& getState() const;
+		float dx, dy;
+		float omega;
+	};
+
+	Odometry(WheeledBase& base);
+
+	const State&	getState() const;
+	const Movement&	getMovement() const;
 
 	void setState(float x, float y, float theta);
 	void setState(const State& state);
 
-	void integrate();
+	void setMovement(float dx, float dy, float omega);
+	void setMovement(const Movement& movement);
+
+	void update();
 
 private:
 
-	State m_state;
-	RotaryEncoder& m_leftEncoder;
-	RotaryEncoder& m_rightEncoder;
+	State		m_state;
+	Movement	m_movement;
 
-	const float m_axleTrack;
+	WheeledBase	m_base;
 };
 
 #endif // __ODOMETRY_H__

@@ -6,12 +6,11 @@
 #endif
 
 
-Odometry::Odometry(RotaryEncoder& leftEncoder, RotaryEncoder& rightEncoder, float axleTrack)
+Odometry::Odometry(WheeledBase& base)
 :	m_state(0, 0, 0)
-,	m_leftEncoder(leftEncoder)
-,	m_rightEncoder(rightEncoder)
+,	m_movement(0, 0, 0)
 
-,	m_axleTrack(axleTrack)
+,	m_base(base)
 {
 	// Nothing to do here...
 }
@@ -19,6 +18,11 @@ Odometry::Odometry(RotaryEncoder& leftEncoder, RotaryEncoder& rightEncoder, floa
 const Odometry::State& Odometry::getState() const
 {
 	return m_state;
+}
+
+const Odometry::Movement& Odometry::getMovement() const
+{
+	return m_movement;
 }
 
 void Odometry::setState(float x, float y, float theta)
@@ -31,13 +35,23 @@ void Odometry::setState(const State& state)
 	m_state = state;
 }
 
-void Odometry::integrate()
+void Odometry::setMovement(float dx, float dy, float omega)
 {
-	const float dL = m_leftEncoder.getTraveledDistance();
-	const float dR = m_rightEncoder.getTraveledDistance();
+	setMovement(Movement(dx, dy, omega));
+}
+
+void Odometry::setMovement(const Movement& movement)
+{
+	m_movement = movement;
+}
+
+void Odometry::update()
+{
+	const float dL = m_base.leftEncoder.getTraveledDistance();
+	const float dR = m_base.rightEncoder.getTraveledDistance();
 	const float dM = (dL + dR) / 2;
 
 	m_state.x += dM * cos(m_state.theta);
 	m_state.y += dM * sin(m_state.theta);
-	m_state.theta += (dR - dL) / m_axleTrack;
+	m_state.theta += (dR - dL) / m_base.axleTrack;
 }

@@ -13,7 +13,7 @@
 
 WheeledBase base; // See WheeledBase.cpp for initialization details
 
-Odometry odometry(base.leftEncoder, base.rightEncoder, base.axleTrack);
+Odometry odometry(base);
 
 unsigned long time = 0;
 
@@ -75,7 +75,7 @@ void loop()
 	time = now;
 
 	// Integrate odometry
-	odometry.integrate();
+	odometry.update();
 
 	// Delay
 	delayMicroseconds(5000);
