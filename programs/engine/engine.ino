@@ -15,8 +15,6 @@ WheeledBase base; // See WheeledBase.cpp for initialization details
 
 Odometry odometry(base);
 
-unsigned long time = 0;
-
 // Commands
 
 int setMotorSpeedCommand(int argc, byte argv[], byte outv[])
@@ -68,11 +66,6 @@ void setup()
 void loop()
 {
 	RobotCom::executeCommands();
-
-	// Compute elapsed time
-	const unsigned long now = micros();
-	const unsigned long dt = now - time;
-	time = now;
 
 	// Integrate odometry
 	odometry.update();

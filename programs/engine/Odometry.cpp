@@ -1,10 +1,6 @@
 #include "Odometry.h"
 #include <math.h>
 
-#ifndef M_PI
-#define M_PI		3.14159265358979323846
-#endif
-
 
 Odometry::Odometry(WheeledBase& base)
 :	m_state(0, 0, 0)
@@ -12,7 +8,7 @@ Odometry::Odometry(WheeledBase& base)
 
 ,	m_base(base)
 {
-	// Nothing to do here...
+	m_lastTime = micros();
 }
 
 const Odometry::State& Odometry::getState() const
@@ -45,13 +41,33 @@ void Odometry::setMovement(const Movement& movement)
 	m_movement = movement;
 }
 
+unsigned long Odometry::getElapsedTime()
+{
+	unsigned long currentTime = micros();
+	unsigned long elapsedTime = currentTime - m_lastTime;
+	m_lastTime = currentTime;
+	return elapsedTime;
+}
+
 void Odometry::update()
 {
-	const float dL = m_base.leftEncoder.getTraveledDistance();
-	const float dR = m_base.rightEncoder.getTraveledDistance();
-	const float dM = (dL + dR) / 2;
+	const float dt	= getElapsedTime();
+	if (dt > 0)
+	{
+		const float dL	= m_base.leftEncoder.getTraveledDistance();
+		const float dR	= m_base.rightEncoder.getTraveledDistance();
+		const float dM	= (dL + dR) / 2;
+		
+		const float dx		= dM * cos(m_state.theta);
+		const float dy		= dM * sin(m_state.theta);
+		const float dtheta	= (dR - dL) / m_base.axleTrack;
 
-	m_state.x += dM * cos(m_state.theta);
-	m_state.y += dM * sin(m_state.theta);
-	m_state.theta += (dR - dL) / m_base.axleTrack;
+		m_movement.dx_dt	= dx / dt;
+		m_movement.dy_dt	= dy / dt;
+		m_movement.omega	= dtheta / dt;
+
+		m_state.x		+= dx;
+		m_state.y		+= dy;
+		m_state.theta	+= dtheta;
+	}
 }

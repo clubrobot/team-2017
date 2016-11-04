@@ -21,10 +21,10 @@ public:
 
 	struct Movement
 	{
-		Movement() : dx(0), dy(0), omega(0){}
-		Movement(float dx, float dy, float omega) : dx(dx), dy(dy), omega(omega){}
+		Movement() : dx_dt(0), dy_dt(0), omega(0){}
+		Movement(float dx_dt, float dy_dt, float omega) : dx_dt(dx_dt), dy_dt(dy_dt), omega(omega){}
 
-		float dx, dy;
+		float dx_dt, dy_dt;
 		float omega;
 	};
 
@@ -36,12 +36,16 @@ public:
 	void setState(float x, float y, float theta);
 	void setState(const State& state);
 
-	void setMovement(float dx, float dy, float omega);
+	void setMovement(float dx_dt, float dy_dt, float omega);
 	void setMovement(const Movement& movement);
+
+	unsigned long getElapsedTime();
 
 	void update();
 
 private:
+
+	unsigned long m_lastTime;
 
 	State		m_state;
 	Movement	m_movement;
