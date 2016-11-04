@@ -46,12 +46,12 @@ public:
 
 private:
 
-	unsigned long m_lastTime;
+	unsigned long	m_lastTime;
 
-	State		m_state;
-	Movement	m_movement;
+	State			m_state;
+	Movement		m_movement;
 
-	WheeledBase	m_base;
+	WheeledBase&	m_base;
 };
 
 #endif // __ODOMETRY_H__
