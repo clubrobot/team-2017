@@ -6,27 +6,28 @@
 #include "RotaryEncoder.h"
 #include "WheeledBase.h"
 
+
+struct State
+{
+	State() : x(0), y(0), theta(0){}
+	State(float x, float y, float theta) : x(x), y(y), theta(theta){}
+
+	float x, y;
+	float theta;
+};
+
+struct Movement
+{
+	Movement() : dx_dt(0), dy_dt(0), omega(0){}
+	Movement(float dx_dt, float dy_dt, float omega) : dx_dt(dx_dt), dy_dt(dy_dt), omega(omega){}
+
+	float dx_dt, dy_dt;
+	float omega;
+};
+
 class Odometry
 {
 public:
-
-	struct State
-	{
-		State() : x(0), y(0), theta(0){}
-		State(float x, float y, float theta) : x(x), y(y), theta(theta){}
-
-		float x, y;
-		float theta;
-	};
-
-	struct Movement
-	{
-		Movement() : dx_dt(0), dy_dt(0), omega(0){}
-		Movement(float dx_dt, float dy_dt, float omega) : dx_dt(dx_dt), dy_dt(dy_dt), omega(omega){}
-
-		float dx_dt, dy_dt;
-		float omega;
-	};
 
 	Odometry(WheeledBase& base);
 

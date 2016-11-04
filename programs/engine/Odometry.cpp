@@ -11,12 +11,12 @@ Odometry::Odometry(WheeledBase& base)
 	m_lastTime = micros();
 }
 
-const Odometry::State& Odometry::getState() const
+const State& Odometry::getState() const
 {
 	return m_state;
 }
 
-const Odometry::Movement& Odometry::getMovement() const
+const Movement& Odometry::getMovement() const
 {
 	return m_movement;
 }
@@ -57,7 +57,7 @@ void Odometry::update()
 		const float dL	= m_base.leftEncoder.getTraveledDistance();
 		const float dR	= m_base.rightEncoder.getTraveledDistance();
 		const float dM	= (dL + dR) / 2;
-		
+
 		const float dx		= dM * cos(m_state.theta);
 		const float dy		= dM * sin(m_state.theta);
 		const float dtheta	= (dR - dL) / m_base.axleTrack;
