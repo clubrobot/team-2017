@@ -3,7 +3,10 @@
 
 #include <Arduino.h>
 
-class RotaryEncoder
+#include "NonCopyable.h"
+
+
+class RotaryEncoder : private NonCopyable
 {
 public:
 

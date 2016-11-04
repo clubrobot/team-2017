@@ -3,7 +3,10 @@
 
 #include <Arduino.h>
 
-class DCMotor
+#include "NonCopyable.h"
+
+
+class DCMotor : private NonCopyable
 {
 public:
 
