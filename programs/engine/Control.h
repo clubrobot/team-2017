@@ -2,10 +2,10 @@
 #define __CONTROL_H__
 
 #include <Arduino.h>
-#include <PID_v1.h>
 
 #include "WheeledBase.h"
 #include "Odometry.h"
+#include "MyPID.h"
 
 
 class Control
@@ -14,9 +14,15 @@ public:
 
 	Control(WheeledBase& base, Odometry& odometry);
 
+	void setVelocitySetpoint(float setpoint);
+	void setOmegaSetpoint(float setpoint);
+
 	void step();
 
 private:
+
+	MyPID			m_velocityController;
+	MyPID			m_omegaController;
 
 	WheeledBase&	m_base;
 	Odometry&		m_odometry;
