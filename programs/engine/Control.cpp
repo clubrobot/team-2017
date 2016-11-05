@@ -35,7 +35,10 @@ void Control::step()
 
 	const float velocityOutput	= m_velocityController.getOutput();
 	const float omegaOutput		= m_omegaController   .getOutput();
-	
-	m_base.leftMotor .setSpeed(velocityOutput - omegaOutput * m_base.axleTrack / 2);
-	m_base.rightMotor.setSpeed(velocityOutput + omegaOutput * m_base.axleTrack / 2);
+
+	const float K_L = 1 / (622 * 2 * M_PI * m_base.leftWheelRadius);
+	const float K_R = 1 / (622 * 2 * M_PI * m_base.rightWheelRadius);
+
+	m_base.leftMotor .setSpeed(K_L * (velocityOutput - omegaOutput * m_base.axleTrack / 2));
+	m_base.rightMotor.setSpeed(K_R * (velocityOutput + omegaOutput * m_base.axleTrack / 2));
 }
