@@ -64,6 +64,9 @@ void setup()
 	RobotCom::init();
 	RobotCom::addCommand(SET_MOTOR_SPEED_OPCODE, setMotorSpeedCommand);
 	RobotCom::addCommand(GET_WHEEL_VALUE_OPCODE, getWheelValueCommand);
+
+	control.setVelocitySetpoint(0);
+	control.setOmegaSetpoint(3.14 / 10);
 }
 
 void loop()
