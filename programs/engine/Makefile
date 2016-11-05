@@ -6,5 +6,6 @@ MONITOR_PORT	= /dev/arduino/engine
 
 ARDUINO_LIBS 	+=	EEPROM \
 					RobotCom \
+					PID
 
 include $(ARDMK_DIR)/Arduino.mk

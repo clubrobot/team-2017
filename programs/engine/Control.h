@@ -2,6 +2,7 @@
 #define __CONTROL_H__
 
 #include <Arduino.h>
+#include <PID_v1.h>
 
 #include "WheeledBase.h"
 #include "Odometry.h"
