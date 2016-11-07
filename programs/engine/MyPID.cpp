@@ -1,13 +1,13 @@
 #include "MyPID.h"
 
-
 MyPID::MyPID(float Kp, float Ki, float Kd)
 :	PID(&m_input, &m_output, &m_setpoint, Kp, Ki, Kd, DIRECT)
 ,	m_input(0)
 ,	m_output(0)
 ,	m_setpoint(0)
 {
-
+	SetOutputLimits(-INFINITY, INFINITY);
+	SetMode(AUTOMATIC);
 }
 
 void MyPID::setInput(float input)
