@@ -1,4 +1,6 @@
 #include "MyPID.h"
+#include <math.h>
+
 
 MyPID::MyPID(float Kp, float Ki, float Kd)
 :	PID(&m_input, &m_output, &m_setpoint, Kp, Ki, Kd, DIRECT)
