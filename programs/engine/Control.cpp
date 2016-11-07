@@ -27,7 +27,7 @@ void Control::step()
 	const State&	s = m_odometry.getState();
 	const Movement& m = m_odometry.getMovement();
 
-	m_velocityController.setInput(sqrt(m.dx_dt * m.dx_dt + m.dy_dt + m.dy_dt));
+	m_velocityController.setInput(m.velocity);
 	m_omegaController   .setInput(m.omega);
 
 	m_velocityController.Compute();
@@ -35,10 +35,12 @@ void Control::step()
 
 	const float velocityOutput	= m_velocityController.getOutput();
 	const float omegaOutput		= m_omegaController   .getOutput();
+/*
+Serial.print("velocity: "); Serial.print(m.velocity); Serial.print("\t=> "); Serial.print(velocityOutput);
+Serial.print("\t\t");
+Serial.print("omega   : "); Serial.print(m.omega   ); Serial.print("\t=> "); Serial.print(omegaOutput   );
+Serial.println();*/
 
-	const float K_L = 1 / (622 * 2 * M_PI * m_base.leftWheelRadius);
-	const float K_R = 1 / (622 * 2 * M_PI * m_base.rightWheelRadius);
-
-	m_base.leftMotor .setSpeed(K_L * (velocityOutput - omegaOutput * m_base.axleTrack / 2));
-	m_base.rightMotor.setSpeed(K_R * (velocityOutput + omegaOutput * m_base.axleTrack / 2));
+	m_base.leftMotor .setSpeed(velocityOutput - omegaOutput * m_base.axleTrack / 2);
+	m_base.rightMotor.setSpeed(velocityOutput + omegaOutput * m_base.axleTrack / 2);
 }
