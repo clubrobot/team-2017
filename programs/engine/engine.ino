@@ -60,21 +60,34 @@ int getWheelValueCommand(int argc, byte argv[], byte outv[])
 }
 
 void setup()
-{
+{/*
+	Serial.begin(115200);/*
 	RobotCom::init();
 	RobotCom::addCommand(SET_MOTOR_SPEED_OPCODE, setMotorSpeedCommand);
-	RobotCom::addCommand(GET_WHEEL_VALUE_OPCODE, getWheelValueCommand);
+	RobotCom::addCommand(GET_WHEEL_VALUE_OPCODE, getWheelValueCommand);*/
 
 	control.setVelocitySetpoint(0);
-	control.setOmegaSetpoint(3.14 / 10);
+	control.setOmegaSetpoint(0);
 }
 
 void loop()
-{
-	RobotCom::executeCommands();
+{/*
+	RobotCom::executeCommands();*/
 
 	// Integrate odometry
-	odometry.update();
+	odometry.update();/*
+	Serial.print(odometry.getState().x);
+	Serial.print(" ");
+	Serial.print(odometry.getState().y);
+	Serial.print(" ");
+	Serial.print(odometry.getState().theta);
+	Serial.print(" ");
+	Serial.print(odometry.getMovement().dx_dt);
+	Serial.print(" ");
+	Serial.print(odometry.getMovement().dy_dt);
+	Serial.print(" ");
+	Serial.print(odometry.getMovement().omega);
+	Serial.println();*/
 
 	// Integrate engineering control
 	control.step();
