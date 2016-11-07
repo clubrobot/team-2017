@@ -24,7 +24,12 @@ DCMotor::DCMotor(int EN, int IN1, int IN2, float wheelRadius, float speedConstan
 int DCMotor::getPWM() const
 {
 	int PWM = m_speed * (60 * m_speedReductionRatio / m_speedConstant) / (2 * M_PI * m_wheelRadius) * (255 / m_suppliedVoltage);
-	return (PWM >= 0) ? PWM : -PWM;
+	if (PWM > 255 || PWM < -255)
+		return 255;
+	else if (PWM < 0)
+		return -PWM;
+	else
+		return PWM;
 }
 
 void DCMotor::enable(bool enable)
