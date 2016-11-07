@@ -3,8 +3,8 @@
 
 Control::Control(WheeledBase& base, Odometry& odometry)
 //						| Kp | Ki | Kd |
-:	m_velocityController(  1,   0,   0 )
-,	m_omegaController	(  1,   0,   0 )
+:	m_velocityController(  4,   0,   0 )
+,	m_omegaController	(  4,   0,   0 )
 
 ,	m_base(base)
 ,	m_odometry(odometry)
