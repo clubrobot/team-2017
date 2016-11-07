@@ -18,8 +18,6 @@ struct WheeledBase
 	RotaryEncoder 	leftEncoder;
 	RotaryEncoder 	rightEncoder;
 
-	const float 	leftWheelRadius;
-	const float 	rightWheelRadius;
 	const float 	axleTrack;
 };
 

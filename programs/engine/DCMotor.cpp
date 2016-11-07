@@ -1,18 +1,29 @@
 #include "DCMotor.h"
 
-DCMotor::DCMotor(int EN, int IN1, int IN2)
+DCMotor::DCMotor(int EN, int IN1, int IN2, float wheelRadius, float speedConstant, int speedReductionRatio, int suppliedVoltage)
 :	m_enable(true)
-,	m_ratio(0)
+,	m_speed(0)
 ,	m_driverMode(FAST_DECAY)
 
 ,	m_enablePin(EN)
 ,	m_input1Pin(IN1)
 ,	m_input2Pin(IN2)
+
+,	m_wheelRadius(wheelRadius)
+,	m_speedConstant(speedConstant)
+,	m_speedReductionRatio(speedReductionRatio)
+,	m_suppliedVoltage(suppliedVoltage)
 {
 	pinMode(m_enablePin, OUTPUT);
 	pinMode(m_input1Pin, OUTPUT);
 	pinMode(m_input2Pin, OUTPUT);
 	updatePins();
+}
+
+int DCMotor::getPWM() const
+{
+	int PWM = (60 * m_speedReductionRatio / m_speedConstant) / (2 * M_PI * m_wheelRadius) * (255 / m_suppliedVoltage);
+	return (PWM >= 0) ? PWM : -PWM;
 }
 
 void DCMotor::enable(bool enable)
@@ -21,14 +32,9 @@ void DCMotor::enable(bool enable)
 	updatePins();
 }
 
-void DCMotor::setSpeed(float ratio)
+void DCMotor::setSpeed(float speed)
 {
-	if (ratio < -1.0)
-		m_ratio = -1.0;
-	else if (ratio > 1.0)
-		m_ratio = 1.0;
-	else
-		m_ratio = ratio;
+	m_speed = speed;
 	updatePins();
 }
 
@@ -40,31 +46,32 @@ void DCMotor::setDriverMode(DriverMode mode)
 
 void DCMotor::updatePins()
 {
-	if (m_enable && m_ratio != 0)
+	if (m_enable && m_speed != 0)
 	{
-		if (m_driverMode == FAST_DECAY && m_ratio > 0)
+		int PWM = getPWM();
+		if (m_driverMode == FAST_DECAY && m_speed > 0)
 		{
-			analogWrite(m_enablePin, int(255 * m_ratio));
+			analogWrite(m_enablePin, PWM);
 			digitalWrite(m_input1Pin, HIGH);
 			digitalWrite(m_input2Pin, LOW);
 		}
-		else if (m_driverMode == FAST_DECAY && m_ratio < 0)
+		else if (m_driverMode == FAST_DECAY && m_speed < 0)
 		{
-			analogWrite(m_enablePin, -int(255 * m_ratio));
+			analogWrite(m_enablePin, -PWM);
 			digitalWrite(m_input1Pin, LOW);
 			digitalWrite(m_input2Pin, HIGH);
 		}
-		else if (m_driverMode == SLOW_DECAY && m_ratio > 0)
+		else if (m_driverMode == SLOW_DECAY && m_speed > 0)
 		{
 			digitalWrite(m_enablePin, HIGH);
-			analogWrite(m_input1Pin, int(255 * m_ratio));
+			analogWrite(m_input1Pin, PWM);
 			analogWrite(m_input2Pin, 0);
 		}
-		else if (m_driverMode == SLOW_DECAY && m_ratio < 0)
+		else if (m_driverMode == SLOW_DECAY && m_speed < 0)
 		{
 			digitalWrite(m_enablePin, HIGH);
 			analogWrite(m_input1Pin, 0);
-			analogWrite(m_input2Pin, -int(255 * m_ratio));
+			analogWrite(m_input2Pin, -PWM);
 		}
 	}
 	else
