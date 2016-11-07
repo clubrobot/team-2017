@@ -1,10 +1,6 @@
 #include "RotaryEncoder.h"
 #include <math.h>
 
-#ifndef M_PI
-#define M_PI		3.14159265358979323846
-#endif
-
 
 RotaryEncoder::RotaryEncoder(Axis axis, int XY, int SEL1, int SEL2, int OE, int RST, int Q, int PL, int CP, long countsPerRevolution, float wheelRadius)
 :	m_counterAxis(axis)

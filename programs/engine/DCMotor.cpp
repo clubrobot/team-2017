@@ -1,5 +1,6 @@
 #include "DCMotor.h"
 
+
 DCMotor::DCMotor(int EN, int IN1, int IN2, float wheelRadius, float speedConstant, int speedReductionRatio, int suppliedVoltage)
 :	m_enable(true)
 ,	m_speed(0)
