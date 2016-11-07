@@ -60,7 +60,7 @@ int getWheelValueCommand(int argc, byte argv[], byte outv[])
 }
 
 void setup()
-{/*
+{
 	Serial.begin(115200);/*
 	RobotCom::init();
 	RobotCom::addCommand(SET_MOTOR_SPEED_OPCODE, setMotorSpeedCommand);
@@ -82,9 +82,7 @@ void loop()
 	Serial.print(" ");
 	Serial.print(odometry.getState().theta);
 	Serial.print(" ");
-	Serial.print(odometry.getMovement().dx_dt);
-	Serial.print(" ");
-	Serial.print(odometry.getMovement().dy_dt);
+	Serial.print(odometry.getMovement().velocity);
 	Serial.print(" ");
 	Serial.print(odometry.getMovement().omega);
 	Serial.println();*/
