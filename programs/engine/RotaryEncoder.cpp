@@ -74,8 +74,7 @@ float RotaryEncoder::getTraveledDistance()
 	long oldCounter = getCounter();
 	updateCounter();
 	long counts = getCounter() - oldCounter;
-	
-	float distance = counts / m_countsPerRevolution * 2.0 * M_PI * m_wheelRadius;
+	float distance = (float)counts / m_countsPerRevolution * 2.0 * M_PI * m_wheelRadius;
 	return distance;
 }
 
