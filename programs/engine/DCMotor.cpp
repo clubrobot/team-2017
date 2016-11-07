@@ -22,7 +22,7 @@ DCMotor::DCMotor(int EN, int IN1, int IN2, float wheelRadius, float speedConstan
 
 int DCMotor::getPWM() const
 {
-	int PWM = (60 * m_speedReductionRatio / m_speedConstant) / (2 * M_PI * m_wheelRadius) * (255 / m_suppliedVoltage);
+	int PWM = m_speed * (60 * m_speedReductionRatio / m_speedConstant) / (2 * M_PI * m_wheelRadius) * (255 / m_suppliedVoltage);
 	return (PWM >= 0) ? PWM : -PWM;
 }
 
@@ -57,7 +57,7 @@ void DCMotor::updatePins()
 		}
 		else if (m_driverMode == FAST_DECAY && m_speed < 0)
 		{
-			analogWrite(m_enablePin, -PWM);
+			analogWrite(m_enablePin, PWM);
 			digitalWrite(m_input1Pin, LOW);
 			digitalWrite(m_input2Pin, HIGH);
 		}
@@ -71,7 +71,7 @@ void DCMotor::updatePins()
 		{
 			digitalWrite(m_enablePin, HIGH);
 			analogWrite(m_input1Pin, 0);
-			analogWrite(m_input2Pin, -PWM);
+			analogWrite(m_input2Pin, PWM);
 		}
 	}
 	else
