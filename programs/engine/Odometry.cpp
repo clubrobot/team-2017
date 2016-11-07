@@ -4,7 +4,7 @@
 
 Odometry::Odometry(WheeledBase& base)
 :	m_state(0, 0, 0)
-,	m_movement(0, 0, 0)
+,	m_movement(0, 0)
 
 ,	m_base(base)
 {
@@ -31,9 +31,9 @@ void Odometry::setState(const State& state)
 	m_state = state;
 }
 
-void Odometry::setMovement(float dx, float dy, float omega)
+void Odometry::setMovement(float velocity, float omega)
 {
-	setMovement(Movement(dx, dy, omega));
+	setMovement(Movement(velocity, omega));
 }
 
 void Odometry::setMovement(const Movement& movement)
@@ -51,7 +51,7 @@ unsigned long Odometry::getElapsedTime()
 
 void Odometry::update()
 {
-	const float dt	= getElapsedTime();
+	const float dt	= getElapsedTime() / 1e6;
 	if (dt > 0)
 	{
 		const float dL	= m_base.leftEncoder.getTraveledDistance();
@@ -62,8 +62,7 @@ void Odometry::update()
 		const float dy		= dM * sin(m_state.theta);
 		const float dtheta	= (dR - dL) / m_base.axleTrack;
 
-		m_movement.dx_dt	= dx / dt;
-		m_movement.dy_dt	= dy / dt;
+		m_movement.velocity	= dM / dt;
 		m_movement.omega	= dtheta / dt;
 
 		m_state.x		+= dx;

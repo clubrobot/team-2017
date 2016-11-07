@@ -18,10 +18,10 @@ struct State
 
 struct Movement
 {
-	Movement() : dx_dt(0), dy_dt(0), omega(0){}
-	Movement(float dx_dt, float dy_dt, float omega) : dx_dt(dx_dt), dy_dt(dy_dt), omega(omega){}
+	Movement() : velocity(0), omega(0){}
+	Movement(float velocity, float omega) : velocity(velocity), omega(omega){}
 
-	float dx_dt, dy_dt;
+	float velocity;
 	float omega;
 };
 
@@ -37,7 +37,7 @@ public:
 	void setState(float x, float y, float theta);
 	void setState(const State& state);
 
-	void setMovement(float dx_dt, float dy_dt, float omega);
+	void setMovement(float velocity, float omega);
 	void setMovement(const Movement& movement);
 
 	unsigned long getElapsedTime();
