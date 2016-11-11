@@ -1,34 +1,17 @@
 #include <Arduino.h>
-#include <robotcom.h>
+#include <Commands.h>
+#include <SerialTalks.h>
 
-#define LED 13
+#define BLINK	0x02
+#define LED		13
 
-#define BLINK 0x02
 
-/* Prototypes */
+SerialTalks com("fabrice");
 
-int blinkCommand(int argc, byte argv[], byte outv[]);
-
-/* Arduino */
-
-void setup()
+bool blink(InputStack& input, OutputStack& output)
 {
-	RobotCom::init();
-	RobotCom::addCommand(BLINK, blinkCommand);
-	
-	pinMode(LED, OUTPUT);
-}
-
-void loop()
-{
-	RobotCom::executeCommands();
-}
-
-/* Commands */
-
-int blinkCommand(int argc, byte argv[], byte outv[])
-{
-	int count = (argc > 1) ? argv[1] : 1;
+	byte count = 1;
+	input >> count;
 	for (int i = 0; i < count; i++)
 	{
 		digitalWrite(LED, HIGH);
@@ -36,5 +19,16 @@ int blinkCommand(int argc, byte argv[], byte outv[])
 		digitalWrite(LED, LOW);
 		delay(200);
 	}
-	return 0;
+	return false;
+}
+
+void setup()
+{
+	com.addInstruction(BLINK, blink);
+	pinMode(LED, OUTPUT);
+}
+
+void loop()
+{
+	com.execute();
 }
