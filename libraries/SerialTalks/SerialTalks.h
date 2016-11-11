@@ -2,18 +2,20 @@
 #define __SERIALTALKS_H__
 
 #define SERIALTALKS_BAUDRATE		115200
-#define SERIALTALKS_STARTBYTE		'A'
-#define SERIALTALKS_STOPBYTE		'Z'
+#define SERIALTALKS_MASTER_BYTE		'R'
+#define SERIALTALKS_SLAVE_BYTE		'A'
 
 #define SERIALTALKS_BUFFER_SIZE		64
 
 #define SERIALTALKS_UUID_ADDRESS	0x0000000000
 #define SERIALTALKS_UUID_LENGTH		9
 
-#define SERIALTALKS_LOG_OPCODE		0xFF
 #define SERIALTALKS_GETUUID_OPCODE	0x0
 #define SERIALTALKS_SETUUID_OPCODE	0x1
 #define SERIALTALKS_MAX_OPCODE		0x10
+
+#define SERIALTALKS_STDOUT_OPCODE	0xFF
+#define SERIALTALKS_STDERR_OPCODE	0xFE
 
 
 class Stack
@@ -26,6 +28,7 @@ public:
 	const byte& operator[](int i) const;
 
 	int getLength() const;
+	bool isEmpty() const;
 
 	bool append(byte data);
 	bool append(byte buffer[], int length);
@@ -82,7 +85,7 @@ public:
 	static String getUUID();
 	static void setUUID(String uuid);
 
-private:
+private: // Private methods
 
 	void constructor(String uuid);
 
@@ -90,7 +93,20 @@ private:
 
 	static String generateRandomUUID();
 
+	// Attributes
+
+	struct
+	{
+		SERIALTALKS_WAITING_STATE,
+		SERIALTALKS_INSTRUCTION_STARTING_STATE,
+		SERIALTALKS_INSTRUCTION_RECEIVING_STATE,
+	}	m_state;
+	int	m_instructionBytesCounter;
+
 	Instruction	m_instructions[COMMANDS_MAX_OPCODE];
+
+	InputStack	m_inputBuffer;
+	OutputStack	m_outputBuffer;
 };
 
 #endif // __SERIALTALKS_H__

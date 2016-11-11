@@ -45,6 +45,11 @@ int Stack::getLength() const
 	return m_length;
 }
 
+bool Stack::isEmpty() const
+{
+	return (m_length <= 0);
+}
+
 bool Stack::append(byte data)
 {
 	if (m_length < SERIALTALKS_BUFFER_SIZE)
@@ -101,6 +106,14 @@ InputStack& operator>>(InputStack& stack, T& data)
 	return stack;
 }
 
+template<>
+InputStack& operator>><String>(InputStack& stack, String& data)
+{
+	data = String((char*)(&stack.m_buffer[stack.m_cursor]));
+	stack.m_cursor += data.length() + 1;
+	return stack;
+}
+
 
 // OutputStack
 
@@ -109,6 +122,13 @@ OutputStack& operator<<(OutputStack& stack, const T& data)
 {
 	byte* address = (byte*)(&data);
 	stack.append(address, sizeof(data));
+	return stack;
+}
+
+template<>
+OutputStack& operator<<(OutputStack& stack, const String& data)
+{
+	stack.append(data.c_str(), data.length() + 1);
 	return stack;
 }
 
@@ -147,13 +167,12 @@ void SerialTalks::constructor(String uuid)
 	send(SERIALTALKS_GETUUID_OPCODE, out);
 }
 
-
 int SerialTalks::send(byte opcode, Stack& stack)
 {
 	int count = 0;
-	count += Serial.write(SERIALTALKS_STARTBYTE);
-	count += Serial.write(opcode);
+	count += Serial.write(SERIALTALKS_SLAVE_BYTE);
 	count += Serial.write(byte(1 + stack.m_length));
+	count += Serial.write(opcode);
 	count += Serial.write(stack.m_buffer, stack.m_length);
 	return count;
 }
@@ -162,42 +181,55 @@ void SerialTalks::connect(byte opcode, Instruction instruction)
 {
 	// Add a command to execute when receiving the specified opcode
 	if (opcode < SERIALTALKS_MAX_OPCODE)
-	m_instructions[opcode] = instruction;
+		m_instructions[opcode] = instruction;
 }
 
 void SerialTalks::execute()
 {
-	/*
-    // Read incoming commands
-    int serialLength = Serial.available();
-    for (int i = 0; i < serialLength; i++)
-    {
-        // Append the incoming byte to the current command
-        byte newByte = byte(Serial.read());
-        if (newByte == ROBOTCOM_COMMAND_START_BYTE || inputBufferLength > 0)
-            inputBuffer[inputBufferLength++] = newByte;
-        
-        // Execute it if this is the end of the current command
-        if (inputBufferLength >= 2)
-        {
-            byte* commandBuffer = inputBuffer + 2;
-            int commandLength = inputBuffer[1];
-            if (commandLength <= inputBufferLength - 2)
-            {
-                if (commandLength > 0)
-                {
-                    byte opcode = commandBuffer[0];
-                    int outputLength = 0;
-                    outputBuffer[0] = opcode;
-                    if (commandsList[opcode] != NULL)
-                        outputLength = commandsList[opcode](commandLength, commandBuffer, outputBuffer);
-                    if (outputLength > 0)
-                        send(outputLength, outputBuffer);
-                }
-                inputBufferLength = 0;
-            }
-        }
-    }*/
+	int length = Serial.available();
+	for (int i = 0; i < length; i++)
+	{
+		// Read the incoming byte
+		byte inc = byte(Serial.read());
+		
+		// Use a state machine to process the above byte
+		switch (m_state)
+		{
+		// An instruction always begin with the Master byte
+		case SERIALTALKS_WAITING_STATE:
+			if (inc == SERIALTALKS_MASTER_BYTE)
+			{
+				m_inputBuffer.clear();
+				m_outputBuffer.clear();
+				m_state = SERIALTALKS_INSTRUCTION_STARTING_STATE;
+			}
+			continue;
+
+		// The second byte is the instruction size (for example: 'R', '\x02', '\x03', '\x31')
+		case SERIALTALKS_INSTRUCTION_STARTING_STATE:
+			m_instructionBytesCounter = inc;
+			m_state = (m_byteCounter > 0 && m_byteCounter < SERIALTALKS_BUFFER_SIZE)
+			?	SERIALTALKS_INSTRUCTION_RECEIVING_STATE
+			:	SERIALTALKS_WAITING_STATE;
+			continue;
+
+		// The first instruction byte is the opcode and the others the parameters
+		case SERIALTALKS_INSTRUCTION_RECEIVING_STATE:
+			m_inputBuffer.append(inc);
+			m_instructionBytesCounter--;
+			if (m_instructionBytesCounter == 0)
+			{
+				byte opcode;
+				m_inputBuffer >> opcode;
+				if (m_instructions[opcode] != 0)
+				{
+					if (m_instructions[opcode](m_inputBuffer, m_outputBuffer))
+						send(opcode, m_outputBuffer);
+				}
+				m_state = SERIALTALKS_WAITING_STATE;
+			}
+		}
+	}
 }
 
 String SerialTalks::getUUID()
