@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include <EEPROM.h>
 
 #include "SerialTalks.h"
@@ -6,18 +5,18 @@
 
 // Built-in instructions
 
-bool SerialTalks::getUUIDInstruction(InputStack &input, OutputStack& output)
+static bool getUUIDInstruction(InputStack &input, OutputStack& output)
 {
-	String uuid = getUUID();
+	String uuid = SerialTalks.getUUID();
 	output << uuid;
 	return true;
 }
 
-bool SerialTalks::setUUIDInstruction(InputStack &input, OutputStack& output)
+static bool setUUIDInstruction(InputStack &input, OutputStack& output)
 {	
     String uuid;
 	input >> uuid;
-    setUUID(uuid);
+    SerialTalks.setUUID(uuid);
     return false;
 }
 
@@ -40,6 +39,11 @@ const byte& Stack::operator[](int i) const
 		return m_buffer[i % m_length + m_length];
 }
 
+const byte* Stack::getBytes() const
+{
+	return m_buffer;
+}
+
 int Stack::getLength() const
 {
 	return m_length;
@@ -60,7 +64,7 @@ bool Stack::append(byte data)
 	return false;
 }
 
-bool Stack::append(byte buffer[], int length)
+bool Stack::append(const byte* buffer, int length)
 {
 	for (int i = 0; i < length; i++)
 	{
@@ -91,66 +95,29 @@ void Stack::clear()
 	m_length = 0;
 }
 
-
-// InputStack
-
-template<typename T>
-InputStack& operator>>(InputStack& stack, T& data)
-{
-	byte* address = (byte*)(&data);
-	for (int i = 0; i < sizeof(data); i++)
-	{
-		if (stack.m_cursor < stack.m_length)
-			address[i] = stack.m_buffer[stack.m_cursor++];
-	}
-	return stack;
-}
-
 template<>
-InputStack& operator>><String>(InputStack& stack, String& data)
+InputStack& operator>> <String>(InputStack& stack, String& data)
 {
-	data = String((char*)(&stack.m_buffer[stack.m_cursor]));
+	data = String((char*)(stack.m_buffer + stack.m_cursor));
 	stack.m_cursor += data.length() + 1;
 	return stack;
 }
 
-
-// OutputStack
-
-template<typename T>
-OutputStack& operator<<(OutputStack& stack, const T& data)
-{
-	byte* address = (byte*)(&data);
-	stack.append(address, sizeof(data));
-	return stack;
-}
-
 template<>
-OutputStack& operator<<(OutputStack& stack, const String& data)
+OutputStack& operator<< <String>(OutputStack& stack, const String& data)
 {
-	stack.append(data.c_str(), data.length() + 1);
+	stack.append((const byte*)(data.c_str()), data.length() + 1);
 	return stack;
 }
-
 
 // SerialTalks
 
-SerialTalks::SerialTalks()
+SerialTalks_::SerialTalks_()
 {
 	String uuid = getUUID();
 	if (uuid == "")
 		uuid = generateRandomUUID();
-	
-	constructor(uuid);
-}
 
-SerialTalks::SerialTalks(String uuid)
-{
-	constructor(uuid);
-}
-
-void SerialTalks::constructor(String uuid)
-{
 	// Initialize serial port
 	Serial.begin(SERIALTALKS_BAUDRATE);
 
@@ -158,8 +125,8 @@ void SerialTalks::constructor(String uuid)
 	setUUID(uuid);
 
 	// Add UUID accessors
-	addInstruction(SERIALTALKS_GETUUID_OPCODE, getUUIDInstruction);
-	addInstruction(SERIALTALKS_SETUUID_OPCODE, setUUIDInstruction);
+	connect(SERIALTALKS_GETUUID_OPCODE, getUUIDInstruction);
+	connect(SERIALTALKS_SETUUID_OPCODE, setUUIDInstruction);
 
 	// Tell it's ready by sending the UUID
 	OutputStack out;
@@ -167,25 +134,26 @@ void SerialTalks::constructor(String uuid)
 	send(SERIALTALKS_GETUUID_OPCODE, out);
 }
 
-int SerialTalks::send(byte opcode, Stack& stack)
+int SerialTalks_::send(byte opcode, Stack& stack)
 {
 	int count = 0;
 	count += Serial.write(SERIALTALKS_SLAVE_BYTE);
-	count += Serial.write(byte(1 + stack.m_length));
+	count += Serial.write(byte(1 + stack.getLength()));
 	count += Serial.write(opcode);
-	count += Serial.write(stack.m_buffer, stack.m_length);
+	count += Serial.write(stack.getBytes(), stack.getLength());
 	return count;
 }
 
-void SerialTalks::connect(byte opcode, Instruction instruction)
+void SerialTalks_::connect(byte opcode, Instruction instruction)
 {
 	// Add a command to execute when receiving the specified opcode
 	if (opcode < SERIALTALKS_MAX_OPCODE)
 		m_instructions[opcode] = instruction;
 }
 
-void SerialTalks::execute()
+bool SerialTalks_::execute()
 {
+	bool ret = false;
 	int length = Serial.available();
 	for (int i = 0; i < length; i++)
 	{
@@ -208,7 +176,7 @@ void SerialTalks::execute()
 		// The second byte is the instruction size (for example: 'R', '\x02', '\x03', '\x31')
 		case SERIALTALKS_INSTRUCTION_STARTING_STATE:
 			m_instructionBytesCounter = inc;
-			m_state = (m_byteCounter > 0 && m_byteCounter < SERIALTALKS_BUFFER_SIZE)
+			m_state = (m_instructionBytesCounter > 0 && m_instructionBytesCounter < SERIALTALKS_BUFFER_SIZE)
 			?	SERIALTALKS_INSTRUCTION_RECEIVING_STATE
 			:	SERIALTALKS_WAITING_STATE;
 			continue;
@@ -225,14 +193,16 @@ void SerialTalks::execute()
 				{
 					if (m_instructions[opcode](m_inputBuffer, m_outputBuffer))
 						send(opcode, m_outputBuffer);
+					ret = true;
 				}
 				m_state = SERIALTALKS_WAITING_STATE;
 			}
 		}
 	}
+	return ret;
 }
 
-String SerialTalks::getUUID()
+String SerialTalks_::getUUID()
 {
 	String uuid = "";
 	for (int i = 0; i < int(EEPROM.length()); i++)
@@ -246,7 +216,7 @@ String SerialTalks::getUUID()
 	return "";
 }
 
-String SerialTalks::generateRandomUUID()
+String SerialTalks_::generateRandomUUID()
 {
 	// Initialize the random number generator
 	randomSeed(analogRead(0));
@@ -263,7 +233,7 @@ String SerialTalks::generateRandomUUID()
 	return uuid;
 }
 
-void SerialTalks::setUUID(String uuid)
+void SerialTalks_::setUUID(String uuid)
 {
 	int uuidLength = uuid.length();
 	for (int i = 0; i < uuidLength; i++)
@@ -273,3 +243,5 @@ void SerialTalks::setUUID(String uuid)
 	}
 	EEPROM.write(SERIALTALKS_UUID_ADDRESS + uuidLength, '\0');
 }
+
+SerialTalks_ SerialTalks; // TODO: add Serial as an attribute
