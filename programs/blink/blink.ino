@@ -1,12 +1,9 @@
 #include <Arduino.h>
-#include <Commands.h>
 #include <SerialTalks.h>
 
 #define BLINK	0x02
 #define LED		13
 
-
-SerialTalks com("fabrice");
 
 bool blink(InputStack& input, OutputStack& output)
 {
@@ -24,11 +21,12 @@ bool blink(InputStack& input, OutputStack& output)
 
 void setup()
 {
-	com.addInstruction(BLINK, blink);
+	SerialTalks.setUUID("fabrice");
+	SerialTalks.connect(BLINK, blink);
 	pinMode(LED, OUTPUT);
 }
 
 void loop()
 {
-	com.execute();
+	SerialTalks.execute();
 }
