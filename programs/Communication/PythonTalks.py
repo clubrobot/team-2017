@@ -32,9 +32,9 @@ class PythonCom:
     def connect(self):
         if(self.ordre == 0):
             print("connection ...\nServer A ...")
-            
- 
-            self.ip = self.server.connexion()
+            self.server.start()
+            while(self.server.getip()==0):
+                time.sleep(0.5)
             print("OK\nServer B ...")
             time.sleep(1)
             self.client.connexion(self.ip,25565)
@@ -44,7 +44,9 @@ class PythonCom:
             print("connection ...\n Server A ...")
             self.client.connexion(self.ip,25566)
             self.client.start()
-            self.server.connexion()
+            self.server.start()
+            while(self.server.getip()==0):
+                time.sleep(0.5)
             print("OK\nServer B ...")
 
 
@@ -89,13 +91,13 @@ class Client(Thread):
 
 
 
-class Server():
+class Server(Thread):
     def __init__(self,port):
         self.adresse = 0
         self.port = port
         self.client = 0
         self.connexion = False
-
+        Thread.__init__(self)
         self.host = gethostbyname(gethostname())
         self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -105,11 +107,13 @@ class Server():
     def send(self,var):
         self.client.send(var)
 
-    def connexion(self):
+    def run(self):
         self.MySocket.listen(5)
         self.client, self.adresse = self.MySocket.accept()    
         self.connexion = True
-        return(self.adresse[0])
+        while True:
+            print("e")
+            time.sleep(10)
 
     def getip(self):
         if(self.connexion == False):
