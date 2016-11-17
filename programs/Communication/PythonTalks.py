@@ -21,13 +21,13 @@ class PythonCom:
             self.server= Server(25566)
             self.client = Client()
 
-    def send(variable):
-        self.server(pickle.dumps(variable))
+    def send(self,variable):
+        self.server.send(pickle.dumps(variable))
         
     def connect(self):
         if(self.ordre == 0):
             print("connection ...\nServer A ...")
-            self.server.start()
+            self.server.connect()
             while (self.server.getip()==0):
                 time.sleep(1)
             self.ip = self.server.getip()
@@ -35,12 +35,13 @@ class PythonCom:
             time.sleep(1)
             self.client.connexion(self.ip,25565)
             self.client.start()
+            self.server.stop()
             print("Ok\n connection established")
         if(self.ordre==1):
             print("connection ...\n Server A ...")
             self.client.connexion(self.ip,25566)
             self.client.start()
-            self.server.start()
+            self.server.connect()
             while (self.server.getip()==0):
                 time.sleep(1)
             print("OK\nServer B ...")
@@ -63,14 +64,15 @@ class Client(Thread):
         self.port = port
         marqueur1 = 0
         marqueur2 = True
+        print(ip)
         while(marqueur2):
             marqueur2 = False
             try:
                 self.MySocket.connect((self.ip, self.port))
             except:
-            print('error1')
-            marqueur2 = True
-            marqueur1 = marqueur1 + 1
+                print('error1')
+                marqueur2 = True
+                marqueur1 = marqueur1 + 1
             if(marqueur1 >5): 
                 return()
 
@@ -78,19 +80,19 @@ class Client(Thread):
         while True:
             
             time.sleep(1)
-            print(pickle.loads(self.MySocket.rcv(8096)))
+            print(pickle.loads(self.MySocket.recv(8096)))
             print("efse")
 
 
 
-class Server(Thread):
+
+class Server:
     def __init__(self,port):
         self.adresse = 0
         self.port = port
         self.client = 0
         self.connexion = False
 
-        Thread.__init__(self)
         self.host = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
         self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -104,27 +106,21 @@ class Server(Thread):
         else:
             return(self.adresse[0])
 
-    def send(variable):
+    def send(self,variable):
         self.client.send(variable)
 
-    def run(self):
+    def stop(self): 
+        self.Terminated = True
+
+    def connect(self):
         self.MySocket.listen(5)
         self.client, self.adresse = self.MySocket.accept()    
         #print("Client connécté , IP = %s et Port = %s" % (self.adresse[0] , self.adresse[1]))
         self.connexion = True
-        while True:
-            print("é")
-            time.sleep(10)
+
 
 premier = PythonCom('0')
 premier.connect()
-        
-
-    
-
-
-
-
-
-
-
+premier.send("estest")
+time.sleep(5)
+premier.send(["si ca marque",456423,"c est cool"])
