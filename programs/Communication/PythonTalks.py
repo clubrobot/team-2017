@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 #pickle.dumps
 import os
-
+from socket import *
 import time
 from threading import Thread
 import socket
@@ -23,7 +23,7 @@ class PythonCom:
             self.server= Server(25566)
             self.client = Client()
 
-    def send(variable):
+    def send(self,variable):
         variable = pickle.loads(variable)
         self.serveur.send(variable)
 
@@ -66,11 +66,19 @@ class Client(Thread):
     def connexion(self, ip, port):
         self.ip = ip 
         self.port = port
-        try:
-            self.MySocket.connect((self.ip, self.port))
-        except:
-            print('error1')
-            return()
+        marqueur1 = 0
+        marqueur2 = True
+        while(marqueur2):
+            marqueur2 = False
+            try:
+                self.MySocket.connect((self.ip, self.port))
+            except:
+                print('error1')
+                marqueur2 = True
+                marqueur1 = marqueur1 + 1
+            if(marqueur1 >5): 
+                return()
+
         if(port ==25566):
             print("Ok \n connection established")
         
@@ -92,7 +100,7 @@ class Server(Thread):
         self.connexion = False
 
         Thread.__init__(self)
-        self.host = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
+        self.host = gethostbyname(gethostname())
         self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.MySocket.bind((self.host,self.port))
