@@ -24,7 +24,7 @@ class PythonCom:
             self.client = Client()
 
     def send(self,variable):
-        variable = pickle.loads(variable)
+        variable = pickle.dumps(variable)
         self.serveur.send(variable)
 
         
@@ -88,7 +88,7 @@ class Client(Thread):
             
             time.sleep(0.5)
             var = self.MySocket.recv(4096)
-            print(var)
+            print(pickle.loads(var))
 
 
 
