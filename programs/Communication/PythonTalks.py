@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 #-*- coding: utf-8 -*-
+#pickle.dumps
 import os
+
 import time
 from threading import Thread
 import socket
@@ -22,6 +24,9 @@ class PythonCom:
             self.client = Client()
 
     def send(variable):
+        variable = pickle.loads(variable)
+        self.serveur.send(variable)
+
         
         
     def connect(self):
@@ -73,8 +78,9 @@ class Client(Thread):
     def run(self):
         while True:
             
-            time.sleep(2)
-            print("efse")
+            time.sleep(0.5)
+            var = self.MySocket.recv(4096)
+            print(var)
 
 
 
@@ -92,6 +98,8 @@ class Server(Thread):
             self.MySocket.bind((self.host,self.port))
         except socket.error:
             print("error2")
+    def send(self,var):
+        self.client.send(var)
 
     def getip(self):
         if(self.connexion == False):
