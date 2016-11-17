@@ -25,17 +25,16 @@ class PythonCom:
 
     def send(self,variable):
         variable = pickle.dumps(variable)
-        self.serveur.send(variable)
+        self.server.send(variable)
 
         
         
     def connect(self):
         if(self.ordre == 0):
             print("connection ...\nServer A ...")
-            self.server.start()
-            while (self.server.getip()==0):
-                time.sleep(1)
-            self.ip = self.server.getip()
+            
+ 
+            self.ip = self.server.connexion()
             print("OK\nServer B ...")
             time.sleep(1)
             self.client.connexion(self.ip,25565)
@@ -45,9 +44,7 @@ class PythonCom:
             print("connection ...\n Server A ...")
             self.client.connexion(self.ip,25566)
             self.client.start()
-            self.server.start()
-            while (self.server.getip()==0):
-                time.sleep(1)
+            self.server.connexion()
             print("OK\nServer B ...")
 
 
@@ -92,14 +89,13 @@ class Client(Thread):
 
 
 
-class Server(Thread):
+class Server():
     def __init__(self,port):
         self.adresse = 0
         self.port = port
         self.client = 0
         self.connexion = False
 
-        Thread.__init__(self)
         self.host = gethostbyname(gethostname())
         self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -109,6 +105,12 @@ class Server(Thread):
     def send(self,var):
         self.client.send(var)
 
+    def connexion(self):
+        self.MySocket.listen(5)
+        self.client, self.adresse = self.MySocket.accept()    
+        self.connexion = True
+        return(self.adresse[0])
+
     def getip(self):
         if(self.connexion == False):
             return(0)
@@ -116,14 +118,7 @@ class Server(Thread):
             return(self.adresse[0])
 
 
-    def run(self):
-        self.MySocket.listen(5)
-        self.client, self.adresse = self.MySocket.accept()    
-        #print("Client connécté , IP = %s et Port = %s" % (self.adresse[0] , self.adresse[1]))
-        self.connexion = True
-        while True:
-            print("é")
-            time.sleep(10)
+
 
 premier = PythonCom('0')
 premier.connect()
