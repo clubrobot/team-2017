@@ -21,7 +21,8 @@ class PythonCom:
             self.server= Server(25566)
             self.client = Client()
 
-        
+    def send(variable):
+        self.server(pickle.dumps(variable))
         
     def connect(self):
         if(self.ordre == 0):
@@ -60,19 +61,24 @@ class Client(Thread):
     def connexion(self, ip, port):
         self.ip = ip 
         self.port = port
-        try:
-            self.MySocket.connect((self.ip, self.port))
-        except:
+        marqueur1 = 0
+        marqueur2 = True
+        while(marqueur2):
+            marqueur2 = False
+            try:
+                self.MySocket.connect((self.ip, self.port))
+            except:
             print('error1')
-            return()
-        if(port ==25566):
-            print("Ok \n connection established")
-        
+            marqueur2 = True
+            marqueur1 = marqueur1 + 1
+            if(marqueur1 >5): 
+                return()
 
     def run(self):
         while True:
             
-            time.sleep(2)
+            time.sleep(1)
+            print(pickle.loads(self.MySocket.rcv(8096)))
             print("efse")
 
 
@@ -98,6 +104,8 @@ class Server(Thread):
         else:
             return(self.adresse[0])
 
+    def send(variable):
+        self.client.send(variable)
 
     def run(self):
         self.MySocket.listen(5)
