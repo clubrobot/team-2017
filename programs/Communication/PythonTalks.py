@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 #-*- coding: utf-8 -*-
-#pickle.dumps
 import os
-from socket import *
 import time
 from threading import Thread
 import socket
@@ -23,18 +21,15 @@ class PythonCom:
             self.server= Server(25566)
             self.client = Client()
 
-    def send(self,variable):
-        variable = pickle.dumps(variable)
-        self.server.send(variable)
-
         
         
     def connect(self):
         if(self.ordre == 0):
             print("connection ...\nServer A ...")
             self.server.start()
-            while(self.server.getip()==0):
-                time.sleep(0.5)
+            while (self.server.getip()==0):
+                time.sleep(1)
+            self.ip = self.server.getip()
             print("OK\nServer B ...")
             time.sleep(1)
             self.client.connexion(self.ip,25565)
@@ -45,8 +40,8 @@ class PythonCom:
             self.client.connexion(self.ip,25566)
             self.client.start()
             self.server.start()
-            while(self.server.getip()==0):
-                time.sleep(0.5)
+            while (self.server.getip()==0):
+                time.sleep(1)
             print("OK\nServer B ...")
 
 
@@ -65,19 +60,11 @@ class Client(Thread):
     def connexion(self, ip, port):
         self.ip = ip 
         self.port = port
-        marqueur1 = 0
-        marqueur2 = True
-        while(marqueur2):
-            marqueur2 = False
-            try:
-                self.MySocket.connect((self.ip, self.port))
-            except:
-                print('error1')
-                marqueur2 = True
-                marqueur1 = marqueur1 + 1
-            if(marqueur1 >5): 
-                return()
-
+        try:
+            self.MySocket.connect((self.ip, self.port))
+        except:
+            print('error1')
+            return()
         if(port ==25566):
             print("Ok \n connection established")
         
@@ -85,9 +72,8 @@ class Client(Thread):
     def run(self):
         while True:
             
-            time.sleep(0.5)
-            var = self.MySocket.recv(4096)
-            print(pickle.loads(var))
+            time.sleep(2)
+            print("efse")
 
 
 
@@ -97,23 +83,14 @@ class Server(Thread):
         self.port = port
         self.client = 0
         self.connexion = False
+
         Thread.__init__(self)
-        self.host = gethostbyname(gethostname())
+        self.host = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
         self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.MySocket.bind((self.host,self.port))
         except socket.error:
             print("error2")
-    def send(self,var):
-        self.client.send(var)
-
-    def run(self):
-        self.MySocket.listen(5)
-        self.client, self.adresse = self.MySocket.accept()    
-        self.connexion = True
-        while True:
-            print("e")
-            time.sleep(10)
 
     def getip(self):
         if(self.connexion == False):
@@ -122,7 +99,14 @@ class Server(Thread):
             return(self.adresse[0])
 
 
-
+    def run(self):
+        self.MySocket.listen(5)
+        self.client, self.adresse = self.MySocket.accept()    
+        #print("Client connécté , IP = %s et Port = %s" % (self.adresse[0] , self.adresse[1]))
+        self.connexion = True
+        while True:
+            print("é")
+            time.sleep(10)
 
 premier = PythonCom('0')
 premier.connect()
