@@ -119,7 +119,7 @@ class Server:
         self.connexion = True
 
 
-premier = PythonCom('0')
+premier = PythonCom('10.12.39.51')
 premier.connect()
 premier.send("estest")
 time.sleep(5)
