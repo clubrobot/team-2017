@@ -6,6 +6,11 @@ from threading import Thread
 import socket
 import pickle
 
+#gestion des erreurs
+#gestion liste de reception 
+#création flux
+
+
 class PythonCom:
     def __init__(self,IP):
         if(IP != '0'):
