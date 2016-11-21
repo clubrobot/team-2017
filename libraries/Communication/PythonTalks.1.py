@@ -15,6 +15,7 @@ class PythonCom:
     def __init__(self,IP):
         self.adresse = 0
         self.client = 0
+        self.server = 0
         self.host = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
         self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if(IP != '0'):
@@ -44,7 +45,7 @@ class PythonCom:
             
             print("connection ...\nServer A ...")
             self.MySocket.listen(5)
-            self.client, self.adresse = self.MySocket.accept()  
+            self.serveur, self.adresse = self.MySocket.accept()  
             self.ip = self.adresse[0]
             print("OK\nServer B ...")
             time.sleep(1)
@@ -55,7 +56,8 @@ class PythonCom:
             print("connection ...\n Server A ...")
             self.client.connexion(self.ip,25566)
             self.client.start()
-            self.client, self.adresse = self.MySocket.accept()  
+            self.MySocket.listen(5)
+            self.server, self.adresse = self.MySocket.accept()  
             self.ip = self.adresse[0]
             print("OK\nServer B ...")
 
@@ -100,7 +102,7 @@ class Client(Thread):
 
 
 
-premier = PythonCom('10.12.39.51')
+premier = PythonCom('0')
 premier.connect()
 premier.send("estest")
 time.sleep(5)
