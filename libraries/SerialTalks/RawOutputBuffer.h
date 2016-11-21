@@ -3,6 +3,13 @@
 
 #include "Buffer.h"
 
+#ifdef ARDUINO
+#include <Arduino.h>
+#else
+#include <string>
+typedef std::string String;
+#endif
+
 template <int MAX_SIZE>
 class RawOutputBuffer : public Buffer<MAX_SIZE>
 {
@@ -15,16 +22,15 @@ public:
 	template<typename T>
 	RawOutputBuffer& operator<<(const T& data)
 	{
-		Buffer<MAX_SIZE>::append((byte*)(&data), sizeof(T));
+		Buffer<MAX_SIZE>::append((const byte*)(&data), sizeof(T));
 		return *this;
 	}
-/*
-	template <>
-	operator>>(String& data)
-	{
 
+	RawOutputBuffer& operator<<(const String& data)
+	{
+		Buffer<MAX_SIZE>::append((const byte*)data.c_str(), data.length() + 1);
+		return *this;
 	}
-*/
 };
 
 #endif // __RAWOUTPUTBUFFER_H__

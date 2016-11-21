@@ -30,15 +30,14 @@ int main(int arc, char* argv[])
 #if TEST_RAWBUFFERS
 	RawOutputBuffer<64> outputBuffer;
 
-	outputBuffer << int(87654321) << char('Z') << float(123.456);
-	cout << outputBuffer.getSize() << endl; // should be 9
+	outputBuffer << int(87654321) << String("hello") << char('Z') << float(123.456);
 
 	RawInputBuffer<32> inputBuffer(outputBuffer);
 
-	int i; char c; float f;
-	inputBuffer >> i >> c >> f;
+	int i; char c; float f; String s;
+	inputBuffer >> i >> s >> c >> f;
 	
-	cout << i << " " << c << " " << f << endl;
+	cout << i << " " << c << " " << f << " " << s <<endl;
 #endif // TEST_RAWBUFFERS
 
 	return 0;
