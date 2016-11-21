@@ -2,10 +2,10 @@
 
 #include "Buffer.h"
 #include "RawInputBuffer.h"
+#include "RawOutputBuffer.h"
 
-#define TEST_BUFFER          0
-#define TEST_RAWINPUTBUFFER  1
-#define TEST_RAWOUTPUTBUFFER 0
+#define TEST_BUFFER      0
+#define TEST_RAWBUFFERS  1
 
 using namespace std;
 
@@ -27,24 +27,19 @@ int main(int arc, char* argv[])
 	cout << endl;
 #endif // TEST_BUFFER
 
-#if TEST_RAWINPUTBUFFER
-	RawInputBuffer<6> buffer;
+#if TEST_RAWBUFFERS
+	RawOutputBuffer<64> outputBuffer;
+
+	outputBuffer << int(87654321) << char('Z') << float(123.456);
+	cout << outputBuffer.getSize() << endl; // should be 9
+
+	RawInputBuffer<64> inputBuffer(outputBuffer);
+
+	int i; char c; float f;
+	inputBuffer >> i >> c >> f;
 	
-	int in_i0 = 123456789;
-	byte in_b0 = 123, in_b1 = 45;
-
-	buffer.append((byte*)(&in_i0), sizeof(in_i0));
-	buffer.append(in_b0);
-	buffer.append(in_b1);
-	cout << buffer.getSize() << endl;
-
-	int out_i0;
-	byte out_b0, out_b1;
-
-	buffer >> out_i0 >> out_b0 >> out_b1;
-	cout << out_i0 << " " << int(out_b0) << " " << int(out_b1) << endl;
-
-#endif // TEST_RAWINPUTBUFFER
+	cout << i << " " << c << " " << f << endl;
+#endif // TEST_RAWBUFFERS
 
 	return 0;
 }
