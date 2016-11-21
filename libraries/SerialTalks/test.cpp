@@ -33,7 +33,7 @@ int main(int arc, char* argv[])
 	outputBuffer << int(87654321) << char('Z') << float(123.456);
 	cout << outputBuffer.getSize() << endl; // should be 9
 
-	RawInputBuffer<64> inputBuffer(outputBuffer);
+	RawInputBuffer<32> inputBuffer(outputBuffer);
 
 	int i; char c; float f;
 	inputBuffer >> i >> c >> f;
