@@ -38,14 +38,14 @@ class PythonCom:
             self.client = Client()
 
     def send(self,variable):
-        self.client.send(pickle.dumps(variable))
+        self.server.send(pickle.dumps(variable))
 
     def connect(self):
         if(self.ordre == 0):
             
             print("connection ...\nServer A ...")
             self.MySocket.listen(5)
-            self.serveur, self.adresse = self.MySocket.accept()  
+            self.server, self.adresse = self.MySocket.accept()  
             self.ip = self.adresse[0]
             print("OK\nServer B ...")
             time.sleep(1)
