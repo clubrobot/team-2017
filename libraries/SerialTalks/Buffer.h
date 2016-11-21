@@ -12,7 +12,12 @@ class Buffer
 {
 public:
 
-	Buffer() : m_size(0){}
+	Buffer()                                     : m_size(0){}
+	template <int OTHER_MAX_SIZE>
+	Buffer(const Buffer<OTHER_MAX_SIZE>& buffer) : m_size(0)
+	{
+		append(buffer.asArray(), buffer.getSize());
+	}
 
 	const byte* asArray() const {return m_bytes;}
 	int         getSize() const {return m_size;}

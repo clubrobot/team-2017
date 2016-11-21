@@ -7,8 +7,9 @@ template <int MAX_SIZE>
 class RawInputBuffer : public Buffer<MAX_SIZE>
 {
 public:
-	RawInputBuffer()                               : Buffer<MAX_SIZE>(),       m_cursor(0){}
-	RawInputBuffer(const Buffer<MAX_SIZE>& buffer) : Buffer<MAX_SIZE>(buffer), m_cursor(0){}
+	RawInputBuffer()                                     : Buffer<MAX_SIZE>(),       m_cursor(0){}
+	template <int OTHER_MAX_SIZE>
+	RawInputBuffer(const Buffer<OTHER_MAX_SIZE>& buffer) : Buffer<MAX_SIZE>(buffer), m_cursor(0){}
 
 	int available() const {return Buffer<MAX_SIZE>::m_size - m_cursor;}
 

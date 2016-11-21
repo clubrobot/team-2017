@@ -8,8 +8,9 @@ class RawOutputBuffer : public Buffer<MAX_SIZE>
 {
 public:
 
-	RawOutputBuffer()                               : Buffer<MAX_SIZE>()      {}
-	RawOutputBuffer(const Buffer<MAX_SIZE>& buffer) : Buffer<MAX_SIZE>(buffer){}
+	RawOutputBuffer()                                     : Buffer<MAX_SIZE>()      {}
+	template <int OTHER_MAX_SIZE>
+	RawOutputBuffer(const Buffer<OTHER_MAX_SIZE>& buffer) : Buffer<MAX_SIZE>(buffer){}
 
 	template<typename T>
 	RawOutputBuffer& operator<<(const T& data)
