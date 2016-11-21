@@ -47,8 +47,10 @@ public:
 	bool append(const byte data[], int size)
 	{
 		for (int i = 0; i < size; i++)
+		{
 			if (!append(data[i]))
 				return false;
+		}
 		return true;
 	}
 
@@ -72,7 +74,6 @@ protected:
 
 	byte m_bytes[MAX_SIZE];
 	int  m_size;
-
 };
 
 #endif // __BUFFER_H__
