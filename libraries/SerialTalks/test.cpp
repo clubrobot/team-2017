@@ -1,44 +1,23 @@
 #include <iostream>
+#include "SerialUtils.h"
 
-#include "Buffer.h"
-#include "RawInputBuffer.h"
-#include "RawOutputBuffer.h"
-
-#define TEST_BUFFER      0
-#define TEST_RAWBUFFERS  1
 
 using namespace std;
 
 int main(int arc, char* argv[])
 {
+	byte buffer[32];
 
-#if TEST_BUFFER
-	Buffer<4> buffer;
-	buffer.append(32);
-	buffer.append(12);
-	buffer.append(buffer.asArray(), buffer.getSize());
-	buffer[0] = 123;
-	buffer.append(56);
-	buffer[-1] = 46;
-	for (int i = 0; i < buffer.getSize(); i++)
-	{
-		cout << int(buffer[i]) << " ";
-	}
-	cout << endl;
-#endif // TEST_BUFFER
+	Serializer   out(buffer);
+	Deserializer in (buffer);
 
-#if TEST_RAWBUFFERS
-	RawOutputBuffer<64> outputBuffer;
+	short rtab[] = {123, 456, 789};
+	out << int(87654321) << String("hello") << char('Z') << float(123.456) << rtab;
 
-	outputBuffer << int(87654321) << String("hello") << char('Z') << float(123.456);
-
-	RawInputBuffer<32> inputBuffer(outputBuffer);
-
-	int i; char c; float f; String s;
-	inputBuffer >> i >> s >> c >> f;
+	int i; char c; float f; String s; short ltab[3];
+	in >> i >> s >> c >> f >> ltab;
 	
-	cout << i << " " << c << " " << f << " " << s <<endl;
-#endif // TEST_RAWBUFFERS
+	cout << i << " " << c << " " << f << " " << s << " {" << ltab[0] << ", " << ltab[1] << ", " << ltab[2] << "} " << endl;
 
 	return 0;
 }
