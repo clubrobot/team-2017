@@ -16,7 +16,13 @@ class TCPTalks:
         self.adresse = 0
         self.client = 0
         self.server = 0
-        self.host = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
+        if os.name == 'nt':
+            self.host = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
+        if os.name == 'posix':
+            a = os.popen("""ifconfig | awk '/inet adr/ {gsub("adr:", "", $2); print $2}'""").readlines()
+            a.remove('127.0.0.1\n')
+            self.host = a[0][0:-1]
+
         #self.host = gethostbyname(gethostname())
         self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if(IP != '0'):
