@@ -11,7 +11,7 @@ import pickle
 #création flux
 
 
-class PythonCom:
+class TCPTalks:
     def __init__(self,IP):
         self.adresse = 0
         self.client = 0
@@ -102,7 +102,7 @@ class Client(Thread):
 
 
 
-premier = PythonCom('0')
+premier = TCPTalks('0')
 premier.connect()
 premier.send("estest")
 time.sleep(5)
