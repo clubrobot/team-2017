@@ -35,6 +35,10 @@ pkill -n java
 sudo apt-get install arduino-mk
 echo export ARDMK_DIR="/usr/share/arduino" >> "$HOME/.bashrc"
 
+# Update environment variables
+
+source ~/.bashrc
+
 # Add the current user to the dialout group
 
 sudo usermod -a -G dialout $USER
