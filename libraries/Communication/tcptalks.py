@@ -17,6 +17,7 @@ class TCPTalks:
         self.client = 0
         self.server = 0
         self.host = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
+        #self.host = gethostbyname(gethostname())
         self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if(IP != '0'):
             try:
