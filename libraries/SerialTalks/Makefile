@@ -17,7 +17,7 @@ UDEV_RULES_DIRECTORY		= /etc/udev/rules.d
 
 arduino_library:
 	mkdir -p $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
-	cp SerialTalks.cpp SerialTalks.h $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
+	cp SerialTalks.cpp SerialTalks.h SerialUtils.h $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
 
 python3_library:
 	mkdir -p $(PYTHON_LIBRARIES_DIRECTORY)
