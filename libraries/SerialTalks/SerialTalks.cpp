@@ -1,164 +1,88 @@
 #include <EEPROM.h>
-
 #include "SerialTalks.h"
+
+
+// Global instance
+
+SerialTalks talks;
 
 
 // Built-in instructions
 
-static bool getUUIDInstruction(InputStack &input, OutputStack& output)
+static bool getUUIDInstruction(Deserializer& input, Serializer& output)
 {
-	String uuid = SerialTalks.getUUID();
+	char uuid[SERIALTALKS_UUID_LENGTH];
+	talks.getUUID(uuid);
 	output << uuid;
 	return true;
 }
 
-static bool setUUIDInstruction(InputStack &input, OutputStack& output)
+static bool setUUIDInstruction(Deserializer& input, Serializer& output)
 {	
-    String uuid;
+	char uuid[SERIALTALKS_UUID_LENGTH];
 	input >> uuid;
-    SerialTalks.setUUID(uuid);
+    talks.setUUID(uuid);
     return false;
 }
 
 
-// Stack
-
-byte& Stack::operator[](int i)
-{
-	if (i % m_length >= 0)
-		return m_buffer[i % m_length];	
-	else
-		return m_buffer[i % m_length + m_length];
-}
-
-const byte& Stack::operator[](int i) const
-{
-	if (i % m_length >= 0)
-		return m_buffer[i % m_length];	
-	else
-		return m_buffer[i % m_length + m_length];
-}
-
-const byte* Stack::getBytes() const
-{
-	return m_buffer;
-}
-
-int Stack::getLength() const
-{
-	return m_length;
-}
-
-bool Stack::isEmpty() const
-{
-	return (m_length <= 0);
-}
-
-bool Stack::append(byte data)
-{
-	if (m_length < SERIALTALKS_BUFFER_SIZE)
-	{
-		m_buffer[m_length++] = data;
-		return true;
-	}
-	return false;
-}
-
-bool Stack::append(const byte* buffer, int length)
-{
-	for (int i = 0; i < length; i++)
-	{
-		if (!append(buffer[i]))
-			return false;
-	}
-	return true;
-}
-
-void Stack::shift(int n)
-{
-	if (n > m_length)
-	{
-		clear();
-	}
-	else if (n > 0)
-	{
-		for (int i = 0; i < m_length - n; i++)
-		{
-			m_buffer[i] = m_buffer[i + n];
-		}
-		m_length -= n;
-	}
-}
-
-void Stack::clear()
-{
-	m_length = 0;
-}
-
-template<>
-InputStack& operator>> <String>(InputStack& stack, String& data)
-{
-	data = String((char*)(stack.m_buffer + stack.m_cursor));
-	stack.m_cursor += data.length() + 1;
-	return stack;
-}
-
-template<>
-OutputStack& operator<< <String>(OutputStack& stack, const String& data)
-{
-	stack.append((const byte*)(data.c_str()), data.length() + 1);
-	return stack;
-}
-
 // SerialTalks
 
-SerialTalks_::SerialTalks_()
+SerialTalks::SerialTalks()
 {
-	String uuid = getUUID();
-	if (uuid == "")
-		uuid = generateRandomUUID();
-
-	// Initialize serial port
-	Serial.begin(SERIALTALKS_BAUDRATE);
-
 	// Initialize UUID stuff
-	setUUID(uuid);
+	char uuid[SERIALTALKS_UUID_LENGTH];
+	if (!getUUID(uuid) || uuid[0] == '\0')
+	{
+		generateRandomUUID(uuid, SERIALTALKS_DEFAULT_UUID_LENGTH);
+		setUUID(uuid);
+	}
 
 	// Add UUID accessors
-	connect(SERIALTALKS_GETUUID_OPCODE, getUUIDInstruction);
-	connect(SERIALTALKS_SETUUID_OPCODE, setUUIDInstruction);
-
-	// Tell it's ready by sending the UUID
-	OutputStack out;
-	out << getUUID();
-	send(SERIALTALKS_GETUUID_OPCODE, out);
+	attach(SERIALTALKS_GETUUID_OPCODE, getUUIDInstruction);
+	attach(SERIALTALKS_SETUUID_OPCODE, setUUIDInstruction);
 }
 
-int SerialTalks_::send(byte opcode, Stack& stack)
+int SerialTalks::send(byte* buffer, int size)
 {
 	int count = 0;
-	count += Serial.write(SERIALTALKS_SLAVE_BYTE);
-	count += Serial.write(byte(1 + stack.getLength()));
-	count += Serial.write(opcode);
-	count += Serial.write(stack.getBytes(), stack.getLength());
+	count += m_stream->write(SERIALTALKS_SLAVE_BYTE);
+	count += m_stream->write(byte(size));
+	count += m_stream->write(buffer, size);
 	return count;
 }
 
-void SerialTalks_::connect(byte opcode, Instruction instruction)
+void SerialTalks::attach(byte opcode, Instruction instruction)
 {
 	// Add a command to execute when receiving the specified opcode
 	if (opcode < SERIALTALKS_MAX_OPCODE)
 		m_instructions[opcode] = instruction;
 }
 
-bool SerialTalks_::execute()
+bool SerialTalks::execute(byte opcode, byte* inputBuffer)
+{
+	if (m_instructions[opcode] != 0)
+	{
+		m_outputBuffer[0] = opcode;
+
+		Deserializer input (inputBuffer);
+		Serializer   output(m_outputBuffer + 1);
+
+		if (m_instructions[opcode](input, output))
+			send(m_outputBuffer, output.buffer - m_outputBuffer);
+		return true;
+	}
+	return false;
+}
+
+bool SerialTalks::execute()
 {
 	bool ret = false;
-	int length = Serial.available();
+	int length = m_stream->available();
 	for (int i = 0; i < length; i++)
 	{
 		// Read the incoming byte
-		byte inc = byte(Serial.read());
+		byte inc = byte(m_stream->read());
 		
 		// Use a state machine to process the above byte
 		switch (m_state)
@@ -166,35 +90,25 @@ bool SerialTalks_::execute()
 		// An instruction always begin with the Master byte
 		case SERIALTALKS_WAITING_STATE:
 			if (inc == SERIALTALKS_MASTER_BYTE)
-			{
-				m_inputBuffer.clear();
-				m_outputBuffer.clear();
 				m_state = SERIALTALKS_INSTRUCTION_STARTING_STATE;
-			}
 			continue;
 
 		// The second byte is the instruction size (for example: 'R', '\x02', '\x03', '\x31')
 		case SERIALTALKS_INSTRUCTION_STARTING_STATE:
-			m_instructionBytesCounter = inc;
-			m_state = (m_instructionBytesCounter > 0 && m_instructionBytesCounter < SERIALTALKS_BUFFER_SIZE)
+			m_bytesNumber  = inc;
+			m_bytesCounter = 0;
+			m_state = (m_bytesNumber < SERIALTALKS_INPUT_BUFFER_SIZE)
 			?	SERIALTALKS_INSTRUCTION_RECEIVING_STATE
 			:	SERIALTALKS_WAITING_STATE;
 			continue;
 
 		// The first instruction byte is the opcode and the others the parameters
 		case SERIALTALKS_INSTRUCTION_RECEIVING_STATE:
-			m_inputBuffer.append(inc);
-			m_instructionBytesCounter--;
-			if (m_instructionBytesCounter == 0)
+			m_inputBuffer[m_bytesCounter++] = inc;
+			if (m_bytesCounter >= m_bytesNumber)
 			{
-				byte opcode;
-				m_inputBuffer >> opcode;
-				if (m_instructions[opcode] != 0)
-				{
-					if (m_instructions[opcode](m_inputBuffer, m_outputBuffer))
-						send(opcode, m_outputBuffer);
-					ret = true;
-				}
+				byte opcode = m_inputBuffer[0];
+				ret |= execute(opcode, m_inputBuffer + 1);
 				m_state = SERIALTALKS_WAITING_STATE;
 			}
 		}
@@ -202,46 +116,46 @@ bool SerialTalks_::execute()
 	return ret;
 }
 
-String SerialTalks_::getUUID()
+bool SerialTalks::getUUID(char* uuid)
 {
-	String uuid = "";
 	for (int i = 0; i < int(EEPROM.length()); i++)
 	{
-		char ch = EEPROM.read(SERIALTALKS_UUID_ADDRESS + i);
-		if (ch != '\0' && ch != 0xFF)
-			uuid += ch;
-		else
-			return uuid;
+		uuid[i] = EEPROM.read(SERIALTALKS_UUID_ADDRESS + i);
+		switch(byte(uuid[i]))
+		{
+		case '\0': return true;
+		case 0xFF: return false;
+		default: continue;
+		}
 	}
-	return "";
+	return false;
 }
 
-String SerialTalks_::generateRandomUUID()
+void SerialTalks::setUUID(const char* uuid)
+{
+	int i = 0;
+	do
+		EEPROM.write(SERIALTALKS_UUID_ADDRESS + i, uuid[i]);
+	while(uuid[i++] != '\0');
+}
+
+void SerialTalks::generateRandomUUID(char* uuid, int length)
 {
 	// Initialize the random number generator
 	randomSeed(analogRead(0));
 
 	// Generate the UUID from a list of random hexadecimal numbers
-	String uuid = "";
-	for (int i = 0; i < SERIALTALKS_UUID_LENGTH; i++)
+	for (int i = 0; i < length; i++)
 	{
 		if (i % 5 == 4)
-			uuid += '-';
+			uuid[i] = '-';
 		else
-			uuid += String(random(16), HEX);
+		{
+			long digit = random(16);
+			if (digit < 10)
+				uuid[i] = char('0' + digit);
+			else
+				uuid[i] = char('a' + digit - 10);
+		}
 	}
-	return uuid;
 }
-
-void SerialTalks_::setUUID(String uuid)
-{
-	int uuidLength = uuid.length();
-	for (int i = 0; i < uuidLength; i++)
-	{
-		char ch = uuid.charAt(i);
-		EEPROM.write(SERIALTALKS_UUID_ADDRESS + i, ch);
-	}
-	EEPROM.write(SERIALTALKS_UUID_ADDRESS + uuidLength, '\0');
-}
-
-SerialTalks_ SerialTalks; // TODO: add Serial as an attribute
