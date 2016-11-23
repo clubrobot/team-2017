@@ -5,7 +5,7 @@
 #define LED		13
 
 
-bool blink(InputStack& input, OutputStack& output)
+bool blink(Deserializer& input, Serializer& output)
 {
 	byte count = 1;
 	input >> count;
@@ -21,12 +21,13 @@ bool blink(InputStack& input, OutputStack& output)
 
 void setup()
 {
-	SerialTalks.setUUID("fabrice");
-	SerialTalks.connect(BLINK, blink);
+	talks.begin(Serial);
+	talks.setUUID("alfred");
+	talks.attach(BLINK, blink);
 	pinMode(LED, OUTPUT);
 }
 
 void loop()
 {
-	SerialTalks.execute();
+	talks.execute();
 }
