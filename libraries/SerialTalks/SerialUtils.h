@@ -24,22 +24,10 @@ struct Serializer
 		return *this;
 	}
 
-	template<typename T, unsigned int N> Serializer& operator<<(const T(&array)[N])
-	{
-		write(array, N);
-		return *this;
-	}
-
 	template<typename T> void write(const T& object)
 	{
 		*(T*)(buffer) = object;
 		buffer += sizeof(T);
-	}
-
-	template<typename T> void write(const T* array, unsigned int length)
-	{
-		for (unsigned int i = 0; i < length; i++)
-			write(array[i]);
 	}
 
 	void write(const char* string)
@@ -70,15 +58,11 @@ struct Deserializer
 		return *this;
 	}
 
-	template<typename T, unsigned int N> Deserializer& operator>>(T(&array)[N])
-	{
-		read(array, N);
-		return *this;
-	}
-
 	Deserializer& operator>>(char* string)
 	{
-		read(string);
+		do
+			*string = read<char>();
+		while ((*string++) != '\0');
 		return *this;
 	}
 
@@ -87,19 +71,6 @@ struct Deserializer
 		byte* address = buffer;
 		buffer += sizeof(T);
 		return *(T*)(address);
-	}
-
-	template<typename T> void read(T* array, unsigned int length)
-	{
-		for (unsigned int i = 0; i < length; i++)
-			array[i] = read<T>();
-	}
-
-	void read(char* string)
-	{
-		do
-			*string = read<char>();
-		while ((*string++) != '\0');
 	}
 };
 
