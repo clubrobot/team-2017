@@ -109,7 +109,7 @@ class Client(Thread):
 
 
 
-premier = TCPTalks('0')
+premier = TCPTalks('192.168.1.11')
 premier.connect()
 premier.send("estest")
 time.sleep(5)
