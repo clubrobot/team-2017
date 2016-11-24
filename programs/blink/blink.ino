@@ -25,6 +25,12 @@ void setup()
 	talks.setUUID("alfred");
 	talks.attach(BLINK, blink);
 	pinMode(LED, OUTPUT);
+
+	char uuid[SERIALTALKS_UUID_LENGTH];
+	talks.getUUID(uuid);
+	talks.out << "Hello there, my name is " << uuid << "!\n";
+	talks.out << "LED is on pin " << LED << "\n";
+	talks.err << "Something happened :(\n";
 }
 
 void loop()
