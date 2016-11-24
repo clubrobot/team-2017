@@ -4,7 +4,7 @@ ARDUINO_SKETCHBOOK_PATH		= $(shell grep -Po '(?<=sketchbook.path=).*' $(HOME)/.a
 ARDUINO_LIBRARIES_DIRECTORY	= $(ARDUINO_SKETCHBOOK_PATH)/libraries
 ARDUINO_LIBRARIES_NAME		= SerialTalks
 
-PYTHON = $(shell readlink $(shell which python3))
+PYTHON = $(shell basename $(shell readlink $(shell which python3)))
 ifeq ($(USER),root)
 PYTHON_LIBRARIES_DIRECTORY	= /usr/local/lib/$(PYTHON)/dist-packages/
 else
@@ -28,7 +28,7 @@ getuuid: python3_library
 	chmod +x $(EXECUTABLES_DIRECTORY)/getuuid
 
 udevrules: getuuid
-	cp commands.rules $(UDEV_RULES_DIRECTORY)
+	cp serialtalks.rules $(UDEV_RULES_DIRECTORY)
 	udevadm control --reload-rules
 
 .PHONY: arduino_library python3_library getuuid udevrules
