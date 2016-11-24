@@ -1,3 +1,5 @@
+#include <SerialTalks.h>
+
 #include "Control.h"
 
 
@@ -36,10 +38,9 @@ void Control::step()
 	const float velocityOutput	= m_velocityController.getOutput();
 	const float omegaOutput		= m_omegaController   .getOutput();
 /*
-Serial.print("velocity: "); Serial.print(m.velocity); Serial.print("\t=> "); Serial.print(velocityOutput);
-Serial.print("\t\t");
-Serial.print("omega   : "); Serial.print(m.omega   ); Serial.print("\t=> "); Serial.print(omegaOutput   );
-Serial.println();*/
+	talks.out << "velocity: " << m.velocity << "\t=> " << velocityOutput;
+	talks.out << "\t\t";
+	talks.out << "omega   : " << m.omega    << "\t=> " << omegaOutput << "\n";//*/
 
 	m_base.leftMotor .setSpeed(velocityOutput - omegaOutput * m_base.axleTrack / 2);
 	m_base.rightMotor.setSpeed(velocityOutput + omegaOutput * m_base.axleTrack / 2);
