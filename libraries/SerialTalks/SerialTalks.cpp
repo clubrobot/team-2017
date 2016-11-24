@@ -26,9 +26,31 @@ static bool setUUIDInstruction(Deserializer& input, Serializer& output)
 }
 
 
+// SerialTalks::ostream
+
+SerialTalks::ostream::ostream(SerialTalks& parent, byte opcode)
+:	m_parent(parent)
+,	m_opcode(opcode)
+{
+	
+}
+
+size_t SerialTalks::ostream::write(uint8_t c)
+{
+	return m_parent.send(m_opcode, &c, 1);
+}
+
+size_t SerialTalks::ostream::write(const uint8_t *buffer, size_t size)
+{
+	return m_parent.send(m_opcode, buffer, size);
+}
+
+
 // SerialTalks
 
 SerialTalks::SerialTalks()
+:	out(*this, SERIALTALKS_STDOUT_OPCODE)
+,	err(*this, SERIALTALKS_STDERR_OPCODE)
 {
 	// Initialize UUID stuff
 	char uuid[SERIALTALKS_UUID_LENGTH];
@@ -43,11 +65,12 @@ SerialTalks::SerialTalks()
 	attach(SERIALTALKS_SETUUID_OPCODE, setUUIDInstruction);
 }
 
-int SerialTalks::send(byte* buffer, int size)
+int SerialTalks::send(byte opcode, const byte* buffer, int size)
 {
 	int count = 0;
 	count += m_stream->write(SERIALTALKS_SLAVE_BYTE);
-	count += m_stream->write(byte(size));
+	count += m_stream->write(byte(size + 1));
+	count += m_stream->write(opcode);
 	count += m_stream->write(buffer, size);
 	return count;
 }
@@ -63,13 +86,11 @@ bool SerialTalks::execute(byte opcode, byte* inputBuffer)
 {
 	if (m_instructions[opcode] != 0)
 	{
-		m_outputBuffer[0] = opcode;
-
 		Deserializer input (inputBuffer);
-		Serializer   output(m_outputBuffer + 1);
+		Serializer   output(m_outputBuffer);
 
 		if (m_instructions[opcode](input, output))
-			send(m_outputBuffer, output.buffer - m_outputBuffer);
+			send(opcode, m_outputBuffer, output.buffer - m_outputBuffer);
 		return true;
 	}
 	return false;
@@ -125,7 +146,7 @@ bool SerialTalks::getUUID(char* uuid)
 		{
 		case '\0': return true;
 		case 0xFF: return false;
-		default: continue;
+		default  : continue;
 		}
 	}
 	return false;

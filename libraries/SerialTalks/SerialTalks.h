@@ -44,6 +44,29 @@ class SerialTalks
 {
 public: // Public API
 
+	class ostream : public Print
+	{
+	public:
+
+		virtual size_t write(uint8_t);
+		virtual size_t write(const uint8_t *buffer, size_t size);
+
+		template<typename T> ostream& operator<<(const T& object)
+		{
+			print(object);
+			return *this;
+		}
+	
+	protected:
+
+		ostream(SerialTalks& parent, byte opcode);
+
+		SerialTalks& m_parent;
+		const byte   m_opcode;
+
+		friend class SerialTalks;
+	};
+
 	typedef bool (*Instruction)(Deserializer& input, Serializer& output);
 
 	SerialTalks();
@@ -67,9 +90,14 @@ public: // Public API
 
 	static void generateRandomUUID(char* uuid, int length);
 
+	// Public attributes (yes we dare!)
+
+	ostream     out;
+	ostream     err;
+
 protected: // Protected methods
 
-	int send(byte* buffer, int size);
+	int send(byte opcode, const byte* buffer, int size);
 
 	// Attributes
 
@@ -85,10 +113,10 @@ protected: // Protected methods
 		SERIALTALKS_WAITING_STATE,
 		SERIALTALKS_INSTRUCTION_STARTING_STATE,
 		SERIALTALKS_INSTRUCTION_RECEIVING_STATE,
-	} m_state;
+	}           m_state;
 	
-	int	m_bytesNumber;
-	int m_bytesCounter;
+	byte        m_bytesNumber;
+	byte        m_bytesCounter;
 };
 
 extern SerialTalks talks;
