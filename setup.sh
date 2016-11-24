@@ -49,7 +49,7 @@ pip3 install pyserial
 
 # Install RobotCom components
 
-cd "$REPOSITORY/libraries/robotcom"
-make arduinolib
-make pythonlib
+cd "$REPOSITORY/libraries/SerialTalks"
+make arduino_library
+make python_library
 sudo make udevrules
