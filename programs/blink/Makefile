@@ -9,6 +9,6 @@ MONITOR_PORT	= $(shell find /dev -name 'ttyUSB*' | head -n 1)
 # Add all the libraries which are used in the sketch
 # Notice the backslashes
 ARDUINO_LIBS 	+=	EEPROM \
-					RobotCom
+					SerialTalks
 
 include $(ARDMK_DIR)/Arduino.mk

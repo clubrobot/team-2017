@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <robotcom.h>
+#include <SerialTalks.h>
 
 #include "WheeledBase.h"
 #include "Odometry.h"
@@ -20,70 +20,43 @@ Control		control(base, odometry);
 
 // Commands
 
-int setSpeedCommand(int argc, byte argv[], byte outv[])
+bool setSpeedCommand(Deserializer& input, Serializer& output)
 {
-	if (argc > 2)
-	{
-		// Parameters
-		const signed char leftSpeed		= argv[1]; // in cm/s
-		const signed char rightSpeed	= argv[2]; // in cm/s
-
-		// Procedure
-		base.leftMotor .setSpeed((float)leftSpeed  * 10);
-		base.rightMotor.setSpeed((float)rightSpeed * 10);
-	}
-	else
-	{
-		base.leftMotor .setSpeed(0);
-		base.rightMotor.setSpeed(0);
-	}
-	return 0;
+	char leftSpeed, rightSpeed; // in cm/s
+	input >> leftSpeed >> rightSpeed;
+	base.leftMotor .setSpeed((float)leftSpeed  * 10);
+	base.rightMotor.setSpeed((float)rightSpeed * 10);
+	return false;
 }
 
-int getStateCommand(int argc, byte argv[], byte outv[])
+bool getStateCommand(Deserializer& input, Serializer& output)
 {
-	// Outputs
-	int outc = 1;
-	float& x		= *((float*)(&outv[outc])); outc += sizeof(float);
-	float& y		= *((float*)(&outv[outc])); outc += sizeof(float);
-	float& theta	= *((float*)(&outv[outc])); outc += sizeof(float);
-
-	// Function
 	const State& s = odometry.getState();
-	x		= s.x;
-	y		= s.y;
-	theta	= s.theta;//*/
-
-	return outc;
+	output << float(s.x) << float(s.y) << float(s.theta);
+	return true;
 }
 
 void setup()
-{/*
-	Serial.begin(115200);//*/
-	RobotCom::init();
-	RobotCom::addCommand(SET_SPEED_OPCODE, setSpeedCommand);
-	RobotCom::addCommand(GET_STATE_OPCODE, getStateCommand);//*/
-	
+{
+	talks.begin(Serial);
+	talks.setUUID("wheeled-base");
+	talks.attach(SET_SPEED_OPCODE, setSpeedCommand);
+	talks.attach(GET_STATE_OPCODE, getStateCommand);
+
 	control.setVelocitySetpoint(0);
 	control.setOmegaSetpoint(0);
 }
 
 void loop()
-{//*
-	RobotCom::executeCommands();//*/
+{
+	talks.execute();
 
 	// Integrate odometry
-	odometry.update();/*
-	Serial.print(odometry.getState().x);
-	Serial.print(" ");
-	Serial.print(odometry.getState().y);
-	Serial.print(" ");
-	Serial.print(odometry.getState().theta);
-	Serial.print(" ");
-	Serial.print(odometry.getMovement().velocity);
-	Serial.print(" ");
-	Serial.print(odometry.getMovement().omega);
-	Serial.println();//*/
+	odometry.update();//*
+	State    s = odometry.getState();
+	Movement m = odometry.getMovement();
+	talks.out << s.x << " " << s.y << " " << s.theta << " ";
+	talks.out << m.velocity << " " << m.omega << "\n";//*/
 
 	// Integrate engineering control
 	//control.step();

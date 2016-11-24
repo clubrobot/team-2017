@@ -2,9 +2,9 @@ USER = $(shell whoami)
 
 ARDUINO_SKETCHBOOK_PATH		= $(shell grep -Po '(?<=sketchbook.path=).*' $(HOME)/.arduino15/preferences.txt)
 ARDUINO_LIBRARIES_DIRECTORY	= $(ARDUINO_SKETCHBOOK_PATH)/libraries
-ARDUINO_LIBRARIES_NAME		= RobotCom
+ARDUINO_LIBRARIES_NAME		= SerialTalks
 
-PYTHON = $(shell readlink $(shell which python3))
+PYTHON = $(shell basename $(shell readlink $(shell which python3)))
 ifeq ($(USER),root)
 PYTHON_LIBRARIES_DIRECTORY	= /usr/local/lib/$(PYTHON)/dist-packages/
 else
@@ -15,20 +15,20 @@ EXECUTABLES_DIRECTORY		= /usr/local/bin
 
 UDEV_RULES_DIRECTORY		= /etc/udev/rules.d
 
-arduinolib:
+arduino_library:
 	mkdir -p $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
-	cp robotcom.cpp robotcom.h $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
+	cp SerialTalks.cpp SerialTalks.h SerialUtils.h $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARIES_NAME)
 
-pythonlib:
+python3_library:
 	mkdir -p $(PYTHON_LIBRARIES_DIRECTORY)
-	cp robotcom.py $(PYTHON_LIBRARIES_DIRECTORY)
+	cp serialtalks.py $(PYTHON_LIBRARIES_DIRECTORY)
 
-getuuid: pythonlib
+getuuid: python3_library
 	cp getuuid $(EXECUTABLES_DIRECTORY)
 	chmod +x $(EXECUTABLES_DIRECTORY)/getuuid
 
 udevrules: getuuid
-	cp robotcom.rules $(UDEV_RULES_DIRECTORY)
+	cp serialtalks.rules $(UDEV_RULES_DIRECTORY)
 	udevadm control --reload-rules
 
-.PHONY: arduinolib pythonlib getuuid rules
+.PHONY: arduino_library python3_library getuuid udevrules

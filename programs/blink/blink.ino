@@ -1,34 +1,14 @@
 #include <Arduino.h>
-#include <robotcom.h>
+#include <SerialTalks.h>
 
-#define LED 13
+#define BLINK	0x02
+#define LED		13
 
-#define BLINK 0x02
 
-/* Prototypes */
-
-int blinkCommand(int argc, byte argv[], byte outv[]);
-
-/* Arduino */
-
-void setup()
+bool blink(Deserializer& input, Serializer& output)
 {
-	RobotCom::init();
-	RobotCom::addCommand(BLINK, blinkCommand);
-	
-	pinMode(LED, OUTPUT);
-}
-
-void loop()
-{
-	RobotCom::executeCommands();
-}
-
-/* Commands */
-
-int blinkCommand(int argc, byte argv[], byte outv[])
-{
-	int count = (argc > 1) ? argv[1] : 1;
+	byte count = 1;
+	input >> count;
 	for (int i = 0; i < count; i++)
 	{
 		digitalWrite(LED, HIGH);
@@ -36,5 +16,24 @@ int blinkCommand(int argc, byte argv[], byte outv[])
 		digitalWrite(LED, LOW);
 		delay(200);
 	}
-	return 0;
+	return false;
+}
+
+void setup()
+{
+	talks.begin(Serial);
+	talks.setUUID("alfred");
+	talks.attach(BLINK, blink);
+	pinMode(LED, OUTPUT);
+
+	char uuid[SERIALTALKS_UUID_LENGTH];
+	talks.getUUID(uuid);
+	talks.out << "Hello there, my name is " << uuid << "!\n";
+	talks.out << "LED is on pin " << LED << "\n";
+	talks.err << "Something happened :(\n";
+}
+
+void loop()
+{
+	talks.execute();
 }
