@@ -140,7 +140,7 @@ class SerialTalks(Thread):
 		self.send(GETUUID_OPCODE)
 		uuid = self.poll(GETUUID_OPCODE, timeout)
 		if uuid is not None:
-			return uuid.decode('charmap')
+			return uuid.decode('charmap').rstrip('\0')
 		else:
 			return None
 
