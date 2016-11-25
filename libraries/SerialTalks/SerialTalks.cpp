@@ -179,4 +179,5 @@ void SerialTalks::generateRandomUUID(char* uuid, int length)
 				uuid[i] = char('a' + digit - 10);
 		}
 	}
+	uuid[length] = '\0';
 }
