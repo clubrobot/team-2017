@@ -53,12 +53,16 @@ SerialTalks::SerialTalks()
 ,	err(*this, SERIALTALKS_STDERR_OPCODE)
 {
 	// Initialize UUID stuff
+#ifdef BOARD_UUID
+	setUUID(BOARD_UUID);
+#else
 	char uuid[SERIALTALKS_UUID_LENGTH];
 	if (!getUUID(uuid) || uuid[0] == '\0')
 	{
 		generateRandomUUID(uuid, SERIALTALKS_DEFAULT_UUID_LENGTH);
 		setUUID(uuid);
 	}
+#endif // BOARD_UUID
 
 	// Add UUID accessors
 	attach(SERIALTALKS_GETUUID_OPCODE, getUUIDInstruction);
