@@ -13,6 +13,8 @@ import pickle
 
 class TCPTalks:
     def __init__(self,IP):
+        super().__setattr__('library', {})
+        self.connected = False
         self.adresse = 0
         self.client = 0
         self.server = 0
@@ -23,7 +25,6 @@ class TCPTalks:
             a.remove('127.0.0.1\n')
             self.host = a[0][0:-1]
 
-        #self.host = gethostbyname(gethostname())
         self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if(IP != '0'):
             try:
@@ -44,6 +45,23 @@ class TCPTalks:
             self.ip = '0'
             self.client = Client()
 
+
+    def __setattr__(self,name , value):
+        if name=='connected':
+            super(TCPTalks, self).__setattr__(name, value)
+        else:
+            if self.connected:
+                self.library[name] = value
+                self.server.send(pickle.dumps([2,name,value]))
+            else:
+                super(TCPTalks, self).__setattr__(name, value)
+
+    def data(self):
+        self.connected = True
+
+    def __getattr__(self,name):
+        return(self.library[name])
+
     def send(self,variable):
         self.server.send(pickle.dumps(variable))
 
@@ -59,6 +77,7 @@ class TCPTalks:
             self.client.connexion(self.ip,25565)
             self.client.start()
             print("Ok\n connection established")
+            self.connected = True
         if(self.ordre==1):
             print("connection ...\n Server A ...")
             self.client.connexion(self.ip,25566)
@@ -67,6 +86,7 @@ class TCPTalks:
             self.server, self.adresse = self.MySocket.accept()  
             self.ip = self.adresse[0]
             print("OK\nServer B ...")
+            self.connected = True
 
 
 
@@ -110,7 +130,10 @@ class Client(Thread):
 
 
 premier = TCPTalks('192.168.1.11')
+
 premier.connect()
 premier.send("estest")
+
+
 time.sleep(5)
 premier.send(["si ca marque",456423,"c est cool"])
