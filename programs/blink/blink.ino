@@ -22,9 +22,6 @@ bool blink(Deserializer& input, Serializer& output)
 void setup()
 {
 	talks.begin(Serial);
-#ifdef UUID
-	talks.setUUID(UUID);
-#endif
 	talks.attach(BLINK, blink);
 	pinMode(LED, OUTPUT);
 
