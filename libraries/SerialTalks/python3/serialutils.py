@@ -33,7 +33,8 @@ class FloatType(AbstractType):
 		return struct.pack(self.standard, real)
 	
 	def from_bytes(self, rawbytes):
-		return struct.unpack(self.standard, rawbytes)[0]
+		length = {'f': 4, 'd': 8}[self.standard]
+		return struct.unpack(self.standard, rawbytes[:length])[0]
 
 
 class StringType(AbstractType):
