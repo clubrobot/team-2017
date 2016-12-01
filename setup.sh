@@ -43,13 +43,6 @@ source ~/.bashrc
 
 sudo usermod -a -G dialout $USER
 
-# Install Python libraries
+# Install libraries
 
-pip3 install pyserial
-
-# Install RobotCom components
-
-cd "$REPOSITORY/libraries/SerialTalks"
-make arduino_library
-make python_library
-sudo make udevrules
+make all -C ./libraries
