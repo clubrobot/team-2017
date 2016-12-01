@@ -39,7 +39,6 @@ bool getStateCommand(Deserializer& input, Serializer& output)
 void setup()
 {
 	talks.begin(Serial);
-	talks.setUUID("wheeled-base");
 	talks.attach(SET_SPEED_OPCODE, setSpeedCommand);
 	talks.attach(GET_STATE_OPCODE, getStateCommand);
 
