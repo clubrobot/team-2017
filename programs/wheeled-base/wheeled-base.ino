@@ -9,6 +9,7 @@
 
 #define SET_SPEED_OPCODE 0x02
 #define GET_STATE_OPCODE 0x03
+#define SET_STATE_OPCODE 0x04
 
 
 // Load the different modules
@@ -22,10 +23,11 @@ Control		control(base, odometry);
 
 bool setSpeedCommand(Deserializer& input, Serializer& output)
 {
-	char leftSpeed, rightSpeed; // in cm/s
+	float leftSpeed, rightSpeed; // in mm/s
 	input >> leftSpeed >> rightSpeed;
-	base.leftMotor .setSpeed((float)leftSpeed  * 10);
-	base.rightMotor.setSpeed((float)rightSpeed * 10);
+	base.leftMotor .setSpeed(leftSpeed);
+	base.rightMotor.setSpeed(rightSpeed);
+	control.disable();
 	return false;
 }
 
@@ -36,11 +38,20 @@ bool getStateCommand(Deserializer& input, Serializer& output)
 	return true;
 }
 
+bool setStateCommand(Deserializer& input, Serializer& output)
+{
+	float x, y, theta;
+	input >> x >> y >> theta;
+	odometry.setState(x, y, theta);
+	return false;
+}
+
 void setup()
 {
 	talks.begin(Serial);
 	talks.attach(SET_SPEED_OPCODE, setSpeedCommand);
 	talks.attach(GET_STATE_OPCODE, getStateCommand);
+	talks.attach(SET_STATE_OPCODE, setStateCommand);
 
 	control.setVelocitySetpoint(0);
 	control.setOmegaSetpoint(0);
@@ -54,11 +65,11 @@ void loop()
 	odometry.update();//*
 	State    s = odometry.getState();
 	Movement m = odometry.getMovement();
-	talks.out << s.x << " " << s.y << " " << s.theta << " ";
-	talks.out << m.velocity << " " << m.omega << "\n";//*/
+	//talks.out << s.x << " " << s.y << " " << s.theta << " ";
+	//talks.out << m.velocity << " " << m.omega << "\n";//*/
 
 	// Integrate engineering control
-	//control.step();
+	control.step();
 
 	// Delay
 	delayMicroseconds(5000);
