@@ -4,6 +4,8 @@ BOARD_TAG = nano
 BOARD_SUB = atmega328
 BOARD_UUID = wheeled-base
 
+MONITOR_PORT = /dev/arduino/$(BOARD_UUID)
+
 # Add all the libraries which are used in the sketch (separated by spaces)
 
 ARDUINO_LIBS +=	PID
