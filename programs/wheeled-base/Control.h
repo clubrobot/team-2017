@@ -19,6 +19,9 @@ public:
 
 	void step();
 
+	void enable();
+	void disable();
+
 private:
 
 	MyPID			m_velocityController;
@@ -26,6 +29,8 @@ private:
 
 	WheeledBase&	m_base;
 	Odometry&		m_odometry;
+
+	bool			m_enabled;
 };
 
 #endif //__CONTROL_H__

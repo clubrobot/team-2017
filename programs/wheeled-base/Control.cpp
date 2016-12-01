@@ -10,6 +10,8 @@ Control::Control(WheeledBase& base, Odometry& odometry)
 
 ,	m_base(base)
 ,	m_odometry(odometry)
+
+,	m_enabled(true)
 {
 
 }
@@ -26,22 +28,39 @@ void Control::setOmegaSetpoint(float setpoint)
 
 void Control::step()
 {
-	const State&	s = m_odometry.getState();
-	const Movement& m = m_odometry.getMovement();
+	if (m_enabled)
+	{
+		const State&	s = m_odometry.getState();
+		const Movement& m = m_odometry.getMovement();
 
-	m_velocityController.setInput(m.velocity);
-	m_omegaController   .setInput(m.omega);
+		m_velocityController.setInput(m.velocity);
+		m_omegaController   .setInput(m.omega);
 
-	m_velocityController.Compute();
-	m_omegaController   .Compute();
+		m_velocityController.Compute();
+		m_omegaController   .Compute();
 
-	const float velocityOutput	= m_velocityController.getOutput();
-	const float omegaOutput		= m_omegaController   .getOutput();
-/*
-	talks.out << "velocity: " << m.velocity << "\t=> " << velocityOutput;
-	talks.out << "\t\t";
-	talks.out << "omega   : " << m.omega    << "\t=> " << omegaOutput << "\n";//*/
+		const float velocityOutput	= m_velocityController.getOutput();
+		const float omegaOutput		= m_omegaController   .getOutput();
+	/*
+		talks.out << "velocity: " << m.velocity << "\t=> " << velocityOutput;
+		talks.out << "\t\t";
+		talks.out << "omega   : " << m.omega    << "\t=> " << omegaOutput << "\n";//*/
 
-	m_base.leftMotor .setSpeed(velocityOutput - omegaOutput * m_base.axleTrack / 2);
-	m_base.rightMotor.setSpeed(velocityOutput + omegaOutput * m_base.axleTrack / 2);
+		m_base.leftMotor .setSpeed(velocityOutput - omegaOutput * m_base.axleTrack / 2);
+		m_base.rightMotor.setSpeed(velocityOutput + omegaOutput * m_base.axleTrack / 2);
+	}
+}
+
+void Control::enable()
+{
+	m_enabled = true;
+	m_velocityController.SetMode(AUTOMATIC);
+	m_omegaController   .SetMode(AUTOMATIC);
+}
+
+void Control::disable()
+{
+	m_enabled = false;
+	m_velocityController.SetMode(MANUAL);
+	m_omegaController   .SetMode(MANUAL);
 }
