@@ -16,6 +16,13 @@ EXECUTABLES_DIRECTORY		= /usr/local/bin
 
 UDEV_RULES_DIRECTORY		= /etc/udev/rules.d
 
+all:
+	make arduino_library
+	make python3_library
+	sudo make getuuid
+	sudo make getlogs
+	sudo make udevrules
+
 arduino_library:
 	mkdir -p $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARY_NAME)
 	cp arduino/*.cpp arduino/*.h $(ARDUINO_LIBRARIES_DIRECTORY)/$(ARDUINO_LIBRARY_NAME)
@@ -37,4 +44,4 @@ udevrules: getuuid
 	cp *.rules $(UDEV_RULES_DIRECTORY)
 	udevadm control --reload-rules
 
-.PHONY: arduino_library python3_library getuuid udevrules
+.PHONY: all arduino_library python3_library getuuid udevrules
