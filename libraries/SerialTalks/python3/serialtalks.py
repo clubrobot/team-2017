@@ -5,6 +5,8 @@ import serial
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event
 
+from serialtalks import serialutils
+
 BAUDRATE = 115200
 
 MASTER_BYTE = b'R'
@@ -15,18 +17,25 @@ SETUUID_OPCODE = 0x01
 STDOUT_OPCODE  = 0xFF
 STDERR_OPCODE  = 0xFE
 
+BYTEORDER = 'little'
+ENCODING  = 'utf-8'
 
-def serialize(objct):
-	if isinstance(objct, bytes):
-		return objct
-	elif isinstance(objct, str):
-		return objct.encode('charmap')
-	elif isinstance(objct, int):
-		return objct.to_bytes(1, byteorder = 'little')
-	elif isinstance(objct, float):
-		return round(objct).to_bytes(1, byteorder = 'little')
-	else:
-		return bytes(objct)
+CHAR   = serialutils.IntegerType(1, BYTEORDER, True)
+UCHAR  = serialutils.IntegerType(1, BYTEORDER, False)
+SHORT  = serialutils.IntegerType(2, BYTEORDER, True)
+USHORT = serialutils.IntegerType(2, BYTEORDER, False)
+LONG   = serialutils.IntegerType(4, BYTEORDER, True)
+ULONG  = serialutils.IntegerType(4, BYTEORDER, False)
+
+FLOAT  = serialutils.FloatType('f')
+
+STRING = serialutils.StringType(ENCODING)
+
+BYTE   = UCHAR
+INT    = SHORT
+UINT   = USHORT
+DOUBLE = FLOAT
+
 
 class SerialTalks(Thread):
 
@@ -78,13 +87,10 @@ class SerialTalks(Thread):
 		if not self.is_connected():
 			raise RuntimeError('\'{}\' is not connected.'.format(self.stream.port))
 
-		prefix = MASTER_BYTE
-		content = bytes([opcode])
+		content  = bytes([opcode])
+		content += b''.join(params)
+		prefix   = MASTER_BYTE + bytes([len(content)])
 
-		for param in params:
-			content += serialize(param)
-
-		prefix += bytes([len(content)])
 		return self.stream.write(prefix + content)
 	
 	def get_queue(self, opcode):
@@ -127,7 +133,8 @@ class SerialTalks(Thread):
 		queue = self.get_queue(opcode)
 		block = (timeout is None or timeout > 0)
 		try:
-			return queue.get(block, timeout)
+			rawbytes = queue.get(block, timeout)
+			return serialutils.Deserializer(rawbytes)
 		except Empty:
 			return None
 	
@@ -138,20 +145,20 @@ class SerialTalks(Thread):
 	def getuuid(self, timeout = 1):
 		self.flush(GETUUID_OPCODE)
 		self.send(GETUUID_OPCODE)
-		uuid = self.poll(GETUUID_OPCODE, timeout)
+		uuid = self.poll(GETUUID_OPCODE, timeout).read(STRING)
 		if uuid is not None:
-			return uuid.decode('charmap').rstrip('\0')
+			return uuid
 		else:
 			return None
 
 	def setuuid(self, uuid):
-		return self.send(SETUUID_OPCODE, uuid)
+		return self.send(SETUUID_OPCODE, STRING(uuid))
 
 	def getlog(self, opcode, timeout = 0):
 		log = str()
 		while True:
 			try:
-				log += self.poll(opcode, timeout).decode('charmap')
+				log += self.poll(opcode, timeout).read(STRING)
 			except AttributeError:
 				break
 		return log

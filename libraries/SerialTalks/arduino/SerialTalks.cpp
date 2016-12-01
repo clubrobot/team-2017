@@ -37,12 +37,13 @@ SerialTalks::ostream::ostream(SerialTalks& parent, byte opcode)
 
 size_t SerialTalks::ostream::write(uint8_t c)
 {
-	return m_parent.send(m_opcode, &c, 1);
+	uint8_t buffer[2] = {c, '\0'};
+	return write(buffer, 2);
 }
 
 size_t SerialTalks::ostream::write(const uint8_t *buffer, size_t size)
 {
-	return m_parent.send(m_opcode, buffer, size);
+	return m_parent.send(m_opcode, buffer, size + 1);
 }
 
 
