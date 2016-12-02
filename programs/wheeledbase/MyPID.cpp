@@ -1,28 +1,42 @@
-#include "MyPID.h"
 #include <math.h>
+#include <EEPROM.h>
+#include "MyPID.h"
 
 
-MyPID::MyPID(float Kp, float Ki, float Kd)
-:	PID(&m_input, &m_output, &m_setpoint, Kp, Ki, Kd, DIRECT)
+MyPID::MyPID(const int address)
+:	PID(&m_input, &m_output, &m_setpoint, 0, 0, 0, DIRECT)
 ,	m_input(0)
 ,	m_output(0)
 ,	m_setpoint(0)
+
+,	m_address(address)
 {
-	SetOutputLimits(-INFINITY, INFINITY);
-	SetMode(AUTOMATIC);
+	PID::SetOutputLimits(-INFINITY, INFINITY);
+	loadTunings();
+	enable();
 }
 
-void MyPID::setInput(float input)
+void MyPID::setTunings(float Kp, float Ki, float Kd)
 {
-	m_input = input;
+	PID::SetTunings(Kp, Ki, Kd);
+	saveTunings();
 }
 
-void MyPID::setSetpoint(float setpoint)
+void MyPID::loadTunings()
 {
-	m_setpoint = setpoint;
+	float Kp = 0, Ki = 0, Kd = 0;
+	int address = m_address;
+	EEPROM.get(address, Kp); address += sizeof(Kp);
+	EEPROM.get(address, Ki); address += sizeof(Ki);
+	EEPROM.get(address, Kd); address += sizeof(Kd);
+	PID::SetTunings(Kp, Ki, Kd);
 }
 
-float MyPID::getOutput() const
+void MyPID::saveTunings() const
 {
-	return m_output;
+	float Kp = getKp(), Ki = getKi(), Kd = getKd();
+	int address = m_address;
+	EEPROM.put(address, Kp); address += sizeof(Kp);
+	EEPROM.put(address, Ki); address += sizeof(Ki);
+	EEPROM.put(address, Kd); address += sizeof(Kd);
 }
