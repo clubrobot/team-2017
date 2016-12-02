@@ -2,7 +2,7 @@
 
 BOARD_TAG = nano
 BOARD_SUB = atmega328
-BOARD_UUID = wheeled-base
+BOARD_UUID = wheeledbase
 
 MONITOR_PORT = /dev/arduino/$(BOARD_UUID)
 
