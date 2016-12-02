@@ -142,7 +142,7 @@ class SerialTalks(Thread):
 		while self.poll(opcode) is not None:
 			pass
 
-	def getuuid(self, timeout = 1):
+	def getuuid(self, timeout = None):
 		self.flush(GETUUID_OPCODE)
 		self.send(GETUUID_OPCODE)
 		uuid = self.poll(GETUUID_OPCODE, timeout).read(STRING)
