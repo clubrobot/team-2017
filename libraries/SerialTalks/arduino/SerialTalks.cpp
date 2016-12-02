@@ -73,10 +73,13 @@ SerialTalks::SerialTalks()
 int SerialTalks::send(byte opcode, const byte* buffer, int size)
 {
 	int count = 0;
-	count += m_stream->write(SERIALTALKS_SLAVE_BYTE);
-	count += m_stream->write(byte(size + 1));
-	count += m_stream->write(opcode);
-	count += m_stream->write(buffer, size);
+	if (m_stream != 0)
+	{
+		count += m_stream->write(SERIALTALKS_SLAVE_BYTE);
+		count += m_stream->write(byte(size + 1));
+		count += m_stream->write(opcode);
+		count += m_stream->write(buffer, size);	
+	}
 	return count;
 }
 
