@@ -4,8 +4,8 @@
 
 
 Control::Control(WheeledBase& base, Odometry& odometry)
-:	m_velocityController(VELOCITY_CONTROLLER_ADDRESS)
-,	m_omegaController	(OMEGA_CONTROLLER_ADDRESS)
+:	m_linearVelocityPID (LINEAR_VELOCITY_PID_ADDRESS)
+,	m_angularVelocityPID(ANGULAR_VELOCITY_PID_ADDRESS)
 
 ,	m_base(base)
 ,	m_odometry(odometry)
@@ -13,8 +13,8 @@ Control::Control(WheeledBase& base, Odometry& odometry)
 ,	m_enabled(true)
 {
 	//                             | Kp | Ki | Kd |
-//	m_velocityController.setTunings(  8,   2,   0 );
-//	m_omegaController   .setTunings(  8,   0,   0 );
+//	m_linearVelocityPID .setTunings(  8,   2,   0 );
+//	m_angularVelocityPID.setTunings(  8,   0,   0 );
 	disable();
 }
 
@@ -25,30 +25,30 @@ void Control::step()
 		const State&	s = m_odometry.getState();
 		const Movement& m = m_odometry.getMovement();
 
-		m_velocityController.setInput(m.velocity);
-		m_omegaController   .setInput(m.omega);
+		m_linearVelocityPID .setInput(m.linear);
+		m_angularVelocityPID.setInput(m.angular);
 
-		m_velocityController.step();
-		m_omegaController   .step();
+		m_linearVelocityPID .step();
+		m_angularVelocityPID.step();
 
-		const float velocityOutput	= m_velocityController.getOutput();
-		const float omegaOutput		= m_omegaController   .getOutput();
+		const float linearVelocity  = m_linearVelocityPID .getOutput();
+		const float angularVelocity = m_angularVelocityPID.getOutput();
 
-		m_base.leftMotor .setSpeed(velocityOutput - omegaOutput * m_base.axleTrack / 2);
-		m_base.rightMotor.setSpeed(velocityOutput + omegaOutput * m_base.axleTrack / 2);
+		m_base.leftMotor .setSpeed(linearVelocity - angularVelocity * m_base.axleTrack / 2);
+		m_base.rightMotor.setSpeed(linearVelocity + angularVelocity * m_base.axleTrack / 2);
 	}
 }
 
 void Control::enable()
 {
 	m_enabled = true;
-	m_velocityController.enable();
-	m_omegaController   .enable();
+	m_linearVelocityPID .enable();
+	m_angularVelocityPID.enable();
 }
 
 void Control::disable()
 {
 	m_enabled = false;
-	m_velocityController.disable();
-	m_omegaController   .disable();
+	m_linearVelocityPID .enable();
+	m_angularVelocityPID.enable();
 }

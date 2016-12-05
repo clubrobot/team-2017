@@ -7,8 +7,8 @@
 #include "Odometry.h"
 #include "MyPID.h"
 
-#define VELOCITY_CONTROLLER_ADDRESS 0x040
-#define OMEGA_CONTROLLER_ADDRESS    0x060
+#define LINEAR_VELOCITY_PID_ADDRESS  0x040
+#define ANGULAR_VELOCITY_PID_ADDRESS 0x060
 
 
 class Control
@@ -17,19 +17,19 @@ public:
 
 	Control(WheeledBase& base, Odometry& odometry);
 
-	const MyPID& getVelocityController() const {return m_velocityController;}
-	const MyPID& getOmegaController   () const {return m_omegaController;}
+	const MyPID& getLinearVelocityPID () const {return m_linearVelocityPID;}
+	const MyPID& getAngularVelocityPID() const {return m_angularVelocityPID;}
 
-	void setVelocitySetpoint(float setpoint){m_velocityController.setSetpoint(setpoint);}
-	void setOmegaSetpoint   (float setpoint){m_omegaController   .setSetpoint(setpoint);}
+	void setLinearVelocity (float setpoint){m_linearVelocityPID .setSetpoint(setpoint);}
+	void setAngularVelocity(float setpoint){m_angularVelocityPID.setSetpoint(setpoint);}
 
-	void setVelocityControllerTunings(float Kp, float Ki, float Kd)
+	void setLinearVelocityPIDTunings(float Kp, float Ki, float Kd)
 	{
-		m_velocityController.setTunings(Kp, Ki, Kd);
+		m_linearVelocityPID.setTunings(Kp, Ki, Kd);
 	}
-	void setOmegaControllerTunings(float Kp, float Ki, float Kd)
+	void setAngularVelocityPIDTunings(float Kp, float Ki, float Kd)
 	{
-		m_omegaController.setTunings(Kp, Ki, Kd);
+		m_angularVelocityPID.setTunings(Kp, Ki, Kd);
 	}
 
 	void step();
@@ -39,8 +39,8 @@ public:
 
 private:
 
-	MyPID			m_velocityController;
-	MyPID			m_omegaController;
+	MyPID			m_linearVelocityPID;
+	MyPID			m_angularVelocityPID;
 
 	WheeledBase&	m_base;
 	Odometry&		m_odometry;

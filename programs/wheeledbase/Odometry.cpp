@@ -31,9 +31,9 @@ void Odometry::setState(const State& state)
 	m_state = state;
 }
 
-void Odometry::setMovement(float velocity, float omega)
+void Odometry::setMovement(float linear, float angular)
 {
-	setMovement(Movement(velocity, omega));
+	setMovement(Movement(linear, angular));
 }
 
 void Odometry::setMovement(const Movement& movement)
@@ -62,8 +62,8 @@ void Odometry::update()
 		const float dy		= dM * sin(m_state.theta);
 		const float dtheta	= (dR - dL) / m_base.axleTrack;
 
-		m_movement.velocity	= dM / dt;
-		m_movement.omega	= dtheta / dt;
+		m_movement.linear	= dM / dt;
+		m_movement.angular	= dtheta / dt;
 
 		m_state.x		+= dx;
 		m_state.y		+= dy;

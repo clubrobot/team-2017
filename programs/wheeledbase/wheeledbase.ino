@@ -21,8 +21,8 @@
 
 // PID controllers identifiers
 
-#define VELOCITY_CONTROLLER_IDENTIFIER 0x02
-#define OMEGA_CONTROLLER_IDENTIFIER    0x03
+#define LINEAR_VELOCITY_PID_IDENTIFIER  0x02
+#define ANGULAR_VELOCITY_PID_IDENTIFIER 0x03
 
 
 // Load the different modules
@@ -48,14 +48,12 @@ bool setMotorsSpeedsInstruction(Deserializer& input, Serializer& output)
 
 bool moveInstruction(Deserializer& input, Serializer& output)
 {
-	float velocity, omega;
-	input >> velocity >> omega;
+	float linear, angular;
+	input >> linear >> angular;
 
 	control.enable();
-	control.setVelocitySetpoint(velocity);
-	control.setOmegaSetpoint   (omega);
-
-	talks.out << "moveInstruction";
+	control.setLinearVelocity (linear);
+	control.setAngularVelocity(angular);
 
 	return false;
 }
@@ -88,7 +86,7 @@ bool getStateInstruction(Deserializer& input, Serializer& output)
 bool getVelocitiesInstruction(Deserializer& input, Serializer& output)
 {
 	const Movement& m = odometry.getMovement();
-	output << float(m.velocity) << float(m.omega);
+	output << float(m.linear) << float(m.angular);
 	return true;
 }
 
@@ -99,11 +97,11 @@ bool setPIDTuningsInstruction(Deserializer& input, Serializer& output)
 	input >> id >> Kp >> Ki >> Kd;
 	switch (id)
 	{
-	case VELOCITY_CONTROLLER_IDENTIFIER:
-		control.setVelocityControllerTunings(Kp, Ki, Kd);
+	case LINEAR_VELOCITY_PID_IDENTIFIER:
+		control.setLinearVelocityPIDTunings(Kp, Ki, Kd);
 		return false;
-	case OMEGA_CONTROLLER_IDENTIFIER:
-		control.setOmegaControllerTunings(Kp, Ki, Kd);
+	case ANGULAR_VELOCITY_PID_IDENTIFIER:
+		control.setAngularVelocityPIDTunings(Kp, Ki, Kd);
 		return false;
 	default:
 		talks.err << "setPIDTuningInstruction: unknown PID controller identifier: " << id << "\n";
@@ -118,15 +116,15 @@ bool getPIDTuningsInstruction(Deserializer& input, Serializer& output)
 
 	switch (id)
 	{
-	case VELOCITY_CONTROLLER_IDENTIFIER:
-		output << control.getVelocityController().getKp();
-		output << control.getVelocityController().getKi();
-		output << control.getVelocityController().getKd();
+	case LINEAR_VELOCITY_PID_IDENTIFIER:
+		output << control.getLinearVelocityPID().getKp();
+		output << control.getLinearVelocityPID().getKi();
+		output << control.getLinearVelocityPID().getKd();
 		return true;
-	case OMEGA_CONTROLLER_IDENTIFIER:
-		output << control.getOmegaController().getKp();
-		output << control.getOmegaController().getKi();
-		output << control.getOmegaController().getKd();
+	case ANGULAR_VELOCITY_PID_IDENTIFIER:
+		output << control.getAngularVelocityPID().getKp();
+		output << control.getAngularVelocityPID().getKi();
+		output << control.getAngularVelocityPID().getKd();
 		return true;
 	default:
 		talks.err << "getPIDTuningInstruction: unknown PID controller identifier: " << id << "\n";
@@ -145,9 +143,6 @@ void setup()
 	talks.attach(GET_VELOCITIES_OPCODE   , getVelocitiesInstruction);
 	talks.attach(SET_PID_TUNINGS_OPCODE  , setPIDTuningsInstruction);
 	talks.attach(GET_PID_TUNINGS_OPCODE  , getPIDTuningsInstruction);
-
-	control.setVelocitySetpoint(0);
-	control.setOmegaSetpoint   (0);
 }
 
 void loop()

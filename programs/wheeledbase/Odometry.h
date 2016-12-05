@@ -18,11 +18,11 @@ struct State
 
 struct Movement
 {
-	Movement() : velocity(0), omega(0){}
-	Movement(float velocity, float omega) : velocity(velocity), omega(omega){}
+	Movement() : linear(0), angular(0){}
+	Movement(float linear, float angular) : linear(linear), angular(angular){}
 
-	float velocity;
-	float omega;
+	float linear;
+	float angular;
 };
 
 class Odometry
@@ -37,7 +37,7 @@ public:
 	void setState(float x, float y, float theta);
 	void setState(const State& state);
 
-	void setMovement(float velocity, float omega);
+	void setMovement(float linear, float angular);
 	void setMovement(const Movement& movement);
 
 	unsigned long getElapsedTime();
