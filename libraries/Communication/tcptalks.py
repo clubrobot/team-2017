@@ -6,134 +6,143 @@ from threading import Thread
 import socket
 import pickle
 
-#gestion des erreurs
-#gestion liste de reception 
-#création flux
+#envoie de commande CMD et liste d'attente
+MySocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+server = 0
 
-
-class TCPTalks:
+class TCPTalks(Thread):
     def __init__(self,IP):
-        super().__setattr__('library', {})
-        self.connected = False
+        global MySocket
+        global server
+        Thread.__init__(self)
+        self.library = lib()
         self.adresse = 0
+        self.port2 = 0
+        self.waiting = []
         self.client = 0
         self.server = 0
-        if os.name == 'nt':
-            self.host = [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
-        if os.name == 'posix':
-            a = os.popen("""ifconfig | awk '/inet adr/ {gsub("adr:", "", $2); print $2}'""").readlines()
-            a.remove('127.0.0.1\n')
-            self.host = a[0][0:-1]
-
-        self.MySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.host = self.getip()
+        self.MySocket2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if(IP != '0'):
             try:
-                self.MySocket.bind((self.host,25565))
+                MySocket.bind((self.host,25565))
             except socket.error:
-                print("error2")
+                print("Error, port 25565 already used")
             self.ordre = 1
             self.ip = IP
-            self.client = Client()
-
-
         if(IP =='0'):
             try:
-                self.MySocket.bind((self.host,25566))
+                MySocket.bind((self.host,25566))
             except socket.error:
-                print("error2")
+                print("Error, port 25566 already used")
             self.ordre = 0
             self.ip = '0'
-            self.client = Client()
+
+    def getip(self):
+        if os.name == 'nt':
+            return([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0])
+        if os.name == 'posix':
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            s.close()
+            return s.getsockname()[0]
 
 
-    def __setattr__(self,name , value):
-        if name=='connected':
-            super(TCPTalks, self).__setattr__(name, value)
-        else:
-            if self.connected:
-                self.library[name] = value
-                self.server.send(pickle.dumps([2,name,value]))
-            else:
-                super(TCPTalks, self).__setattr__(name, value)
-
-    def data(self):
-        self.connected = True
-
-    def __getattr__(self,name):
-        return(self.library[name])
 
     def send(self,variable):
-        self.server.send(pickle.dumps(variable))
+        global MySocket
+        global server
+        if type(variable) != type([1,2]):
+
+            print('error type, you give ' + str(type(variable)) + "but is watting <Class list>")
+            return()
+        else:
+            try:
+                server.send(pickle.dumps(variable))
+            except SocketError:
+                return()
+            
+    def cmd(self,variable):
+        if type(variable) != type(""):
+            print('error type, you give ' + str(type(variable)) + "but is watting <Class String>")
+            return()
+        self.send([3,0,variable])
 
     def connect(self):
+        global MySocket
+        global server
         if(self.ordre == 0):
-            
-            print("connection ...\nServer A ...")
-            self.MySocket.listen(5)
-            self.server, self.adresse = self.MySocket.accept()  
+            print("In waiting")
+            MySocket.listen(5)
+            server, self.adresse = MySocket.accept()  
             self.ip = self.adresse[0]
-            print("OK\nServer B ...")
             time.sleep(1)
-            self.client.connexion(self.ip,25565)
-            self.client.start()
-            print("Ok\n connection established")
-            self.connected = True
+            self.port2 = 25565
+            self.connection()
+            self.start()
+            print("Connection established")
+
         if(self.ordre==1):
-            print("connection ...\n Server A ...")
-            self.client.connexion(self.ip,25566)
-            self.client.start()
-            self.MySocket.listen(5)
-            self.server, self.adresse = self.MySocket.accept()  
+            self.port2 = 25566
+            self.connection()
+            self.start()
+            MySocket.listen(5)
+            server, self.adresse = MySocket.accept()  
             self.ip = self.adresse[0]
-            print("OK\nServer B ...")
-            self.connected = True
+            print("Connection established")
 
 
 
-
-
-            
-class Client(Thread):
-    def __init__(self):
-        Thread.__init__(self)
-        self.ip = '0'
-        self.order = -1
-        self.MySocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-
-
-    def connexion(self, ip, port):
-        self.ip = ip 
-        self.port = port
+    def connection(self):
         marqueur1 = 0
         marqueur2 = True
-        print(ip)
         while(marqueur2):
             marqueur2 = False
             try:
-                self.MySocket.connect((self.ip, self.port))
+                self.MySocket2.connect((self.ip, self.port2))
             except:
                 print('error1')
                 marqueur2 = True
                 marqueur1 = marqueur1 + 1
+                time.sleep(0.2)
             if(marqueur1 >5): 
                 return()
+
+    def getType(self,liste):
+        if len(liste) == 3 and liste[0] == 2:  #gestion de varaible
+            return(2)
+        if len(liste) ==3 and liste[0] == 3 and liste[1]==0:
+            return(3)
+        return(-1)
 
     def run(self):
         while True:
             
-            time.sleep(1)
-            print(pickle.loads(self.MySocket.recv(8096)))
-            print("efse")
+            time.sleep(0.5)
+            rcv_Var = pickle.loads(self.MySocket2.recv(8096))
+            marqueur = self.getType(rcv_Var)
+            if  marqueur==2:
+                self.library[rcv_Var[1]] =rcv_Var[2]
+            if marqueur ==3:
+                self.send([3,1,os.popen(rcv_Var[2],'r').read()])
+            if marqueur ==-1:
+                print(rcv_Var) 
 
+            
+class lib(dict):
+    def __getattr__(self,name):
+        for k in self:
+            if k == name:
+                return(self[name])
+        return('none')
 
+    def __setattr__(self,name,value):
+        global MySocket
+        global server
+        self[name] = value
+        print(value)
+        print(name)
+        var = [2,name,value]
+        server.send(pickle.dumps(var))
+            
 
-
-
-premier = TCPTalks('192.168.1.11')
-
-premier.connect()
-premier.send("estest")
-
-
-time.sleep(5)
-premier.send(["si ca marque",456423,"c est cool"])
