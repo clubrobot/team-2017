@@ -15,6 +15,7 @@ Control::Control(WheeledBase& base, Odometry& odometry)
 	//                             | Kp | Ki | Kd |
 //	m_velocityController.setTunings(  8,   2,   0 );
 //	m_omegaController   .setTunings(  8,   0,   0 );
+	disable();
 }
 
 void Control::step()
@@ -27,14 +28,14 @@ void Control::step()
 		m_velocityController.setInput(m.velocity);
 		m_omegaController   .setInput(m.omega);
 
-		if (m_velocityController.step() || m_omegaController.step())
-		{
-			const float velocityOutput	= m_velocityController.getOutput();
-			const float omegaOutput		= m_omegaController   .getOutput();
+		m_velocityController.step();
+		m_omegaController   .step();
 
-			m_base.leftMotor .setSpeed(velocityOutput - omegaOutput * m_base.axleTrack / 2);
-			m_base.rightMotor.setSpeed(velocityOutput + omegaOutput * m_base.axleTrack / 2);
-		}
+		const float velocityOutput	= m_velocityController.getOutput();
+		const float omegaOutput		= m_omegaController   .getOutput();
+
+		m_base.leftMotor .setSpeed(velocityOutput - omegaOutput * m_base.axleTrack / 2);
+		m_base.rightMotor.setSpeed(velocityOutput + omegaOutput * m_base.axleTrack / 2);
 	}
 }
 
