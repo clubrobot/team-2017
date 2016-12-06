@@ -15,13 +15,12 @@ class Control
 {
 public:
 
+	enum Target{VELOCITIES, STANCE};
+
 	Control(WheeledBase& base, Odometry& odometry);
 
 	const MyPID& getLinearVelocityPID () const {return m_linearVelocityPID;}
 	const MyPID& getAngularVelocityPID() const {return m_angularVelocityPID;}
-
-	void setLinearVelocity (float setpoint){m_linearVelocityPID .setSetpoint(setpoint);}
-	void setAngularVelocity(float setpoint){m_angularVelocityPID.setSetpoint(setpoint);}
 
 	void setLinearVelocityPIDTunings(float Kp, float Ki, float Kd)
 	{
@@ -32,20 +31,30 @@ public:
 		m_angularVelocityPID.setTunings(Kp, Ki, Kd);
 	}
 
-	void step();
+	void setTargetVelocities(float linear, float angular);
+	void setTargetStance(float x, float y, float theta, float linear, float angular);
 
 	void enable();
 	void disable();
 
+	void step();
+
 private:
 
-	MyPID			m_linearVelocityPID;
-	MyPID			m_angularVelocityPID;
+	void setVelocitiesSetpointsDependingOnTargetVelocities();
+	void setVelocitiesSetpointsDependingOnTargetStance();
 
-	WheeledBase&	m_base;
-	Odometry&		m_odometry;
+	MyPID        m_linearVelocityPID;
+	MyPID        m_angularVelocityPID;
 
-	bool			m_enabled;
+	Movement     m_targetVelocities;
+	State        m_targetStance;
+	Target       m_target;
+
+	WheeledBase& m_base;
+	Odometry&    m_odometry;
+
+	bool         m_enabled;
 };
 
 #endif //__CONTROL_H__

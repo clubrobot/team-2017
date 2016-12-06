@@ -52,18 +52,18 @@ bool moveInstruction(Deserializer& input, Serializer& output)
 	input >> linear >> angular;
 
 	control.enable();
-	control.setLinearVelocity (linear);
-	control.setAngularVelocity(angular);
+	control.setTargetVelocities(linear, angular);
 
 	return false;
 }
 
 bool gotoInstruction(Deserializer& input, Serializer& output)
 {
-	float x, y, theta;
-	input >> x >> y >> theta;
+	float x, y, theta, linear, angular;
+	input >> x >> y >> theta >> linear >> angular;
 
-	talks.err << "gotoInstruction: not implemented yet\n";
+	control.enable();
+	control.setTargetStance(x, y, theta, linear, angular);
 	
 	return false;
 }
