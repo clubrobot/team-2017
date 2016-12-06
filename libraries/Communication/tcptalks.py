@@ -17,6 +17,7 @@ class TCPTalks(Thread):
         Thread.__init__(self)
         self.library = lib()
         self.adresse = 0
+        self.running = True
         self.port2 = 0
         self.waiting = []
         self.client = 0
@@ -59,7 +60,7 @@ class TCPTalks(Thread):
         else:
             try:
                 server.send(pickle.dumps(variable))
-            except SocketError:
+            except socket.error:
                 return()
             
     def cmd(self,variable):
@@ -91,6 +92,14 @@ class TCPTalks(Thread):
             self.ip = self.adresse[0]
             print("Connection established")
 
+    def close(self):
+        global MySocket
+        self.send([10,'off'])
+        MySocket.close()
+        self.MySocket2.close()
+        self.library = {}
+        print("Connexion closed")
+        self.running = False
 
 
     def connection(self):
@@ -113,20 +122,30 @@ class TCPTalks(Thread):
             return(2)
         if len(liste) ==3 and liste[0] == 3 and liste[1]==0:
             return(3)
+        if len(liste) ==2 and liste[0]==10 and liste[1] == "off":
+            return(10)
         return(-1)
 
     def run(self):
-        while True:
+        while self.running:
             
             time.sleep(0.5)
-            rcv_Var = pickle.loads(self.MySocket2.recv(8096))
-            marqueur = self.getType(rcv_Var)
+            try:
+                rcv_Var = pickle.loads(self.MySocket2.recv(8096))
+            except socket.error or self.running == False:
+                
+                marqueur =0
+            else:
+                marqueur = self.getType(rcv_Var)
             if  marqueur==2:
                 self.library[rcv_Var[1]] =rcv_Var[2]
             if marqueur ==3:
                 self.send([3,1,os.popen(rcv_Var[2],'r').read()])
+            if marqueur ==10:
+                self.close()
             if marqueur ==-1:
-                print(rcv_Var) 
+                print(rcv_Var)
+        print("Connection closed")
 
             
 class lib(dict):
