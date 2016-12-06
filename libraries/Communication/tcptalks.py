@@ -62,12 +62,27 @@ class TCPTalks(Thread):
                 server.send(pickle.dumps(variable))
             except socket.error:
                 return()
-            
+
+    def convertCmd(self,variable):
+        liste = []
+        marqueur = ""
+        for k in range(len(variable)):
+            if(variable[k]== " "):
+                liste.append(marqueur)
+                marqueur = ""
+                print("ol")
+            else:
+                marqueur = marqueur + variable[k]
+        return(liste)
+
+
+      
     def cmd(self,variable):
-        if type(variable) != type(""):
+        if type(variable) !=type("") :
             print('error type, you give ' + str(type(variable)) + "but is watting <Class String>")
             return()
-        self.send([3,0,variable])
+        
+        self.send([3,0,self.convertCmd(variable)])
 
     def connect(self):
         global MySocket
@@ -120,8 +135,12 @@ class TCPTalks(Thread):
     def getType(self,liste):
         if len(liste) == 3 and liste[0] == 2:  #gestion de varaible
             return(2)
-        if len(liste) ==3 and liste[0] == 3 and liste[1]==0:
-            return(3)
+        if len(liste) >=3 and liste[0] == 3:
+            if liste[1]==0:
+                return(3)
+            elif liste[1]==1:
+                return(4)
+        
         if len(liste) ==2 and liste[0]==10 and liste[1] == "off":
             return(10)
         return(-1)
@@ -133,14 +152,19 @@ class TCPTalks(Thread):
             try:
                 rcv_Var = pickle.loads(self.MySocket2.recv(8096))
             except socket.error or self.running == False:
-                
                 marqueur =0
             else:
                 marqueur = self.getType(rcv_Var)
             if  marqueur==2:
                 self.library[rcv_Var[1]] =rcv_Var[2]
             if marqueur ==3:
-                self.send([3,1,os.popen(rcv_Var[2],'r').read()])
+                text = subprocess.Popen(rcv_Var[2],stdout=subprocess.PIPE)
+                text = text.stdout.read()  #readlines pour avoir un tableau de chaque ligne
+
+                self.send([3,1,text])
+            if marqueur == 4:
+                print(rcv_Var[2])
+
             if marqueur ==10:
                 self.close()
             if marqueur ==-1:
