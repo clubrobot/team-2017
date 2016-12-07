@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 import os
 import time
-from threading import Thread
+from threading import Thread, RLock, Event
 import socket
 import pickle
 import subprocess
@@ -18,7 +18,7 @@ class TCPTalks(Thread):
         Thread.__init__(self)
         self.library = lib()
         self.adresse = 0
-        self.running = True
+        self.running = Event()
         self.port2 = 0
         self.waiting = []
         self.client = 0
@@ -115,7 +115,7 @@ class TCPTalks(Thread):
         self.MySocket2.close()
         self.library = {}
         print("Connexion closed")
-        self.running = False
+        self.running.set()
 
 
     def connection(self):
@@ -147,12 +147,12 @@ class TCPTalks(Thread):
         return(-1)
 
     def run(self):
-        while self.running:
+        while not self.running.is_set():
             
             time.sleep(0.5)
             try:
                 rcv_Var = pickle.loads(self.MySocket2.recv(8096))
-            except socket.error or self.running == False:
+            except socket.error or self.running.is_set():
                 marqueur =0
             else:
                 marqueur = self.getType(rcv_Var)
@@ -174,13 +174,18 @@ class TCPTalks(Thread):
 
             
 class lib(dict):
+    def __init__(self):
+		self.lock = RLock()
+
     def __getattr__(self,name):
+        self.lock.acquire()
         for k in self:
             if k == name:
+                self.lock.release()
                 return(self[name])
         return('none')
-
     def __setattr__(self,name,value):
+        self.lock.acquire()
         global MySocket
         global server
         self[name] = value
@@ -188,5 +193,6 @@ class lib(dict):
         print(name)
         var = [2,name,value]
         server.send(pickle.dumps(var))
+        self.lock.release()
             
 
