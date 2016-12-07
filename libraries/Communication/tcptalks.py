@@ -3,11 +3,12 @@
 import os
 import time
 from threading import Thread, RLock, Event
+from queue import Queue, Empty
 import socket
 import pickle
 import subprocess
 
-#envoie de commande CMD et liste d'attente
+#ajouter le debeugage sur error 1
 MySocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 server = 0
 
@@ -116,11 +117,11 @@ class TCPTalks(Thread):
     def getqueue(self,id):
         self.lock_dict.acquire()
         try:
-            queue = self.waitingdict[opcode]
+            queue = self.waitingdict[id]
         except KeyError:
-            queue = self.waitingdict[opcode] = Queue()
+            queue = self.waitingdict[id] = Queue()
         finally:
-            self.queues_lock.release()
+            self.lock_dict.release()
         return(queue)
 
 
@@ -144,8 +145,8 @@ class TCPTalks(Thread):
                 if len(rcv_Var)==3 and rcv_Var[0]==2:
                    self.library[rcv_Var[1]] = rcv_Var[2]
                 elif len(rcv_Var)==2:
-                    self.getqueue(rcv_Var[1]).put(rcv_Var[2])
-                if marqueur ==-1:
+                    self.getqueue(rcv_Var[0]).put(rcv_Var[1])
+                else:
                     print(rcv_Var)
         print("Connection closed")
 
