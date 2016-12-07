@@ -151,7 +151,6 @@ class TCPTalks(Thread):
 
             
 class lib(dict):
-
     def __getattr__(self,name):
         for k in self:
             if k == name:
