@@ -5,6 +5,7 @@ import time
 from threading import Thread
 import socket
 import pickle
+import subprocess
 
 #envoie de commande CMD et liste d'attente
 MySocket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -43,10 +44,10 @@ class TCPTalks(Thread):
         if os.name == 'nt':
             return([ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0])
         if os.name == 'posix':
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            s.close()
-            return s.getsockname()[0]
+        if os.name == 'posix':
+            a = os.popen("""ifconfig | awk '/inet adr/ {gsub("adr:", "", $2); print $2}'""").readlines()
+            a.remove('127.0.0.1\n')
+            return(a[0][0:-1])
 
 
 
@@ -159,7 +160,7 @@ class TCPTalks(Thread):
                 self.library[rcv_Var[1]] =rcv_Var[2]
             if marqueur ==3:
                 text = subprocess.Popen(rcv_Var[2],stdout=subprocess.PIPE)
-                text = text.stdout.read()  #readlines pour avoir un tableau de chaque ligne
+                text = text.communicate()  #readlines pour avoir un tableau de chaque ligne
 
                 self.send([3,1,text])
             if marqueur == 4:
