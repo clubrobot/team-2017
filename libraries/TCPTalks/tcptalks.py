@@ -50,7 +50,7 @@ class TCPTalks(Thread):
 			a.remove('127.0.0.1\n')
 			return a[0][0:-1]
 
-	def connect(self, timeout = 2):
+	def connect(self, timeout = None):
 		# Raspberry Pi
 		if self.otherip is None:
 
@@ -108,8 +108,44 @@ class TCPTalks(Thread):
 	def sendback(self, opcode, *args):
 		return self.server.send(pickle.dumps(['A', opcode] + list(args)))
 
-	def poll(self, opcode, timeout):
-		pass
+	def get_queue(self, opcode):
+		self.queues_lock.acquire()
+		try:
+			queue = self.queues_dict[opcode]
+		except KeyError:
+			queue = self.queues_dict[opcode] = Queue()
+		finally:
+			self.queues_lock.release()
+		return queue
 
+	def run(self):
+		while not self.stop_event.is_set():
+			try:
+				inc = self.client.recv(8192)
+			except socket.error:
+				continue
+			self.process(pickle.loads(inc))
+
+	def process(self, message):
+		direction = message[0]
+		opcode    = message[1]
+		if (direction == 'A'):
+			queue = self.get_queue(opcode)
+			queue.put(message[2:])
+		elif (direction == 'R'):
+			pass #TODO executer la fonction associée à l'opcode' 
+
+	def poll(self, opcode, timeout = 0):
+		if not self.is_connected():
+			raise RuntimeError('\'{}\' is not connected.'.format(self.otherip))
+			
+		queue = self.get_queue(opcode)
+		block = (timeout is None or timeout > 0)
+		try:
+			return tuple(queue.get(block, timeout))
+		except Empty:
+			return None
+	
 	def flush(self, opcode):
-		pass
+		while self.poll(opcode) is not None:
+			pass
