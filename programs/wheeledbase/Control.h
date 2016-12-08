@@ -39,6 +39,8 @@ public:
 
 	void step();
 
+	void reset();
+
 private:
 
 	void setVelocitiesSetpointsDependingOnTargetVelocities();
