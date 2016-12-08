@@ -6,6 +6,7 @@ from queue import Queue, Empty
 import os
 import time
 from threading import Thread, RLock, Event
+import threading
 import pickle
 
 CLOSE_OPCODE = 10
@@ -99,7 +100,8 @@ class TCPTalks(Thread):
 		except socket.error:
 			pass
 		self.stop_event.set()
-		self.join() #TODO permettre au thread 
+		if self is not threading.current_thread():
+			self.join() #TODO permettre au thread 
 		self.serversocket.close()
 		self.client.close()
 
@@ -142,7 +144,7 @@ class TCPTalks(Thread):
 			queue.put(message[2:])
 		elif (direction == 'R'):
 			instruction = self.instructions[opcode]
-			instruction(message[2:])
+			instruction(*message[2:])
 
 	def poll(self, opcode, timeout = 0):
 		if not self.is_connected():
