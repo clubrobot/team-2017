@@ -2,6 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import socket
+from queue import Queue, Empty
 import os
 import time
 from threading import Thread, RLock, Event
@@ -14,15 +15,10 @@ class TCPTalks(Thread):
 	def __init__(self, ip = None, readport = 25565, writeport = 25566):
 		Thread.__init__(self)
 
-		# Sockets
-		self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.server = None
-		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		# Socket things
+		self.ip = ip
 
-		self.selfip  = self.getip()
-		self.otherip = ip
-
-		if ip is None:
+		if self.getownip() is None:
 			self.readport  = writeport
 			self.writeport = readport
 		else:
@@ -42,7 +38,7 @@ class TCPTalks(Thread):
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.disconnect()
 
-	def getip(self):
+	def getownip(self):
 		if os.name == 'nt':
 			return [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
 		elif os.name == 'posix':
@@ -51,21 +47,25 @@ class TCPTalks(Thread):
 			return a[0][0:-1]
 
 	def connect(self, timeout = None):
+
+		self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.server = None
+		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 		# Raspberry Pi
-		if self.otherip is None:
+		if self.ip is None:
 
 			# Create a server
-			self.serversocket.bind((self.selfip, self.readport))
+			self.serversocket.bind((self.getownip(), self.readport))
 			self.serversocket.listen(1)
 
 			# Wait for the other's ip
 			self.serversocket.settimeout(timeout)
-			self.server, self.otherip = self.serversocket.accept()
-			self.otherip = self.otherip[0]
+			self.server, ip = self.serversocket.accept()
 
 			# Connect to the other
 			self.client.settimeout(timeout)
-			self.client.connect((self.otherip, self.writeport))
+			self.client.connect((ip[0], self.writeport))
 
 		# PC (Windows or Linux)
 		else:
@@ -73,7 +73,7 @@ class TCPTalks(Thread):
 			t = time.time()
 			while timeout is None or time.time() - t < timeout:
 				try:
-					self.client.connect((self.otherip, self.writeport))
+					self.client.connect((self.ip, self.writeport))
 				except socket.error:
 					continue
 				else:
@@ -81,23 +81,27 @@ class TCPTalks(Thread):
 				#TODO renvoyer une exception si le timeout a été dépassé
 			
 			# Create a server
-			self.serversocket.bind((self.selfip, self.readport))
+			self.serversocket.bind((self.getownip(), self.readport))
 			self.serversocket.listen(1)
 
 			# Wait for the other
 			self.serversocket.settimeout(timeout)
-			self.server, self.otherip = self.serversocket.accept()
+			self.server = self.serversocket.accept()[0]
+			
+		self.start()
 
 	def disconnect(self):
 		try:
 			self.send(CLOSE_OPCODE)
 		except socket.error:
 			pass
+		self.stop_event.set()
+		self.join()
 		self.serversocket.close()
 		self.client.close()
 
 	def is_connected(self):
-		pass
+		return True
 
 	def bind(self, opcode, instruction):
 		pass
@@ -120,6 +124,7 @@ class TCPTalks(Thread):
 
 	def run(self):
 		while not self.stop_event.is_set():
+			self.client.settimeout(0.1)
 			try:
 				inc = self.client.recv(8192)
 			except socket.error:
