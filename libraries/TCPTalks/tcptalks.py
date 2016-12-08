@@ -18,12 +18,15 @@ class TCPTalks(Thread):
 		# Socket things
 		self.ip = ip
 
-		if self.getownip() is None:
+		if self.ip is None:
 			self.readport  = writeport
 			self.writeport = readport
 		else:
 			self.readport  = readport
 			self.writeport = writeport
+
+		# Instructions
+		self.instructions = dict()
 
 		# Threading things
 		self.daemon      = True
@@ -96,7 +99,7 @@ class TCPTalks(Thread):
 		except socket.error:
 			pass
 		self.stop_event.set()
-		self.join()
+		self.join() #TODO permettre au thread 
 		self.serversocket.close()
 		self.client.close()
 
@@ -104,7 +107,7 @@ class TCPTalks(Thread):
 		return True
 
 	def bind(self, opcode, instruction):
-		pass
+		self.instructions[opcode] = instruction
 
 	def send(self, opcode, *args):
 		return self.server.send(pickle.dumps(['R', opcode] + list(args)))
@@ -138,7 +141,8 @@ class TCPTalks(Thread):
 			queue = self.get_queue(opcode)
 			queue.put(message[2:])
 		elif (direction == 'R'):
-			pass #TODO executer la fonction associée à l'opcode' 
+			instruction = self.instructions[opcode]
+			instruction(message[2:])
 
 	def poll(self, opcode, timeout = 0):
 		if not self.is_connected():
