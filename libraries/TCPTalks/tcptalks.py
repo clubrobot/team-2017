@@ -2,8 +2,10 @@
 #-*- coding: utf-8 -*-
 
 import socket
-
-from threading import Thread
+import os
+import time
+from threading import Thread, RLock, Event
+import pickle
 
 CLOSE_OPCODE = 10
 
@@ -42,15 +44,15 @@ class TCPTalks(Thread):
 
 	def getip(self):
 		if os.name == 'nt':
-            return [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
-        if os.name == 'posix':
-            a = os.popen("""ifconfig | awk '/inet adr/ {gsub("adr:", "", $2); print $2}'""").readlines()
-            a.remove('127.0.0.1\n')
-            return a[0][0:-1]
+			return [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
+		elif os.name == 'posix':
+			a = os.popen("""ifconfig | awk '/inet adr/ {gsub("adr:", "", $2); print $2}'""").readlines()
+			a.remove('127.0.0.1\n')
+			return a[0][0:-1]
 
-	def connect(timeout = 2):
+	def connect(self, timeout = 2):
 		# Raspberry Pi
-		if self.ip is None:
+		if self.otherip is None:
 
 			# Create a server
 			self.serversocket.bind((self.selfip, self.readport))
@@ -58,7 +60,7 @@ class TCPTalks(Thread):
 
 			# Wait for the other's ip
 			self.serversocket.settimeout(timeout)
-            self.server, self.otherip = self.serversocket.accept()
+			self.server, self.otherip = self.serversocket.accept()
 			self.otherip = self.otherip[0]
 
 			# Connect to the other
@@ -66,10 +68,17 @@ class TCPTalks(Thread):
 			self.client.connect((self.otherip, self.writeport))
 
 		# PC (Windows or Linux)
-        else:
+		else:
 			# Connect to the other
-			self.client.settimeout(timeout)
-			self.client.connect((self.otherip, self.writeport))
+			t = time.time()
+			while timeout is None or time.time() - t < timeout:
+				try:
+					self.client.connect((self.otherip, self.writeport))
+				except socket.error:
+					continue
+				else:
+					break
+				#TODO renvoyer une exception si le timeout a été dépassé
 			
 			# Create a server
 			self.serversocket.bind((self.selfip, self.readport))
@@ -77,14 +86,14 @@ class TCPTalks(Thread):
 
 			# Wait for the other
 			self.serversocket.settimeout(timeout)
-            self.server, self.otherip = self.serversocket.accept()
+			self.server, self.otherip = self.serversocket.accept()
 
 	def disconnect(self):
 		try:
 			self.send(CLOSE_OPCODE)
 		except socket.error:
 			pass
-        self.serversocket.close()
+		self.serversocket.close()
 		self.client.close()
 
 	def is_connected(self):
@@ -94,13 +103,13 @@ class TCPTalks(Thread):
 		pass
 
 	def send(self, opcode, *args):
-		return self.server.send(pickle.dumps(['R', opcode] + args))
+		return self.server.send(pickle.dumps(['R', opcode] + list(args)))
 
 	def sendback(self, opcode, *args):
-		return self.server.send(pickle.dumps(['A', opcode] + args))
+		return self.server.send(pickle.dumps(['A', opcode] + list(args)))
 
-	def poll(opcode, timeout):
+	def poll(self, opcode, timeout):
 		pass
 
-	def flush(opcode):
+	def flush(self, opcode):
 		pass
