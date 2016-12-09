@@ -2,35 +2,63 @@
 #-*- coding: utf-8 -*-
 
 import socket
-from queue import Queue, Empty
-import os
-import time
-from threading import Thread, RLock, Event
-import threading
 import pickle
+from time      import time
+from queue     import Queue, RLock, Empty
+from threading import Thread, Event, current_thread
 
-CLOSE_OPCODE = 10
+MASTER_BYTE = b'R'
+SLAVE_BYTE  = b'A'
 
-class TCPTalks(Thread):
+DISCONNECT_OPCODE = 0xFF
 
-	def __init__(self, ip = None, readport = 25565, writeport = 25566):
+
+def _serversocket(self, port, timeout):
+	# Create a server
+	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	serversocket.bind(('', port))
+	serversocket.listen(1)
+
+	# Wait for the other to connect
+	serversocket.settimeout(timeout)
+	try:
+		clientsocket = serversocket.accept()[0]
+		serversocket.close() # The server is no longer needed
+		return clientsocket
+	except socket.timeout:
+		raise TimeoutError('no connection request')
+
+
+def _clientsocket(ip, port, timeout):
+	# Create a client
+	clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+	# Connect to the other
+	startingtime = time()
+	while timeout is None or time() - startingtime < timeout:
+		try:
+			clientsocket.connect((ip, port))
+			return clientsocket
+		except ConnectionRefusedError:
+			continue
+	raise TimeoutError('no server found')
+
+
+class TCPTalks:
+
+	def __init__(self, ip = None, port = 25565):
 		Thread.__init__(self)
 
 		# Socket things
-		self.ip = ip
-
-		if self.ip is None:
-			self.readport  = writeport
-			self.writeport = readport
-		else:
-			self.readport  = readport
-			self.writeport = writeport
+		self.ip   = ip
+		self.port = port
+		self.is_connected = False
 
 		# Instructions
 		self.instructions = dict()
 
 		# Threading things
-		self.daemon      = True
 		self.queues_dict = dict()
 		self.queues_lock = RLock()
 		self.stop_event  = Event()
@@ -42,80 +70,66 @@ class TCPTalks(Thread):
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.disconnect()
 
-	def getownip(self):
-		if os.name == 'nt':
-			return [ip for ip in socket.gethostbyname_ex(socket.gethostname())[2] if not ip.startswith("127.")][0]
-		elif os.name == 'posix':
-			a = os.popen("""ifconfig | awk '/inet adr/ {gsub("adr:", "", $2); print $2}'""").readlines()
-			a.remove('127.0.0.1\n')
-			return a[0][0:-1]
-
-	def connect(self, timeout = None):
-
-		self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.server = None
-		self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-		# Raspberry Pi
-		if self.ip is None:
-
-			# Create a server
-			self.serversocket.bind((self.getownip(), self.readport))
-			self.serversocket.listen(1)
-
-			# Wait for the other's ip
-			self.serversocket.settimeout(timeout)
-			self.server, ip = self.serversocket.accept()
-
-			# Connect to the other
-			self.client.settimeout(timeout)
-			self.client.connect((ip[0], self.writeport))
-
-		# PC (Windows or Linux)
+	def connect(self, timeout = 2):
+		if not self.is_connected:
+			# Create a socket instance depending of what was given during the initialization
+			if self.ip is None: # Raspberry Pi
+				self.socket = _serversocket(self.port, timeout)
+			else: # Remote controller (Windows or Linux)
+				self.socket = _clientsocket(self.ip, self.port, timeout)
+			self.socket.settimeout(0)
+			self.is_connected = True
+			
+			# Create a listening thread that will wait for inputs and 
+			self.listener = TCPListener(self)
+			self.listener.start()
 		else:
-			# Connect to the other
-			t = time.time()
-			while timeout is None or time.time() - t < timeout:
-				try:
-					self.client.connect((self.ip, self.writeport))
-				except socket.error:
-					continue
-				else:
-					break
-				#TODO renvoyer une exception si le timeout a été dépassé
-			
-			# Create a server
-			self.serversocket.bind((self.getownip(), self.readport))
-			self.serversocket.listen(1)
-
-			# Wait for the other
-			self.serversocket.settimeout(timeout)
-			self.server = self.serversocket.accept()[0]
-			
-		self.start()
+			if self.ip is not None:
+				raise RuntimeError('{} is already connected'.format(self.ip))
+			else:
+				raise RuntimeError('client is already connected')
 
 	def disconnect(self):
-		try:
-			self.send(CLOSE_OPCODE)
-		except socket.error:
-			pass
-		self.stop_event.set()
-		if self is not threading.current_thread():
-			self.join() #TODO permettre au thread 
-		self.serversocket.close()
-		self.client.close()
+		if self.is_connected:
+			# Send a disconnect notification to the other
+			self.send(DISCONNECT_OPCODE)
 
-	def is_connected(self):
-		return True
+			# Stop the listening thread
+			self.stop_event.set()
+			if self.listener is not current_thread():
+				self.listener.join()
+
+			# Close the socket
+			self.socket.close()
+			self.is_connected = False
 
 	def bind(self, opcode, instruction):
-		self.instructions[opcode] = instruction
+		if not opcode in self.instructions:
+			self.instructions[opcode] = instruction
+		else:
+			raise KeyError('opcode {} is already bound to another instruction'.format(opcode))
+
+	def rawsend(self, rawbytes):
+		if not self.is_connected():
+			if self.ip is not None:
+				raise RuntimeError('{} is not connected'.format(self.ip))
+			else:
+				raise RuntimeError('client is not connected')
+		
+		sentbytes = 0
+		while(sentbytes < len(rawbytes)):
+			sentbytes += self.server.send(rawbytes[sentbytes:])
+		return sentbytes
 
 	def send(self, opcode, *args):
-		return self.server.send(pickle.dumps(['R', opcode] + list(args)))
+		content = [opcode] + list(args)
+		prefix  = [MASTER_BYTE]
+		return self.rawsend(pickle.dumps(prefix + content))
 
 	def sendback(self, opcode, *args):
-		return self.server.send(pickle.dumps(['A', opcode] + list(args)))
+		content = [opcode] + list(args)
+		prefix  = [SLAVE_BYTE]
+		return self.rawsend(pickle.dumps(prefix + content))
 
 	def get_queue(self, opcode):
 		self.queues_lock.acquire()
@@ -127,29 +141,17 @@ class TCPTalks(Thread):
 			self.queues_lock.release()
 		return queue
 
-	def run(self):
-		while not self.stop_event.is_set():
-			self.client.settimeout(0.1)
-			try:
-				inc = self.client.recv(8192)
-			except socket.error:
-				continue
-			self.process(pickle.loads(inc))
-
-	def process(self, message):
-		direction = message[0]
-		opcode    = message[1]
-		if (direction == 'A'):
-			queue = self.get_queue(opcode)
-			queue.put(message[2:])
-		elif (direction == 'R'):
+	def process(self, inc):
+		role   = inc[0]
+		opcode = inc[1]
+		if (role == MASTER_BYTE):
 			instruction = self.instructions[opcode]
-			instruction(*message[2:])
+			instruction(*inc[2:])
+		elif (direction == SLAVE_BYTE):
+			queue = self.get_queue(opcode)
+			queue.put(inc[2:])
 
-	def poll(self, opcode, timeout = 0):
-		if not self.is_connected():
-			raise RuntimeError('\'{}\' is not connected.'.format(self.otherip))
-			
+	def poll(self, opcode, timeout = 0):	
 		queue = self.get_queue(opcode)
 		block = (timeout is None or timeout > 0)
 		try:
@@ -160,3 +162,19 @@ class TCPTalks(Thread):
 	def flush(self, opcode):
 		while self.poll(opcode) is not None:
 			pass
+
+
+class TCPListener(Thread):
+
+	def __init__(self, parent):
+		self.talks  = parent
+		self.daemon = True
+
+	def run(self):
+		while not self.parent.stop_event.is_set():
+			try:
+				inc = parent.socket.recv(1024)
+			except BlockingIOError:
+				continue
+			self.parent.process(pickle.loads(inc))
+
