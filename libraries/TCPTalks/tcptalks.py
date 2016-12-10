@@ -4,8 +4,8 @@
 import socket
 import pickle
 from time      import time
-from queue     import Queue, RLock, Empty
-from threading import Thread, Event, current_thread
+from queue     import Queue, Empty
+from threading import Thread, RLock, Event, current_thread
 
 MASTER_BYTE = b'R'
 SLAVE_BYTE  = b'A'
@@ -13,7 +13,7 @@ SLAVE_BYTE  = b'A'
 DISCONNECT_OPCODE = 0xFF
 
 
-def _serversocket(self, port, timeout):
+def _serversocket(port, timeout):
 	# Create a server
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -57,6 +57,7 @@ class TCPTalks:
 
 		# Instructions
 		self.instructions = dict()
+		self.bind(DISCONNECT_OPCODE, self.disconnect)
 
 		# Threading things
 		self.queues_dict = dict()
@@ -110,7 +111,7 @@ class TCPTalks:
 			raise KeyError('opcode {} is already bound to another instruction'.format(opcode))
 
 	def rawsend(self, rawbytes):
-		if not self.is_connected():
+		if not self.is_connected:
 			if self.ip is not None:
 				raise RuntimeError('{} is not connected'.format(self.ip))
 			else:
@@ -118,7 +119,7 @@ class TCPTalks:
 		
 		sentbytes = 0
 		while(sentbytes < len(rawbytes)):
-			sentbytes += self.server.send(rawbytes[sentbytes:])
+			sentbytes += self.socket.send(rawbytes[sentbytes:])
 		return sentbytes
 
 	def send(self, opcode, *args):
@@ -141,21 +142,22 @@ class TCPTalks:
 			self.queues_lock.release()
 		return queue
 
-	def process(self, inc):
-		role   = inc[0]
-		opcode = inc[1]
+	def process(self, message):
+		role   = message[0]
+		opcode = message[1]
 		if (role == MASTER_BYTE):
 			instruction = self.instructions[opcode]
-			instruction(*inc[2:])
-		elif (direction == SLAVE_BYTE):
+			instruction(*message[2:])
+		elif (role == SLAVE_BYTE):
 			queue = self.get_queue(opcode)
-			queue.put(inc[2:])
+			queue.put(message[2:])
 
 	def poll(self, opcode, timeout = 0):	
 		queue = self.get_queue(opcode)
 		block = (timeout is None or timeout > 0)
 		try:
-			return tuple(queue.get(block, timeout))
+			output = queue.get(block, timeout)
+			return tuple(output) if len(output) > 1 else output[0]
 		except Empty:
 			return None
 	
@@ -167,14 +169,27 @@ class TCPTalks:
 class TCPListener(Thread):
 
 	def __init__(self, parent):
-		self.talks  = parent
+		Thread.__init__(self)
+		self.parent = parent
 		self.daemon = True
 
 	def run(self):
+		self.buffer = bytes()
 		while not self.parent.stop_event.is_set():
+			# Wait until new bytes arrive
 			try:
-				inc = parent.socket.recv(1024)
+				inc = self.parent.socket.recv(1024)
 			except BlockingIOError:
 				continue
-			self.parent.process(pickle.loads(inc))
+			
+			# Try to decode the message using the pickle protocol
+			for b in inc:
+				self.buffer += bytes([b])
+				try:
+					message = pickle.loads(self.buffer)
+				except EOFError:
+					continue
+				else:
+					self.parent.process(message)
+					self.buffer = b''
 
