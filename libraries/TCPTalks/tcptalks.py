@@ -78,7 +78,7 @@ class TCPTalks:
 				self.socket = _serversocket(self.port, timeout)
 			else: # Remote controller (Windows or Linux)
 				self.socket = _clientsocket(self.ip, self.port, timeout)
-			self.socket.settimeout(0)
+			self.socket.settimeout(1)
 			self.is_connected = True
 			
 			# Create a listening thread that will wait for inputs
@@ -180,7 +180,7 @@ class TCPListener(Thread):
 			# Wait until new bytes arrive
 			try:
 				inc = self.parent.socket.recv(256)
-			except BlockingIOError:
+			except socket.timeout:
 				continue
 			
 			# Try to decode the message using the pickle protocol
