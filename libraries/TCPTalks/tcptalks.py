@@ -81,7 +81,8 @@ class TCPTalks:
 			self.socket.settimeout(0)
 			self.is_connected = True
 			
-			# Create a listening thread that will wait for inputs and 
+			# Create a listening thread that will wait for inputs
+			self.stop_event.clear()
 			self.listener = TCPListener(self)
 			self.listener.start()
 		else:
@@ -174,22 +175,22 @@ class TCPListener(Thread):
 		self.daemon = True
 
 	def run(self):
-		self.buffer = bytes()
+		buffer = bytes()
 		while not self.parent.stop_event.is_set():
 			# Wait until new bytes arrive
 			try:
-				inc = self.parent.socket.recv(1024)
+				inc = self.parent.socket.recv(256)
 			except BlockingIOError:
 				continue
 			
 			# Try to decode the message using the pickle protocol
 			for b in inc:
-				self.buffer += bytes([b])
+				buffer += bytes([b])
 				try:
-					message = pickle.loads(self.buffer)
+					message = pickle.loads(buffer)
 				except EOFError:
 					continue
 				else:
 					self.parent.process(message)
-					self.buffer = b''
+					buffer = bytes()
 
