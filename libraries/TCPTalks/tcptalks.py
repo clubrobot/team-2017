@@ -23,11 +23,11 @@ def _serversocket(port, timeout):
 	# Wait for the other to connect
 	serversocket.settimeout(timeout)
 	try:
-		clientsocket = serversocket.accept()[0]
-		serversocket.close() # The server is no longer needed
-		return clientsocket
+		return serversocket.accept()[0]
 	except socket.timeout:
 		raise TimeoutError('no connection request')
+	finally:
+		serversocket.close() # The server is no longer needed
 
 
 def _clientsocket(ip, port, timeout):
@@ -79,12 +79,13 @@ class TCPTalks:
 			else: # Remote controller (Windows or Linux)
 				self.socket = _clientsocket(self.ip, self.port, timeout)
 			self.socket.settimeout(1)
-			self.is_connected = True
 			
 			# Create a listening thread that will wait for inputs
 			self.stop_event.clear()
 			self.listener = TCPListener(self)
 			self.listener.start()
+
+			self.is_connected = True
 		else:
 			if self.ip is not None:
 				raise RuntimeError('{} is already connected'.format(self.ip))
@@ -93,6 +94,8 @@ class TCPTalks:
 
 	def disconnect(self):
 		if self.is_connected:
+			self.is_connected = False
+
 			# Send a disconnect notification to the other
 			self.send(DISCONNECT_OPCODE)
 
@@ -103,7 +106,6 @@ class TCPTalks:
 
 			# Close the socket
 			self.socket.close()
-			self.is_connected = False
 
 	def bind(self, opcode, instruction):
 		if not opcode in self.instructions:
