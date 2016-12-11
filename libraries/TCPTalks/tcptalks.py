@@ -127,13 +127,13 @@ class TCPTalks:
 			sentbytes += self.socket.send(rawbytes[sentbytes:])
 		return sentbytes
 
-	def send(self, opcode, *args):
-		content = [opcode] + list(args)
+	def send(self, opcode, *args, **kwargs):
+		content = [opcode] + [args, kwargs]
 		prefix  = [MASTER_BYTE]
 		return self.rawsend(pickle.dumps(prefix + content))
 
-	def sendback(self, opcode, *args):
-		content = [opcode] + list(args)
+	def sendback(self, opcode, *args, **kwargs):
+		content = [opcode] + [args, kwargs]
 		prefix  = [SLAVE_BYTE]
 		return self.rawsend(pickle.dumps(prefix + content))
 
@@ -150,11 +150,12 @@ class TCPTalks:
 	def process(self, message):
 		role   = message[0]
 		opcode = message[1]
-		args   = message[2:]
+		args   = message[2]
+		kwargs = message[3]
 		if (role == MASTER_BYTE):
 			instruction = self.instructions[opcode]
 			try:
-				instruction(*args)
+				instruction(*args, **kwargs)
 			except Exception as e:
 				self.sendback(opcode, e)
 		elif (role == SLAVE_BYTE):
