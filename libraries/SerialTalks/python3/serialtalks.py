@@ -5,7 +5,7 @@ import serial
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event
 
-from serialtalks import serialutils
+from . import serialutils
 
 BAUDRATE = 115200
 
@@ -37,26 +37,16 @@ UINT   = USHORT
 DOUBLE = FLOAT
 
 
-class SerialTalks(Thread):
+class SerialTalks:
 
 	def __init__(self, port):
 		Thread.__init__(self)
 
 		# Serial things
-		self.stream			= serial.Serial(baudrate	= BAUDRATE,
-											bytesize	= serial.EIGHTBITS,
-											parity		= serial.PARITY_NONE,
-											stopbits	= serial.STOPBITS_ONE)
-		self.stream.port	= port
-		self.stream.timeout	= 1
-
-		# Finite state machine
-		self.state       = 'waiting' # ['waiting', 'starting', 'receiving']
-		self.buffer      = b''
-		self.bytesnumber = 0
+		self.port = port
+		self.is_connected = False
 
 		# Threading things
-		self.daemon      = True
 		self.queues_dict = dict()
 		self.queues_lock = RLock()
 		self.stop_event  = Event()
@@ -69,30 +59,47 @@ class SerialTalks(Thread):
 		self.disconnect()
 
 	def connect(self, timeout = 2):
-		self.stream.open()
-		self.start()
-		if self.getuuid(timeout) is None:
-			self.disconnect()
-			raise TimeoutError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port))
+		if not self.is_connected:
+			self.stream = serial.Serial(self.port,
+				baudrate=BAUDRATE,
+				bytesize=serial.EIGHTBITS,
+				parity=serial.PARITY_NONE,
+				stopbits=serial.STOPBITS_ONE)
+			self.stream.timeout	= 1
+			self.is_connected = True
+		
+			# Create a listening thread that will wait for inputs
+			self.stop_event.clear()
+			self.listener = SerialListener(self)
+			self.listener.start()
 
+			# Wait until the Arduino is operational
+			if self.getuuid(timeout) is None:
+				self.disconnect()
+				raise TimeoutError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port))
+		
 	def disconnect(self):
-		self.stop_event.set()
-		self.join()
-		self.stream.close()
+		if self.is_connected:
+			# Stop the listening thread
+			self.stop_event.set()
+			self.listener.join()
 
-	def is_connected(self):
-		return self.stream.is_open # Needs Python 3.5 or later
+			# Close the socket
+			self.stream.close()
+			self.is_connected = False
 
-	def send(self, opcode, *params):
-		if not self.is_connected():
+	def rawsend(self, rawbytes):
+		if not self.is_connected:
 			raise RuntimeError('\'{}\' is not connected.'.format(self.stream.port))
-
-		content  = bytes([opcode])
-		content += b''.join(params)
-		prefix   = MASTER_BYTE + bytes([len(content)])
-
-		return self.stream.write(prefix + content)
+		
+		sentbytes = self.stream.write(rawbytes)
+		return sentbytes
 	
+	def send(self, opcode, *args):
+		content = bytes([opcode]) + bytes().join(args)
+		prefix  = MASTER_BYTE + bytes([len(content)])
+		return self.rawsend(prefix + content)
+
 	def get_queue(self, opcode):
 		self.queues_lock.acquire()
 		try:
@@ -103,33 +110,12 @@ class SerialTalks(Thread):
 			self.queues_lock.release()
 		return queue
 
-	def run(self):
-		while not self.stop_event.is_set():
-			inc = self.stream.read()
-
-			if self.state == 'waiting' and inc == SLAVE_BYTE :
-				self.state = 'starting'
-			
-			elif self.state == 'starting':
-				self.bytesnumber = inc[0]
-				self.state       = 'receiving'
-
-			elif self.state == 'receiving':
-				self.buffer += inc
-				if (len(self.buffer) >= self.bytesnumber):
-					self.process(self.buffer)
-					self.buffer = b''
-					self.state  = 'waiting'
-
 	def process(self, message):
 		opcode = message[0]
 		queue = self.get_queue(opcode)
 		queue.put(message[1:])
 
 	def poll(self, opcode, timeout = 0):
-		if not self.is_connected():
-			raise RuntimeError('\'{}\' is not connected.'.format(self.stream.port))
-			
 		queue = self.get_queue(opcode)
 		block = (timeout is None or timeout > 0)
 		try:
@@ -160,14 +146,44 @@ class SerialTalks(Thread):
 			try:
 				log += self.poll(opcode, timeout).read(STRING)
 			except AttributeError:
-				break
-		return log
+				return log
 
 	def getout(self, timeout = 0):
 		return self.getlog(STDOUT_OPCODE, timeout)
 
 	def geterr(self, timeout = 0):
 		return self.getlog(STDERR_OPCODE, timeout)
+
+
+class SerialListener(Thread):
+
+	def __init__(self, parent):
+		Thread.__init__(self)
+		self.parent = parent
+		self.daemon = True
+
+	def run(self):
+		state  = 'waiting' # ['waiting', 'starting', 'receiving']
+		buffer = bytes()
+		msglen = 0
+		while not self.parent.stop_event.is_set():
+			# Wait until new bytes arrive
+			inc = self.parent.stream.read()
+
+			# Finite state machine
+			if state == 'waiting' and inc == SLAVE_BYTE :
+				state = 'starting'
+			
+			elif state == 'starting':
+				msglen = inc[0]
+				state  = 'receiving'
+
+			elif state == 'receiving':
+				buffer += inc
+				if (len(buffer) >= msglen):
+					self.parent.process(buffer)
+					buffer = bytes()
+					state  = 'waiting'
 
 if __name__ == '__main__':
 	from pprint import pprint
