@@ -23,9 +23,10 @@ def _serversocket(port, timeout):
 	# Wait for the other to connect
 	serversocket.settimeout(timeout)
 	try:
-		return serversocket.accept()[0]
+		clientsocket = serversocket.accept()[0]
+		return clientsocket
 	except socket.timeout:
-		raise TimeoutError('no connection request')
+		raise TimeoutError('no connection request') from None
 	finally:
 		serversocket.close() # The server is no longer needed
 
@@ -42,7 +43,7 @@ def _clientsocket(ip, port, timeout):
 			return clientsocket
 		except ConnectionRefusedError:
 			continue
-	raise TimeoutError('no server found')
+	raise TimeoutError('no server found') from None
 
 
 class TCPTalks:
@@ -59,10 +60,9 @@ class TCPTalks:
 		self.instructions = dict()
 		self.bind(DISCONNECT_OPCODE, self.disconnect)
 
-		# Threading things
+		# Thread-safe inputs polling
 		self.queues_dict = dict()
 		self.queues_lock = RLock()
-		self.stop_event  = Event()
 
 	def __enter__(self):
 		self.connect()
@@ -81,7 +81,6 @@ class TCPTalks:
 			self.socket.settimeout(1)
 			
 			# Create a listening thread that will wait for inputs
-			self.stop_event.clear()
 			self.listener = TCPListener(self)
 			self.listener.start()
 
@@ -97,10 +96,13 @@ class TCPTalks:
 			self.is_connected = False
 
 			# Send a disconnect notification to the other
-			self.send(DISCONNECT_OPCODE)
+			try:
+				self.send(DISCONNECT_OPCODE)
+			except RuntimeError:
+				pass
 
 			# Stop the listening thread
-			self.stop_event.set()
+			self.listener.stop.set()
 			if self.listener is not current_thread():
 				self.listener.join()
 
@@ -174,16 +176,21 @@ class TCPListener(Thread):
 	def __init__(self, parent):
 		Thread.__init__(self)
 		self.parent = parent
+		self.stop   = Event()
 		self.daemon = True
 
 	def run(self):
 		buffer = bytes()
-		while not self.parent.stop_event.is_set():
+		while not self.stop.is_set():
 			# Wait until new bytes arrive
 			try:
 				inc = self.parent.socket.recv(256)
 			except socket.timeout:
 				continue
+			
+			# Disconnect if the other is no longer connected
+			if len(inc) == 0:
+				self.parent.disconnect()
 			
 			# Try to decode the message using the pickle protocol
 			for b in inc:
@@ -192,7 +199,6 @@ class TCPListener(Thread):
 					message = pickle.loads(buffer)
 				except EOFError:
 					continue
-				else:
-					self.parent.process(message)
-					buffer = bytes()
+				self.parent.process(message)
+				buffer = bytes()
 
