@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
+from math import pi
 from serialtalks import *
 
 SET_MOTORS_SPEEDS_OPCODE = 0x04
@@ -27,6 +28,9 @@ class WheeledBase(SerialTalks):
 
 	def set_motors_speeds(self, left, right):
 		self.send(SET_MOTORS_SPEEDS_OPCODE, FLOAT(left), FLOAT(right))
+
+	def goto(self, x, y, theta, velocity = 100, omega = pi / 20):
+		self.send(GOTO_OPCODE, FLOAT(x), FLOAT(y), FLOAT(theta), FLOAT(velocity), FLOAT(omega))
 
 	def move(self, velocity, omega):
 		self.send(MOVE_OPCODE, FLOAT(velocity), FLOAT(omega))

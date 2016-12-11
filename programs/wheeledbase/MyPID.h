@@ -24,6 +24,8 @@ public:
 	void enable (){PID::SetMode(AUTOMATIC);}
 	void disable(){PID::SetMode(MANUAL);}
 
+	void reset();
+
 private:
 
 	void loadTunings();

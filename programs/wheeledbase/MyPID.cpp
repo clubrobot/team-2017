@@ -40,3 +40,8 @@ void MyPID::saveTunings() const
 	EEPROM.put(address, Ki); address += sizeof(Ki);
 	EEPROM.put(address, Kd); address += sizeof(Kd);
 }
+
+void MyPID::reset()
+{
+	ITerm = 0;
+}
