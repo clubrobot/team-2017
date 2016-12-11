@@ -6,7 +6,7 @@ ARDUINO_LIBRARY_NAME		= SerialTalks
 
 PYTHON3 = $(shell basename $(shell readlink $(shell which python3)))
 ifeq ($(USER),root)
-PYTHON3_LIBRARIES_DIRECTORY	= /usr/lib/$(PYTHON3)/site-packages
+PYTHON3_LIBRARIES_DIRECTORY	= $(shell $(PYTHON3) -c "import site; print(site.getsitepackages()[0])")
 else
 PYTHON3_LIBRARIES_DIRECTORY	= $(shell $(PYTHON3) -m site --user-site)
 endif
