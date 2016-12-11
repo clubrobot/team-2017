@@ -150,12 +150,16 @@ class TCPTalks:
 	def process(self, message):
 		role   = message[0]
 		opcode = message[1]
+		args   = message[2:]
 		if (role == MASTER_BYTE):
 			instruction = self.instructions[opcode]
-			instruction(*message[2:])
+			try:
+				instruction(*args)
+			except Exception as e:
+				self.sendback(opcode, e)
 		elif (role == SLAVE_BYTE):
 			queue = self.get_queue(opcode)
-			queue.put(message[2:])
+			queue.put(args)
 
 	def poll(self, opcode, timeout = 0):	
 		queue = self.get_queue(opcode)
@@ -197,7 +201,7 @@ class TCPListener(Thread):
 				buffer += bytes([b])
 				try:
 					message = pickle.loads(buffer)
-				except EOFError:
+				except (EOFError, pickle.UnpicklingError, AttributeError):
 					continue
 				self.parent.process(message)
 				buffer = bytes()
