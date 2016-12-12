@@ -212,6 +212,8 @@ class TCPListener(Thread):
 			# Wait until new bytes arrive
 			try:
 				inc = self.parent.socket.recv(256)
+			except ConnectionResetError:
+				inc = bytes()
 			except socket.timeout:
 				continue
 			
