@@ -164,7 +164,7 @@ class TCPTalks:
 					output = e
 			if isinstance(output, tuple):
 				self.sendback(opcode, *output)
-			elif output is not None:
+			elif output:
 				self.sendback(opcode, output)
 
 		elif (role == SLAVE_BYTE):
@@ -187,6 +187,15 @@ class TCPTalks:
 	def flush(self, opcode):
 		while self.poll(opcode) is not None:
 			pass
+	
+	def execute(self, opcode, *args, **kwargs):
+		self.flush(opcode)
+		self.send(opcode, *args, **kwargs)
+		output = self.poll(opcode, None)
+		if isinstance(output, Exception):
+			raise output
+		else:
+			return output
 
 
 class TCPListener(Thread):
