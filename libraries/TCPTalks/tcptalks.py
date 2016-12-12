@@ -128,13 +128,13 @@ class TCPTalks:
 		return sentbytes
 
 	def send(self, opcode, *args, **kwargs):
-		content = [opcode] + [args, kwargs]
-		prefix  = [MASTER_BYTE]
+		content = (opcode, args, kwargs)
+		prefix  = (MASTER_BYTE,)
 		return self.rawsend(pickle.dumps(prefix + content))
 
-	def sendback(self, opcode, *args, **kwargs):
-		content = [opcode] + [args, kwargs]
-		prefix  = [SLAVE_BYTE]
+	def sendback(self, opcode, *args):
+		content = (opcode,) + args
+		prefix  = (SLAVE_BYTE,)
 		return self.rawsend(pickle.dumps(prefix + content))
 
 	def get_queue(self, opcode):
@@ -150,15 +150,25 @@ class TCPTalks:
 	def process(self, message):
 		role   = message[0]
 		opcode = message[1]
-		args   = message[2]
-		kwargs = message[3]
 		if (role == MASTER_BYTE):
-			instruction = self.instructions[opcode]
+			args   = message[2]
+			kwargs = message[3]
 			try:
-				instruction(*args, **kwargs)
-			except Exception as e:
-				self.sendback(opcode, e)
+				instruction = self.instructions[opcode]
+			except KeyError:
+				output = KeyError('opcode {} is not bound to any instruction'.format(opcode))
+			else:
+				try:
+					output = instruction(*args, **kwargs)
+				except Exception as e:
+					output = e
+			if isinstance(output, tuple):
+				self.sendback(opcode, *output)
+			else:
+				self.sendback(opcode, output)
+
 		elif (role == SLAVE_BYTE):
+			args  = message[2:]
 			queue = self.get_queue(opcode)
 			queue.put(args)
 
@@ -167,9 +177,12 @@ class TCPTalks:
 		block = (timeout is None or timeout > 0)
 		try:
 			output = queue.get(block, timeout)
-			return tuple(output) if len(output) > 1 else output[0]
 		except Empty:
 			return None
+		if len(output) > 1:
+			return output
+		else:
+			return output[0]
 	
 	def flush(self, opcode):
 		while self.poll(opcode) is not None:
