@@ -164,7 +164,7 @@ class TCPTalks:
 					output = e
 			if isinstance(output, tuple):
 				self.sendback(opcode, *output)
-			else:
+			elif output is not None:
 				self.sendback(opcode, output)
 
 		elif (role == SLAVE_BYTE):
