@@ -3,7 +3,8 @@
 
 import glob
 
-from tcptalks import TCPTalks
+from tcptalks    import TCPTalks
+from serialtalks import SerialTalks
 
 NEWMODULE_OPCODE  = 0x10
 MODULESEND_OPCODE = 0x11
@@ -49,20 +50,16 @@ class ModulesRouterServer(TCPTalks):
 		except KeyError:
 			raise RuntimeError('modules router has no module \'{}\''.format(uuid)) from None
 		
-		# Reconnect module if needed
-		if not module.is_connected:
-			module.connect(None)
-		
 		return module
 
 	def modulesend(self, uuid, opcode, args):
-		return self.getmodule().send(opcode, args)
+		return self.getmodule(uuid).send(opcode, args)
 	
 	def modulepoll(self, uuid, opcode, timeout):
-		return self.getmodule().poll(opcode, timeout)
+		return self.getmodule(uuid).poll(opcode, timeout)
 
 	def moduleexec(self, uuid, opcode, args):
-		module = self.getmodule()
+		module = self.getmodule(uuid)
 		module.flush(opcode)
 		module.send(opcode, args)
 		return module.poll(opcode, None)
@@ -85,7 +82,7 @@ class Module:
 		self.uuid   = uuid
 	
 	def send(self, opcode, args):
-		return self.parent.send(MODULESEND_OPCODE, self.uuid, opcode, args)
+		return self.parent.execute(MODULESEND_OPCODE, self.uuid, opcode, args)
 	
 	def poll(self, uuid, opcode, timeout):
 		return self.parent.execute(MODULEPOLL_OPCODE, self.uuid, opcode, timeout)
