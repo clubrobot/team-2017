@@ -2,7 +2,9 @@
 #-*- coding: utf-8 -*-
 
 from math import pi
-from serialtalks import *
+
+from serialtalks   import *
+from modulesrouter import Module
 
 SET_MOTORS_SPEEDS_OPCODE = 0x04
 
@@ -20,11 +22,9 @@ VELOCITY_CONTROLLER_IDENTIFIER = 0x02
 OMEGA_CONTROLLER_IDENTIFIER    = 0x03
 
 
-
-class WheeledBase(SerialTalks):
-
-	def __init__(self, port = '/dev/arduino/wheeledbase'):
-		SerialTalks.__init__(self, port)
+class WheeledBase(Module):
+	def __init__(self, parent, uuid = 'wheeledbase'):
+		Module.__init__(self, parent, uuid)
 
 	def set_motors_speeds(self, left, right):
 		self.send(SET_MOTORS_SPEEDS_OPCODE, FLOAT(left), FLOAT(right))
