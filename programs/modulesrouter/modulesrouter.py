@@ -2,6 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import glob
+import serial
 
 from tcptalks    import TCPTalks
 from serialtalks import SerialTalks
@@ -25,24 +26,23 @@ class ModulesRouterServer(TCPTalks):
 		self.modules = dict()
 
 	def newmodule(self, uuid, timeout):
-		for tty in glob.iglob('/dev/ttyUSB*'): # We try to connect to every available ttyUSB*
-			# This will only pass if the current Arduino is a valid SerialTalks instance
-			try:
-				module = SerialTalks(tty)
-				module.connect(timeout)
-			except TimeoutError: # Add bad serial connection error
-				continue
+		if not uuid in self.modules:
+			for tty in glob.iglob('/dev/ttyUSB*'): # We try to connect to every available ttyUSB*
+				# This will only pass if the current Arduino is a valid SerialTalks instance
+				try:
+					module = SerialTalks(tty)
+					module.connect(timeout)
+				except (TimeoutError, serial.serialutil.SerialException): # Add bad serial connection error
+					continue
 
-			# Return if we found the right Arduino
-			if module.getuuid() == uuid:
-				self.modules[uuid] = module
-				return uuid
-
-			# Else disconnect it and continue
-			module.disconnect()
-		
-		# Raise an error if we didn't found any Arduino
-		raise RuntimeError('module \'{}\' is not connected or is not responding')
+				# Return if we found the right Arduino
+				if module.getuuid() == uuid:
+					self.modules[uuid] = module
+				else:
+					module.disconnect() # Else disconnect it and continue
+			
+			# Raise an error if we didn't found any Arduino
+			raise RuntimeError('module \'{}\' is not connected or is not responding')
 
 	def getmodule(self, uuid):
 		try:
