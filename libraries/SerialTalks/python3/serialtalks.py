@@ -3,7 +3,7 @@
 
 import serial
 from queue		import Queue, Empty
-from threading	import Thread, RLock, Event
+from threading	import Thread, RLock, Event, current_thread
 
 from . import serialutils
 
@@ -49,7 +49,6 @@ class SerialTalks:
 		# Threading things
 		self.queues_dict = dict()
 		self.queues_lock = RLock()
-		self.stop_event  = Event()
 
 	def __enter__(self):
 		self.connect()
@@ -66,31 +65,35 @@ class SerialTalks:
 				parity=serial.PARITY_NONE,
 				stopbits=serial.STOPBITS_ONE)
 			self.stream.timeout	= 1
-			self.is_connected = True
 		
 			# Create a listening thread that will wait for inputs
-			self.stop_event.clear()
 			self.listener = SerialListener(self)
 			self.listener.start()
+
+			self.is_connected = True
 
 			# Wait until the Arduino is operational
 			if self.getuuid(timeout) is None:
 				self.disconnect()
 				raise TimeoutError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port))
-		
+		else:
+			raise RuntimeError('{} is already connected'.format(self.port))
+
 	def disconnect(self):
 		if self.is_connected:
+			self.is_connected = False
+
 			# Stop the listening thread
-			self.stop_event.set()
-			self.listener.join()
+			self.listener.stop.set()
+			if self.listener is not current_thread():
+				self.listener.join()
 
 			# Close the socket
 			self.stream.close()
-			self.is_connected = False
 
 	def rawsend(self, rawbytes):
 		if not self.is_connected:
-			raise RuntimeError('\'{}\' is not connected.'.format(self.stream.port))
+			raise RuntimeError('\'{}\' is not connected.'.format(self.port))
 		
 		sentbytes = self.stream.write(rawbytes)
 		return sentbytes
@@ -98,7 +101,8 @@ class SerialTalks:
 	def send(self, opcode, *args):
 		content = bytes([opcode]) + bytes().join(args)
 		prefix  = MASTER_BYTE + bytes([len(content)])
-		return self.rawsend(prefix + content)
+		sentbytes = self.rawsend(prefix + content)
+		return sentbytes
 
 	def get_queue(self, opcode):
 		self.queues_lock.acquire()
@@ -112,8 +116,9 @@ class SerialTalks:
 
 	def process(self, message):
 		opcode = message[0]
+		args   = message[1:]
 		queue = self.get_queue(opcode)
-		queue.put(message[1:])
+		queue.put(args)
 
 	def poll(self, opcode, timeout = 0):
 		queue = self.get_queue(opcode)
@@ -127,6 +132,12 @@ class SerialTalks:
 	def flush(self, opcode):
 		while self.poll(opcode) is not None:
 			pass
+
+	def execute(self, opcode, *args):
+		self.flush(opcode)
+		self.send(opcode, *args)
+		output = self.poll(opcode, None)
+		return output
 
 	def getuuid(self, timeout = None):
 		self.flush(GETUUID_OPCODE)
@@ -160,15 +171,19 @@ class SerialListener(Thread):
 	def __init__(self, parent):
 		Thread.__init__(self)
 		self.parent = parent
+		self.stop   = Event()
 		self.daemon = True
 
 	def run(self):
 		state  = 'waiting' # ['waiting', 'starting', 'receiving']
 		buffer = bytes()
 		msglen = 0
-		while not self.parent.stop_event.is_set():
+		while not self.stop.is_set():
 			# Wait until new bytes arrive
-			inc = self.parent.stream.read()
+			try:
+				inc = self.parent.stream.read()
+			except serial.serialutil.SerialException:
+				self.parent.disconnect()
 
 			# Finite state machine
 			if state == 'waiting' and inc == SLAVE_BYTE :
