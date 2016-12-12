@@ -2,7 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import glob
-import serial
+from serial.serialutil import SerialException
 
 from tcptalks    import TCPTalks
 from serialtalks import SerialTalks
@@ -32,17 +32,18 @@ class ModulesRouterServer(TCPTalks):
 				try:
 					module = SerialTalks(tty)
 					module.connect(timeout)
-				except (TimeoutError, serial.serialutil.SerialException): # Add bad serial connection error
+				except (TimeoutError, SerialException): # Add bad serial connection error
 					continue
 
 				# Return if we found the right Arduino
 				if module.getuuid() == uuid:
 					self.modules[uuid] = module
-				else:
-					module.disconnect() # Else disconnect it and continue
+					return
+				
+				module.disconnect() # Else disconnect it and continue
 			
 			# Raise an error if we didn't found any Arduino
-			raise RuntimeError('module \'{}\' is not connected or is not responding')
+			raise RuntimeError('module \'{}\' is not connected or is not responding'.format(uuid))
 
 	def getmodule(self, uuid):
 		try:
