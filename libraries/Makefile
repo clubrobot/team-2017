@@ -1,12 +1,12 @@
 SERIALTALKS_DIRECTORY = ./SerialTalks
-TCPTALKS_DIRECTORY    = ./Communication
+TCPTALKS_DIRECTORY    = ./TCPTalks
 
 all:
 	make TCPTalks
 	make SerialTalks
 
 TCPTalks:
-#	make all -C $(TCPTALKS_DIRECTORY)
+	make all -C $(TCPTALKS_DIRECTORY)
 
 SerialTalks:
 	make all -C $(SERIALTALKS_DIRECTORY)
