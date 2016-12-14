@@ -10,7 +10,8 @@ from threading import Thread, RLock, Event, current_thread
 MASTER_BYTE = b'R'
 SLAVE_BYTE  = b'A'
 
-DISCONNECT_OPCODE = 0xFF
+AUTHENTIFICATION_OPCODE = 0xAA
+DISCONNECT_OPCODE       = 0xFF
 
 
 def _serversocket(port, timeout):
@@ -48,17 +49,21 @@ def _clientsocket(ip, port, timeout):
 
 class TCPTalks:
 
-	def __init__(self, ip = None, port = 25565):
+	def __init__(self, ip = None, port = 25565, password = None):
 		Thread.__init__(self)
+
+		# Instructions
+		self.instructions = dict()
+		self.bind(DISCONNECT_OPCODE      , self.disconnect)
+		self.bind(AUTHENTIFICATION_OPCODE, self.authentificate)
 
 		# Socket things
 		self.ip   = ip
 		self.port = port
 		self.is_connected = False
 
-		# Instructions
-		self.instructions = dict()
-		self.bind(DISCONNECT_OPCODE, self.disconnect)
+		# Password
+		self.password = password
 
 		# Thread-safe inputs polling
 		self.queues_dict = dict()
@@ -73,6 +78,8 @@ class TCPTalks:
 
 	def connect(self, timeout = 2):
 		if not self.is_connected:
+			self.passlock = self.ip is None and self.password is not None
+			
 			# Create a socket instance depending of what was given during the initialization
 			if self.ip is None: # Raspberry Pi
 				self.socket = _serversocket(self.port, timeout)
@@ -85,11 +92,25 @@ class TCPTalks:
 			self.listener.start()
 
 			self.is_connected = True
+
+			# Password authentification
+			if self.ip is not None:
+				try:
+					self.execute(AUTHENTIFICATION_OPCODE, self.password)
+				except RuntimeError as e:
+					self.disconnect()
+					raise e
 		else:
 			if self.ip is not None:
 				raise RuntimeError('{} is already connected'.format(self.ip))
 			else:
 				raise RuntimeError('client is already connected')
+
+	def authentificate(self, password):
+		if password == self.password:
+			self.passlock = False
+		else:
+			raise RuntimeError('authentification failed')
 
 	def disconnect(self):
 		if self.is_connected:
@@ -153,24 +174,35 @@ class TCPTalks:
 		if (role == MASTER_BYTE):
 			args   = message[2]
 			kwargs = message[3]
-			try:
-				instruction = self.instructions[opcode]
-			except KeyError:
-				output = KeyError('opcode {} is not bound to any instruction'.format(opcode))
-			else:
-				try:
-					output = instruction(*args, **kwargs)
-				except Exception as e:
-					output = e
-			if isinstance(output, tuple):
-				self.sendback(opcode, *output)
-			else:
-				self.sendback(opcode, output)
-
+			self.execinstruction(opcode, *args, **kwargs)
 		elif (role == SLAVE_BYTE):
 			args  = message[2:]
 			queue = self.get_queue(opcode)
 			queue.put(args)
+
+	def execinstruction(self, opcode, *args, **kwargs):
+		try:
+			# Make sur that the authentification was well performed
+			passfreeopcodes = [AUTHENTIFICATION_OPCODE, DISCONNECT_OPCODE]
+			if self.passlock and opcode not in passfreeopcodes:
+				raise RuntimeError('authentification failed')
+
+			# Get the function or method associated with the received opcode
+			try:
+				instruction = self.instructions[opcode]
+			except KeyError:
+				raise KeyError('opcode {} is not bound to any instruction'.format(opcode)) from None
+			
+			# Execute the instruction and save its output
+			output = instruction(*args, **kwargs)
+			
+			# Send back the output
+			if isinstance(output, tuple):
+				return self.sendback(opcode, *output)
+			else:
+				return self.sendback(opcode, output)
+		except Exception as e:
+			return self.sendback(opcode, e)
 
 	def poll(self, opcode, timeout = 0):	
 		queue = self.get_queue(opcode)
