@@ -45,4 +45,4 @@ sudo usermod -a -G dialout $USER
 
 # Install libraries
 
-make all -C ./libraries
+make all -C $REPOSITORY/libraries
