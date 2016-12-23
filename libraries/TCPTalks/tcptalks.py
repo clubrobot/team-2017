@@ -67,8 +67,7 @@ class TCPTalks:
 
 		# Instructions
 		self.instructions = dict()
-		self.bind(DISCONNECT_OPCODE      , self.disconnect)
-		self.bind(AUTHENTIFICATION_OPCODE, self.authentificate)
+		self.bind(DISCONNECT_OPCODE, self.disconnect)
 
 		# Socket things
 		self.ip   = ip
@@ -90,10 +89,18 @@ class TCPTalks:
 		self.disconnect()
 
 	def connect(self, timeout = 2):
-		if not self.is_connected:
-			self.passlock = self.ip is None and self.password is not None
+		if self.is_connected:
+			raise RuntimeError('already connected')
 			
-			# Create a socket instance depending of what was given during the initialization
+		# The remote controller is not able to execute custom instructions
+		# as long as the following flag remains unset
+		self.is_authentificated = False
+		
+		# This will let the Raspberry Pi try to reconnect itself after a
+		# bad authentification
+		while not self.is_connected:
+			# Create a socket instance depending of what was given during the
+			# instanciation
 			if self.ip is None: # Raspberry Pi
 				self.socket = _serversocket(self.port, timeout)
 			else: # Remote controller (Windows or Linux)
@@ -104,26 +111,29 @@ class TCPTalks:
 			self.listener = TCPListener(self)
 			self.listener.start()
 
+			# This flag is a read-only attribute indicating whether or not the
+			# current instance is connected to the other
 			self.is_connected = True
 
 			# Password authentification
-			if self.ip is not None:
-				try:
-					self.execute(AUTHENTIFICATION_OPCODE, self.password)
-				except RuntimeError as e:
+			if self.ip is None: # Raspberry Pi
+				if not self.wait_for_authentification(1):
 					self.disconnect()
-					raise e
-		else:
-			if self.ip is not None:
-				raise RuntimeError('{} is already connected'.format(self.ip))
-			else:
-				raise RuntimeError('client is already connected')
+			else: # Remote controller
+				if not self.authentificate():
+					self.disconnect()
+					raise RuntimeError('authentification failed')
 
-	def authentificate(self, password):
-		if password == self.password:
-			self.passlock = False
-		else:
-			raise RuntimeError('authentification failed')
+	def authentificate(self):
+		self.sendback(AUTHENTIFICATION_OPCODE, self.password)
+		self.is_authentificated = self.poll(AUTHENTIFICATION_OPCODE, None)
+		return self.is_authentificated
+
+	def wait_for_authentification(self, timeout):
+		password = self.poll(AUTHENTIFICATION_OPCODE, timeout)
+		self.is_authentificated = self.password in (None, password)
+		self.sendback(AUTHENTIFICATION_OPCODE, self.is_authentificated)
+		return self.is_authentificated
 
 	def disconnect(self):
 		if self.is_connected:
@@ -151,10 +161,7 @@ class TCPTalks:
 
 	def rawsend(self, rawbytes):
 		if not self.is_connected:
-			if self.ip is not None:
-				raise RuntimeError('{} is not connected'.format(self.ip))
-			else:
-				raise RuntimeError('client is not connected')
+			raise RuntimeError('not connected')
 		
 		sentbytes = 0
 		while(sentbytes < len(rawbytes)):
@@ -194,10 +201,9 @@ class TCPTalks:
 
 	def execinstruction(self, opcode, *args, **kwargs):
 		try:
-			# Make sur that the authentification was well performed
-			passfreeopcodes = [AUTHENTIFICATION_OPCODE, DISCONNECT_OPCODE]
-			if self.passlock and opcode not in passfreeopcodes:
-				raise RuntimeError('authentification failed')
+			# Make sure that the authentification was well performed
+			if not self.is_authentificated:
+				raise RuntimeError('you are not authentificated')
 
 			# Get the function or method associated with the received opcode
 			try:
@@ -264,7 +270,7 @@ class TCPListener(Thread):
 			buffer += inc
 			try:
 				message, buffer = _loads(buffer)
-				self.parent.process(message)
 			except (EOFError, pickle.UnpicklingError, AttributeError):
 				continue
+			self.parent.process(message)
 
