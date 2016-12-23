@@ -47,6 +47,19 @@ def _clientsocket(ip, port, timeout):
 	raise TimeoutError('no server found') from None
 
 
+def _loads(rawbytes):
+	a, b = 0, len(rawbytes)
+	while (b - a > 1):
+		i = (a + b) // 2
+		try:
+			output = pickle.loads(rawbytes[:i])
+		except (EOFError, pickle.UnpicklingError, AttributeError):
+			a = i
+		else:
+			b = i
+	return pickle.loads(rawbytes[:b]), rawbytes[b:]
+
+
 class TCPTalks:
 
 	def __init__(self, ip = None, port = 25565, password = None):
@@ -154,7 +167,7 @@ class TCPTalks:
 		return self.rawsend(pickle.dumps(prefix + content))
 
 	def sendback(self, opcode, *args):
-		content = (opcode,) + args
+		content = (opcode, args)
 		prefix  = (SLAVE_BYTE,)
 		return self.rawsend(pickle.dumps(prefix + content))
 
@@ -171,12 +184,11 @@ class TCPTalks:
 	def process(self, message):
 		role   = message[0]
 		opcode = message[1]
+		args   = message[2]
 		if (role == MASTER_BYTE):
-			args   = message[2]
 			kwargs = message[3]
 			self.execinstruction(opcode, *args, **kwargs)
 		elif (role == SLAVE_BYTE):
-			args  = message[2:]
 			queue = self.get_queue(opcode)
 			queue.put(args)
 
@@ -193,14 +205,8 @@ class TCPTalks:
 			except KeyError:
 				raise KeyError('opcode {} is not bound to any instruction'.format(opcode)) from None
 			
-			# Execute the instruction and save its output
-			output = instruction(*args, **kwargs)
-			
-			# Send back the output
-			if isinstance(output, tuple):
-				return self.sendback(opcode, *output)
-			else:
-				return self.sendback(opcode, output)
+			# Execute the instruction and send back its output
+			return self.sendback(opcode, instruction(*args, **kwargs))
 		except Exception as e:
 			return self.sendback(opcode, e)
 
@@ -212,9 +218,9 @@ class TCPTalks:
 		except Empty:
 			return None
 		if len(output) > 1:
-			return output
+			return output # Return as a tuple
 		else:
-			return output[0]
+			return output[0] # Return as a single variable
 	
 	def flush(self, opcode):
 		while self.poll(opcode) is not None:
@@ -245,21 +251,20 @@ class TCPListener(Thread):
 			try:
 				inc = self.parent.socket.recv(256)
 			except ConnectionResetError:
-				inc = bytes()
+				inc = None
 			except socket.timeout:
 				continue
 			
 			# Disconnect if the other is no longer connected
-			if len(inc) == 0:
+			if not inc:
 				self.parent.disconnect()
+				break
 			
 			# Try to decode the message using the pickle protocol
-			for b in inc:
-				buffer += bytes([b])
-				try:
-					message = pickle.loads(buffer)
-				except (EOFError, pickle.UnpicklingError, AttributeError):
-					continue
+			buffer += inc
+			try:
+				message, buffer = _loads(buffer)
 				self.parent.process(message)
-				buffer = bytes()
+			except (EOFError, pickle.UnpicklingError, AttributeError):
+				continue
 
