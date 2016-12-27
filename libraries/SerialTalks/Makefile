@@ -22,7 +22,7 @@ EXECUTABLES_DIRECTORY		= /usr/local/bin
 
 UDEVRULES_DIRECTORY		= /etc/udev/rules.d
 UDEVRULES_NAME			= serialtalks.rules
-UDEVRULES_LINE			= KERNEL=="ttyUSB*", PROGRAM="/usr/bin/env PYTHONPATH=$(PYTHON3_LIBRARIES_DIRECTORY) $(PYTHON3) $(MAKEFILE_DIRECTORY)/getuuid /dev/%k", SYMLINK+="arduino/%c"
+UDEVRULES_LINE			= KERNEL=="ttyUSB*", PROGRAM="/usr/bin/env PATH=$(PATH) PYTHONPATH=$(PYTHON3_LIBRARIES_DIRECTORY) $(PYTHON3) $(MAKEFILE_DIRECTORY)/getuuid /dev/%k", SYMLINK+="arduino/%c"
 
 all:
 	make arduino_library

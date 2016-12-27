@@ -1,2 +1,0 @@
-# Arduino Nano rules
-KERNEL=="ttyUSB*", PROGRAM="/usr/local/bin/getuuid /dev/%k", SYMLINK+="arduino/%c"
