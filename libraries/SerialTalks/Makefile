@@ -1,10 +1,16 @@
+MAKEFILE_DIRECTORY = $(dir $(realpath $(firstword $(MAKEFILE_LIST))))
+
+ifeq ($(shell id -u),0)
+USER = root
+else
 USER = $(shell whoami)
+endif
 
 ARDUINO_SKETCHBOOK_PATH		= $(shell grep -Po '(?<=sketchbook.path=).*' $(HOME)/.arduino15/preferences.txt)
 ARDUINO_LIBRARIES_DIRECTORY	= $(ARDUINO_SKETCHBOOK_PATH)/libraries
 ARDUINO_LIBRARY_NAME		= SerialTalks
 
-PYTHON3 = $(shell basename $(shell readlink $(shell which python3)))
+PYTHON3 = $(shell readlink $$(which python3))
 ifeq ($(USER),root)
 PYTHON3_LIBRARIES_DIRECTORY	= $(shell $(PYTHON3) -c "import site; print(site.getsitepackages()[0])")
 else
@@ -14,7 +20,9 @@ PYTHON3_LIBRARY_NAME		= serialtalks
 
 EXECUTABLES_DIRECTORY		= /usr/local/bin
 
-UDEV_RULES_DIRECTORY		= /etc/udev/rules.d
+UDEVRULES_DIRECTORY		= /etc/udev/rules.d
+UDEVRULES_NAME			= serialtalks.rules
+UDEVRULES_LINE			= KERNEL=="ttyUSB*", PROGRAM="/usr/bin/env PYTHONPATH=$(PYTHON3_LIBRARIES_DIRECTORY) $(PYTHON3) $(MAKEFILE_DIRECTORY)/getuuid /dev/%k", SYMLINK+="arduino/%c"
 
 all:
 	make arduino_library
@@ -40,8 +48,8 @@ getlogs: python3_library
 	cp "$@" $(EXECUTABLES_DIRECTORY)
 	chmod +x $(EXECUTABLES_DIRECTORY)/"$@"
 
-udevrules: getuuid
-	cp *.rules $(UDEV_RULES_DIRECTORY)
-	udevadm control --reload-rules
+udevrules:
+	echo '$(UDEVRULES_LINE)' | sudo tee $(UDEVRULES_DIRECTORY)/$(UDEVRULES_NAME) > /dev/null
+	sudo udevadm control --reload-rules
 
 .PHONY: all arduino_library python3_library getuuid udevrules
