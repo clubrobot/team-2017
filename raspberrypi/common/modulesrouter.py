@@ -27,7 +27,8 @@ class ModulesRouter(TCPTalks):
 			module = SerialTalks(os.path.join('/dev/arduino', uuid))
 			self.modules[uuid] = module
 		
-		self.modules[uuid].connect()
+		if not module.is_connected:
+			module.connect()
 
 	def moduleexecute(self, uuid, methodname, *args, **kwargs):
 		try:
