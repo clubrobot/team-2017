@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-import glob
+import os
+
 from serial.serialutil import SerialException
 
 from common.tcptalks    import TCPTalks
@@ -20,33 +21,23 @@ class ModulesRouter(TCPTalks):
 		self.modules = dict()
 
 	def moduleconnect(self, uuid, timeout):
-		if not uuid in self.modules or not self.modules[uuid].is_connected:
-
-			# We try to connect to every available ttyUSB*
-			for tty in glob.iglob('/dev/ttyUSB*'):
-				try:
-					module = SerialTalks(tty)
-					module.connect(timeout)
-				except (TimeoutError, SerialException):
-					continue
-
-				# Return if we found the right Arduino
-				if module.getuuid() == uuid:
-					self.modules[uuid] = module
-					return
-				
-				# Else disconnect it and continue
-				module.disconnect()
-			
-			# Raise an error if we didn't found any Arduino
-			raise RuntimeError('module \'{}\' is not connected or is not responding'.format(uuid))
-
+		try:
+			module = self.modules[uuid]
+		except KeyError:
+			module = SerialTalks(os.path.join('/dev/arduino', uuid))
+			self.modules[uuid] = module
+		
+		self.modules[uuid].connect()
 
 	def moduleexecute(self, uuid, methodname, *args, **kwargs):
 		try:
 			module = self.modules[uuid]
 		except KeyError:
 			raise RuntimeError('modules router has no module \'{}\''.format(uuid)) from None
+			
+		if not module.is_connected:
+			module.connect()
+
 		return getattr(module, methodname)(*args, **kwargs)
 
 
