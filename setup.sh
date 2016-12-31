@@ -1,39 +1,48 @@
 #!/bin/bash
 
 REPOSITORY=$(dirname $(readlink -f "$BASH_SOURCE"))
+PROFILE="$HOME/.profile"
 
-# Download Arduino IDE
+# Download and install Aduino IDE if it is not already installed
 
-case $(uname -m) in
-	i686	) OS=linux32;;
-	x86_64	) OS=linux64;;
-	arm*	) OS=linuxarm;;
-	*		) exit 1;;
-esac
+if [ -z "$ARDUINO_DIR" ]; then # ifndef ARDUINO_DIR
+	
+	# Download Arduino IDE
 
-ARDUINO_URL=https://downloads.arduino.cc/arduino-1.6.12-$OS.tar.xz
-ARDUINO_TAR=$(basename "$ARDUINO_URL")
-wget "$ARDUINO_URL" -O "$ARDUINO_TAR"
+	case $(uname -m) in
+		i686	) OS=linux32;;
+		x86_64	) OS=linux64;;
+		arm*	) OS=linuxarm;;
+		*		) exit 1;;
+	esac
 
-# Install Arduino IDE
+	ARDUINO_URL=https://downloads.arduino.cc/arduino-1.6.12-$OS.tar.xz
+	ARDUINO_TAR=$(basename "$ARDUINO_URL")
+	wget "$ARDUINO_URL" -O "$ARDUINO_TAR"
 
-ARDUINO_SRC=$(tar -tf "$ARDUINO_TAR" | head -1)
-ARDUINO_SRC=${ARDUINO_SRC%/} # Remove trailing '/'
-tar -xvf "$ARDUINO_TAR"
-rm "$ARDUINO_TAR"
-sudo mv "$ARDUINO_SRC" /opt
-echo export ARDUINO_DIR="/opt/$ARDUINO_SRC" >> "$HOME/.bashrc"
+	# Install Arduino IDE
 
-# Launch Arduino IDE and give it time to settle in
+	ARDUINO_SRC=$(tar -tf "$ARDUINO_TAR" | head -1)
+	ARDUINO_SRC=${ARDUINO_SRC%/} # Remove trailing '/'
+	tar -xvf "$ARDUINO_TAR"
+	rm "$ARDUINO_TAR"
+	sudo mv "$ARDUINO_SRC" /opt
+	echo export ARDUINO_DIR="/opt/$ARDUINO_SRC" >> "$PROFILE"
 
-"/opt/$ARDUINO_SRC/arduino" &
-sleep 10
-pkill -n java
+	# Launch Arduino IDE and give it time to settle in
+	
+	"/opt/$ARDUINO_SRC/arduino" &
+	sleep 10
+	pkill -n java
 
-# Install Arduino-Makefile
+fi # ifndef ARDUINO_DIR
 
-sudo apt-get install arduino-mk
-echo export ARDMK_DIR="/usr/share/arduino" >> "$HOME/.bashrc"
+# Install Arduino-Makefile if it is not already installed
+
+if [ -z "$ARDMK_DIR" ]; then # ifndef ARDMK_DIR
+	sudo apt-get install arduino-mk
+	echo export ARDMK_DIR="/usr/share/arduino" >> "$PROFILE"
+fi
 
 # Add the current user to the dialout group
 
@@ -41,13 +50,21 @@ sudo usermod -a -G dialout $USER
 
 # Install udev rules
 
-UDEVRULES_DIRECTORY=/etc/udev/rules.d
-UDEVRULES_NAME=serialtalks.rules
-UDEVRULES_LINE='KERNEL=="ttyUSB*", PROGRAM="/usr/bin/env PATH='$PATH' PYTHONPATH='$(python3 -m site --user-site)' '"$REPOSITORY/raspberrypi/robot getuuid"' /dev/%k", SYMLINK+="arduino/%c"'
+PYTHONPATH=$(python3 -m site --user-site)
 
-echo $UDEVRULES_LINE | sudo tee $UDEVRULES_DIRECTORY/$UDEVRULES_NAME > /dev/null
+UDEVRULES_DIRECTORY=/etc/udev/rules.d
+UDEVRULE='KERNEL=="ttyUSB*", PROGRAM="/usr/bin/env PATH='"$PATH"' PYTHONPATH='"$PYTHONPATH"' '"$REPOSITORY/raspberrypi/robot getuuid"' /dev/%k", SYMLINK+="arduino/%c"'
+
+echo $UDEVRULE | sudo tee "$UDEVRULES_DIRECTORY/serialtalks.rules" > /dev/null
 sudo udevadm control --reload-rules
 
-# Add the robot command to the user path
+# Add the robot command to the user path if it is not alraedy in it
 
-echo export PATH="$REPOSITORY/raspberrypi:$PATH" >> "$HOME/.bashrc"
+if [[ ":$PATH:" != *":$REPOSITORY/raspberrypi:"* ]]; then # if not **/team-2017/raspberrypi in PATH
+	echo export PATH="$REPOSITORY/raspberrypi:\$PATH" >> "$PROFILE"
+fi
+
+# A reboot is required to source the .profile file
+
+echo "My work here is done. Now it is time for me to retire."
+echo "Please reboot your computer to take the changes into account"
