@@ -3,7 +3,7 @@
 import os, sys
 import time
 
-from argparse import ArgumentParser, FileType
+from argparse import ArgumentParser
 
 from common.serialtalks   import SerialTalks
 from common.modulesrouter import ModulesRouter
@@ -41,12 +41,15 @@ def modulesrouter(args):
 	router = ModulesRouter(password=args.password)
 	while True:
 		try:
-			router.connect(args.timeout)
+			if not router.is_connected:
+				router.connect(None)
+			else:
+				time.sleep(1)
 		except KeyboardInterrupt:
 			break
 		except Exception as e:
 			sys.stderr.write(str(e) + '\n')
-	router.disconnect()
+			continue
 
 
 parser = ArgumentParser()
@@ -65,7 +68,6 @@ getlogs_parser.set_defaults(func=getlogs)
 
 modulesrouter_parser = subparsers.add_parser('modulesrouter')
 modulesrouter_parser.add_argument('-p', '--password', type=str, default=None)
-modulesrouter_parser.add_argument('-t', '--timeout', type=float, default=2)
 modulesrouter_parser.set_defaults(func=modulesrouter)
 
 args = parser.parse_args()
