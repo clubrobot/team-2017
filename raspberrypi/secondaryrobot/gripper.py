@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-from serialtalks   import *
-from modulesrouter import Module
+from common.serialtalks   import *
+from common.modulesrouter import Module
 
 SET_GRIPPER_ENABLED_OPCODE  = 0x04
 SET_GRIPPER_POSITION_OPCODE = 0x05

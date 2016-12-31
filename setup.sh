@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPOSITORY=$(dirname "$BASH_SOURCE")
+REPOSITORY=$(dirname $(readlink -f "$BASH_SOURCE"))
 
 # Download Arduino IDE
 
@@ -35,14 +35,19 @@ pkill -n java
 sudo apt-get install arduino-mk
 echo export ARDMK_DIR="/usr/share/arduino" >> "$HOME/.bashrc"
 
-# Update environment variables
-
-source ~/.bashrc
-
 # Add the current user to the dialout group
 
 sudo usermod -a -G dialout $USER
 
-# Install libraries
+# Install udev rules
 
-make all -C $REPOSITORY/libraries
+UDEVRULES_DIRECTORY=/etc/udev/rules.d
+UDEVRULES_NAME=serialtalks.rules
+UDEVRULES_LINE='KERNEL=="ttyUSB*", PROGRAM="/usr/bin/env PATH='$PATH' PYTHONPATH='$(python3 -m site --user-site)' '"$REPOSITORY/raspberrypi/robot getuuid"' /dev/%k", SYMLINK+="arduino/%c"'
+
+echo $UDEVRULES_LINE | sudo tee $UDEVRULES_DIRECTORY/$UDEVRULES_NAME > /dev/null
+sudo udevadm control --reload-rules
+
+# Add the robot command to the user path
+
+echo export PATH="$REPOSITORY/raspberrypi:$PATH" >> "$HOME/.bashrc"

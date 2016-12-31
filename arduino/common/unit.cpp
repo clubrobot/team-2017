@@ -1,3 +1,5 @@
+#ifndef ARDUINO
+
 #include <iostream>
 #include "SerialUtils.h"
 
@@ -20,3 +22,6 @@ int main(int arc, char* argv[])
 
 	return 0;
 }
+
+#endif // ARDUINO
+

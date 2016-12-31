@@ -1,9 +1,9 @@
 #include <Arduino.h>
-#include <SerialTalks.h>
 
-#include "WheeledBase.h"
-#include "Odometry.h"
-#include "Control.h"
+#include "../../common/SerialTalks.h"
+#include "../../common/WheeledBase.h"
+#include "../../common/Odometry.h"
+#include "../../common/Control.h"
 
 // Opcodes declaration
 

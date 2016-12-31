@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include <SerialTalks.h>
 
-#include "Gripper.h"
+#include "../../common/SerialTalks.h"
+#include "../../common/Gripper.h"
 
 // Opcodes declaration
 

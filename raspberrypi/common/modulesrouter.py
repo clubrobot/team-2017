@@ -4,8 +4,8 @@
 import glob
 from serial.serialutil import SerialException
 
-from tcptalks    import TCPTalks
-from serialtalks import SerialTalks
+from common.tcptalks    import TCPTalks
+from common.serialtalks import SerialTalks
 
 MODULECONNECT_OPCODE = 0x10
 MODULEEXECUTE_OPCODE = 0x11
@@ -13,8 +13,8 @@ MODULEEXECUTE_OPCODE = 0x11
 
 class ModulesRouter(TCPTalks):
 
-	def __init__(self):
-		TCPTalks.__init__(self)
+	def __init__(self, password=None):
+		TCPTalks.__init__(self, password=password)
 		self.bind(MODULECONNECT_OPCODE, self.moduleconnect)
 		self.bind(MODULEEXECUTE_OPCODE, self.moduleexecute)
 		self.modules = dict()
@@ -61,14 +61,3 @@ class Module:
 		def method(*args, **kwargs):
 			return self.parent.execute(MODULEEXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs)
 		return method
-
-
-if __name__ == '__main__':
-	router = ModulesRouter()
-	while True:
-		try:
-			router.connect(None)
-		except RuntimeError:
-			pass
-		except KeyboardInterrupt:
-			break

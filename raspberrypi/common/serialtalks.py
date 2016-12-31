@@ -5,7 +5,7 @@ import serial
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event, current_thread
 
-from . import serialutils
+from common.serialutils import Deserializer, IntegerType, FloatType, StringType
 
 BAUDRATE = 115200
 
@@ -20,16 +20,16 @@ STDERR_OPCODE  = 0xFE
 BYTEORDER = 'little'
 ENCODING  = 'utf-8'
 
-CHAR   = serialutils.IntegerType(1, BYTEORDER, True)
-UCHAR  = serialutils.IntegerType(1, BYTEORDER, False)
-SHORT  = serialutils.IntegerType(2, BYTEORDER, True)
-USHORT = serialutils.IntegerType(2, BYTEORDER, False)
-LONG   = serialutils.IntegerType(4, BYTEORDER, True)
-ULONG  = serialutils.IntegerType(4, BYTEORDER, False)
+CHAR   = IntegerType(1, BYTEORDER, True)
+UCHAR  = IntegerType(1, BYTEORDER, False)
+SHORT  = IntegerType(2, BYTEORDER, True)
+USHORT = IntegerType(2, BYTEORDER, False)
+LONG   = IntegerType(4, BYTEORDER, True)
+ULONG  = IntegerType(4, BYTEORDER, False)
 
-FLOAT  = serialutils.FloatType('f')
+FLOAT  = FloatType('f')
 
-STRING = serialutils.StringType(ENCODING)
+STRING = StringType(ENCODING)
 
 BYTE   = UCHAR
 INT    = SHORT
@@ -125,7 +125,7 @@ class SerialTalks:
 		block = (timeout is None or timeout > 0)
 		try:
 			rawbytes = queue.get(block, timeout)
-			return serialutils.Deserializer(rawbytes)
+			return Deserializer(rawbytes)
 		except Empty:
 			return None
 	
@@ -199,14 +199,3 @@ class SerialListener(Thread):
 					self.parent.process(buffer)
 					buffer = bytes()
 					state  = 'waiting'
-
-if __name__ == '__main__':
-	from pprint import pprint
-
-	ard0 = SerialTalks('/dev/ttyUSB0')
-	#ard1 = SerialTalks('/dev/ttyUSB1')
-	with ard0:
-		print('UUID is:', ard0.getuuid())
-		print('stdout:', ard0.getout(), end = '')
-		print('stderr:', ard0.geterr(), end = '')
-		#print(ard1.getuuid())
