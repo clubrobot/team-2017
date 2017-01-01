@@ -5,8 +5,9 @@ import time
 
 from argparse import ArgumentParser
 
-from common.serialtalks   import SerialTalks
-from common.modulesrouter import ModulesRouter
+from common.serialtalks    import SerialTalks
+from common.modulesrouter  import ModulesRouter
+from common.camerastreamer import CameraStreamer
 
 
 def getuuid(args):
@@ -19,7 +20,7 @@ def getuuid(args):
 		except KeyboardInterrupt:
 			break
 		except Exception as e:
-			sys.stderr.write(str(e) + '\n')
+			sys.stderr.write('{}: {}\n'.format(type(e), e))
 
 
 def getlogs(args):
@@ -33,7 +34,7 @@ def getlogs(args):
 	except KeyboardInterrupt:
 		pass
 	except Exception as e:
-		sys.stderr.write(str(e) + '\n')
+		sys.stderr.write('{}: {}\n'.format(type(e), e))
 	module.disconnect()
 
 
@@ -49,7 +50,23 @@ def modulesrouter(args):
 			router.disconnect()
 			break
 		except Exception as e:
-			sys.stderr.write(str(e) + '\n')
+			sys.stderr.write('{}: {}\n'.format(type(e), e))
+			continue
+
+
+def camerastreamer(args):
+	camera = CameraStreamer(password=args.password)
+	while True:
+		try:
+			if not camera.is_connected:
+				camera.connect(None)
+			else:
+				camera.capture()
+		except KeyboardInterrupt:
+			camera.disconnect()
+			break
+		except Exception as e:
+			sys.stderr.write('{}: {}\n'.format(type(e), e))
 			continue
 
 
@@ -70,6 +87,10 @@ getlogs_parser.set_defaults(func=getlogs)
 modulesrouter_parser = subparsers.add_parser('modulesrouter')
 modulesrouter_parser.add_argument('-p', '--password', type=str, default=None)
 modulesrouter_parser.set_defaults(func=modulesrouter)
+
+camerastreamer_parser = subparsers.add_parser('camerastreamer')
+camerastreamer_parser.add_argument('-p', '--password', type=str, default=None)
+camerastreamer_parser.set_defaults(func=camerastreamer)
 
 args = parser.parse_args()
 args.func(args)
