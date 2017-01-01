@@ -44,8 +44,9 @@ def modulesrouter(args):
 			if not router.is_connected:
 				router.connect(None)
 			else:
-				time.sleep(1)
+				router.sleep_until_disconnected()
 		except KeyboardInterrupt:
+			router.disconnect()
 			break
 		except Exception as e:
 			sys.stderr.write(str(e) + '\n')
