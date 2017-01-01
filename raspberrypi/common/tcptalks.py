@@ -241,6 +241,12 @@ class TCPTalks:
 		else:
 			return output
 
+	def sleep_until_disconnected(self):
+		if self.listener is not current_thread():
+			self.listener.join()
+		else:
+			raise RuntimeError('cannot sleep the listening thread')
+
 
 class TCPListener(Thread):
 
