@@ -8,14 +8,16 @@ from serial.serialutil import SerialException
 from common.tcptalks    import TCPTalks
 from common.serialtalks import SerialTalks
 
+MODULESROUTER_DEFAULT_PORT = 25566
+
 MODULECONNECT_OPCODE = 0x10
 MODULEEXECUTE_OPCODE = 0x11
 
 
 class ModulesRouter(TCPTalks):
 
-	def __init__(self, password=None):
-		TCPTalks.__init__(self, password=password)
+	def __init__(self, port=MODULESROUTER_DEFAULT_PORT, password=None):
+		TCPTalks.__init__(self, port=port, password=password)
 		self.bind(MODULECONNECT_OPCODE, self.moduleconnect)
 		self.bind(MODULEEXECUTE_OPCODE, self.moduleexecute)
 		self.modules = dict()
@@ -40,6 +42,12 @@ class ModulesRouter(TCPTalks):
 			module.connect()
 
 		return getattr(module, methodname)(*args, **kwargs)
+
+
+class ModulesManager(TCPTalks):
+
+	def __init__(self, ip, port=MODULESROUTER_DEFAULT_PORT, password=None):
+		TCPTalks.__init__(self, ip, port=port, password=password)
 
 
 class Module:
