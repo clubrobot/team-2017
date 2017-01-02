@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-import os
+import os, sys
 import io
 from time      import time, sleep
 from threading import RLock
@@ -9,13 +9,15 @@ from threading import RLock
 # Raspberry Pi modules
 try:
 	from picamera import PiCamera
-except ImportError: pass
+except ImportError as e:
+	sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
 
 # Controller modules
 try:
 	import cv2
 	import numpy as np
-except ImportError: pass
+except ImportError as e:
+	sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
 
 from common.tcptalks import TCPTalks
 
@@ -54,7 +56,7 @@ class CameraStreamer(TCPTalks):
 			self.send(UPDATE_CAMERA_FRAME_OPCODE, stream.getvalue())
 
 	def capture(self):
-		streams = generate_streams_and_send_their_values()
+		streams = self.generate_streams_and_send_their_values()
 		self.camera.capture_sequence(streams, 'jpeg', use_video_port=True)
 
 
@@ -81,9 +83,10 @@ class Camera(TCPTalks):
 		currentframe = self.currentframe.copy()
 		self.frames_lock.release()
 		return currentframe
-
+'''
 	def __getattr__(self, propertyname):
 		return self.execute(GET_CAMERA_PROPERTY_OPCODE, propertyname)
 	
 	def __setattr__(self, propertyname, value):
 		return self.execute(SET_CAMERA_PROPERTY_OPCODE, propertyname, value)
+'''
