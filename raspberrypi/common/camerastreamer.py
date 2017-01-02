@@ -10,14 +10,14 @@ from threading import RLock
 try:
 	from picamera import PiCamera
 except ImportError as e:
-	sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
+	pass #sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
 
 # Controller modules
 try:
 	import cv2
 	import numpy as np
 except ImportError as e:
-	sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
+	pass #sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
 
 from common.tcptalks import TCPTalks
 
@@ -71,8 +71,8 @@ class Camera(TCPTalks):
 		self.frames_lock  = RLock()
 
 	def update_camera_frame(self, streamvalue):
-		cvimageflags = 0
-		currentframe = cv2.decode(np.asarray(streamvalue), cvimageflags)
+		cvimageflags = 1
+		currentframe = cv2.imdecode(np.frombuffer(streamvalue, dtype='uint8'), cvimageflags)
 		if currentframe is not None:
 			self.frames_lock.acquire()
 			self.currentframe = currentframe
