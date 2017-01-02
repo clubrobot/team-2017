@@ -20,7 +20,7 @@ def getuuid(args):
 		except KeyboardInterrupt:
 			break
 		except Exception as e:
-			sys.stderr.write('{}: {}\n'.format(type(e), e))
+			sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
 
 
 def getlogs(args):
@@ -34,7 +34,7 @@ def getlogs(args):
 	except KeyboardInterrupt:
 		pass
 	except Exception as e:
-		sys.stderr.write('{}: {}\n'.format(type(e), e))
+		sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
 	module.disconnect()
 
 
@@ -50,7 +50,7 @@ def modulesrouter(args):
 			router.disconnect()
 			break
 		except Exception as e:
-			sys.stderr.write('{}: {}\n'.format(type(e), e))
+			sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
 			continue
 
 
@@ -66,7 +66,7 @@ def camerastreamer(args):
 			camera.disconnect()
 			break
 		except Exception as e:
-			sys.stderr.write('{}: {}\n'.format(type(e), e))
+			sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
 			continue
 
 
