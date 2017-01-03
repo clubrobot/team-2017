@@ -3,8 +3,8 @@
 
 from math import pi
 
-from serialtalks   import *
-from modulesrouter import Module
+from common.serialtalks   import *
+from common.modulesrouter import Module
 
 SET_MOTORS_SPEEDS_OPCODE = 0x04
 
