@@ -1,9 +1,9 @@
 #include "WheeledBase.h"
 
 WheeledBase::WheeledBase()
-//	            | EN | IN1 | IN2 | radius in mm | speed constant in RPM | reduction ratio | voltage |
-:	leftMotor   (  6,    5,    3,            62,                    622,               19,       11 )
-,	rightMotor  (  9,   10,   11,            62,                    622,               19,       11 )
+//	            | EN | PWM | DIR | radius in mm | speed constant in RPM | reduction ratio | voltage |
+:	leftMotor   (  6,    3,    5,            62,                    622,               19,       11 )
+,	rightMotor  (  9,   11,   10,            62,                    622,               19,       11 )
 
 //	            | RESET | FAULT |
 ,	driver      (    12,     A7 )
@@ -16,5 +16,3 @@ WheeledBase::WheeledBase()
 {
 	// Add extra code to fully initialize the wheeled base here
 }
-
-
