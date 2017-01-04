@@ -10,7 +10,7 @@ class DCMotor : private NonCopyable
 {
 public:
 
-	enum DriverMode {FAST_DECAY, SLOW_DECAY};
+	enum Direction {FORWARD, BACKWARD};
 
 	DCMotor(int EN, int IN1, int IN2, float wheelRadius, float speedConstant, int speedReductionRatio, int suppliedVoltage);
 
@@ -18,7 +18,8 @@ public:
 
 	void enable(bool enable = true);
 	void setSpeed(float speed);
-	void setDriverMode(DriverMode mode);
+
+	float getMaxSpeed() const;
 
 private:
 
@@ -26,11 +27,10 @@ private:
 
 	bool		m_enable;
 	float 		m_speed; // in mm/s (millimeters per second)
-	DriverMode	m_driverMode;
 
 	const int	m_enablePin;
-	const int	m_input1Pin;
-	const int	m_input2Pin;
+	const int	m_velocityPin;
+	const int	m_directionPin;
 
 	const float m_wheelRadius; // in mm (millimeters)
 	const float	m_speedConstant; // in RPM/V (revolution per minute per volt)
