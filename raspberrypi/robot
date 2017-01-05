@@ -11,7 +11,7 @@ from common.camerastreamer import CameraStreamer
 
 
 def getuuid(args):
-	module = SerialTalks(port)
+	module = SerialTalks(args.port)
 	try:
 		module.connect(args.timeout)
 		print(module.getuuid())
@@ -71,7 +71,7 @@ parser = ArgumentParser()
 subparsers = parser.add_subparsers()
 
 getuuid_parser = subparsers.add_parser('getuuid')
-getuuid_parser.add_argument('ports', type=str, nargs='+')
+getuuid_parser.add_argument('port', type=str)
 getuuid_parser.add_argument('-t', '--timeout', type=float, default=2)
 getuuid_parser.set_defaults(func=getuuid)
 
