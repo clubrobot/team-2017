@@ -14,7 +14,11 @@ def getuuid(args):
 	module = SerialTalks(args.port)
 	try:
 		module.connect(args.timeout)
-		print(module.getuuid())
+		uuid = module.getuuid(args.timeout)
+		if isinstance(uuid, str):
+			print(uuid)
+		else:
+			raise ValueError('\'{}\' object is not a valid UUID'.format(type(uuid)))
 	except KeyboardInterrupt:
 		pass
 	finally:
