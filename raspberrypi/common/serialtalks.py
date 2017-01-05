@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #-*- coding: utf-8 -*-
 
+import sys
 import serial
 from time       import time
 from queue		import Queue, Empty
@@ -121,10 +122,14 @@ class SerialTalks:
 		return queue
 
 	def process(self, message):
-		opcode = message[0]
-		args   = message[1:]
-		queue = self.get_queue(opcode)
-		queue.put(args)
+		try:
+			opcode = message[0]
+			args   = message[1:]
+		except IndexError: # Got that exception once, should investigate on it
+			sys.stderr.write('message \'{}\' contains no opcode'.format(message))
+		else:
+			queue = self.get_queue(opcode)
+			queue.put(args)
 
 	def poll(self, opcode, timeout=0):
 		queue = self.get_queue(opcode)
