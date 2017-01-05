@@ -34,7 +34,7 @@ Control		control(base, odometry);
 
 // Instructions
 
-bool setMotorsSpeedsInstruction(Deserializer& input, Serializer& output)
+bool setMotorsSpeedsInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	float leftSpeed, rightSpeed;
 	input >> leftSpeed >> rightSpeed;
@@ -46,7 +46,7 @@ bool setMotorsSpeedsInstruction(Deserializer& input, Serializer& output)
 	return false;
 }
 
-bool moveInstruction(Deserializer& input, Serializer& output)
+bool moveInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	float linear, angular;
 	input >> linear >> angular;
@@ -57,7 +57,7 @@ bool moveInstruction(Deserializer& input, Serializer& output)
 	return false;
 }
 
-bool gotoInstruction(Deserializer& input, Serializer& output)
+bool gotoInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	float x, y, theta, linear, angular;
 	input >> x >> y >> theta >> linear >> angular;
@@ -68,7 +68,7 @@ bool gotoInstruction(Deserializer& input, Serializer& output)
 	return false;
 }
 
-bool setStateInstruction(Deserializer& input, Serializer& output)
+bool setStateInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	float x, y, theta;
 	input >> x >> y >> theta;
@@ -76,21 +76,21 @@ bool setStateInstruction(Deserializer& input, Serializer& output)
 	return false;
 }
 
-bool getStateInstruction(Deserializer& input, Serializer& output)
+bool getStateInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	const State& s = odometry.getState();
 	output << float(s.x) << float(s.y) << float(s.theta);
 	return true;
 }
 
-bool getVelocitiesInstruction(Deserializer& input, Serializer& output)
+bool getVelocitiesInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	const Movement& m = odometry.getMovement();
 	output << float(m.linear) << float(m.angular);
 	return true;
 }
 
-bool setPIDTuningsInstruction(Deserializer& input, Serializer& output)
+bool setPIDTuningsInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	byte id;
 	float Kp, Ki, Kd;
@@ -109,7 +109,7 @@ bool setPIDTuningsInstruction(Deserializer& input, Serializer& output)
 	}
 }
 
-bool getPIDTuningsInstruction(Deserializer& input, Serializer& output)
+bool getPIDTuningsInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	byte id;
 	input >> id;
@@ -135,14 +135,14 @@ bool getPIDTuningsInstruction(Deserializer& input, Serializer& output)
 void setup()
 {
 	talks.begin(Serial);
-	talks.attach(SET_MOTORS_SPEEDS_OPCODE, setMotorsSpeedsInstruction);
-	talks.attach(MOVE_OPCODE             , moveInstruction);
-	talks.attach(GOTO_OPCODE             , gotoInstruction);
-	talks.attach(SET_STATE_OPCODE        , setStateInstruction);
-	talks.attach(GET_STATE_OPCODE        , getStateInstruction);
-	talks.attach(GET_VELOCITIES_OPCODE   , getVelocitiesInstruction);
-	talks.attach(SET_PID_TUNINGS_OPCODE  , setPIDTuningsInstruction);
-	talks.attach(GET_PID_TUNINGS_OPCODE  , getPIDTuningsInstruction);
+	talks.bind(SET_MOTORS_SPEEDS_OPCODE, setMotorsSpeedsInstruction);
+	talks.bind(MOVE_OPCODE             , moveInstruction);
+	talks.bind(GOTO_OPCODE             , gotoInstruction);
+	talks.bind(SET_STATE_OPCODE        , setStateInstruction);
+	talks.bind(GET_STATE_OPCODE        , getStateInstruction);
+	talks.bind(GET_VELOCITIES_OPCODE   , getVelocitiesInstruction);
+	talks.bind(SET_PID_TUNINGS_OPCODE  , setPIDTuningsInstruction);
+	talks.bind(GET_PID_TUNINGS_OPCODE  , getPIDTuningsInstruction);
 }
 
 void loop()
