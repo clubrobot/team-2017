@@ -72,21 +72,18 @@ public: // Public API
 
 	SerialTalks();
 
-	bool isConnected() const;
-
-	void connect();
-
 	template<typename GenericSerial> void begin(GenericSerial& serial)
 	{
 		serial.begin(SERIALTALKS_BAUDRATE);
 		m_stream = &serial;
-		connect();
 	}
 
 	void bind(byte opcode, Instruction instruction);
 
 	bool execinstruction(byte opcode, byte* inputBuffer);
 	bool execute();
+
+	bool isConnected() const {return m_connected;}
 
 	bool getUUID(char* uuid);
 	void setUUID(const char* uuid);

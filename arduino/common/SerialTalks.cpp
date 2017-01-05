@@ -12,7 +12,6 @@ SerialTalks talks;
 bool SerialTalks::connectInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	inst.m_connected = true;
-	output << inst.m_connected;
 	return true;
 }
 
@@ -80,21 +79,10 @@ SerialTalks::SerialTalks()
 	bind(SERIALTALKS_SETUUID_OPCODE, SerialTalks::setUUIDInstruction);
 }
 
-bool SerialTalks::isConnected() const
-{
-	return m_connected;
-}
-
-void SerialTalks::connect()
-{
-	// Tell it's ready by sending the UUID
-	execinstruction(SERIALTALKS_GETUUID_OPCODE, 0);
-}
-
 int SerialTalks::send(byte opcode, const byte* buffer, int size)
 {
 	int count = 0;
-	if (m_stream != 0)
+	if (m_stream != 0 && isConnected())
 	{
 		count += m_stream->write(SERIALTALKS_SLAVE_BYTE);
 		count += m_stream->write(byte(size + 1));
