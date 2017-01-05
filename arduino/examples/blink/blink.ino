@@ -2,7 +2,7 @@
 
 #include "../../common/SerialTalks.h"
 
-#define BLINK	0x02
+#define BLINK	0x0B
 #define LED		13
 
 
