@@ -11,16 +11,18 @@ from common.camerastreamer import CameraStreamer
 
 
 def getuuid(args):
-	for port in args.ports:
-		module = SerialTalks(port)
-		try:
-			module.connect(args.timeout)
-			print(module.getuuid())
-			module.disconnect()
-		except KeyboardInterrupt:
-			break
-		except Exception as e:
-			sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
+	module = SerialTalks(args.port)
+	try:
+		module.connect(args.timeout)
+		uuid = module.getuuid(args.timeout)
+		if isinstance(uuid, str):
+			print(uuid)
+		else:
+			raise ValueError('\'{}\' object is not a valid UUID'.format(type(uuid)))
+	except KeyboardInterrupt:
+		pass
+	finally:
+		module.disconnect()
 
 
 def getlogs(args):
@@ -33,9 +35,8 @@ def getlogs(args):
 			time.sleep(1 / args.frequency)
 	except KeyboardInterrupt:
 		pass
-	except Exception as e:
-		sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
-	module.disconnect()
+	finally:
+		module.disconnect()
 
 
 def modulesrouter(args):
@@ -74,7 +75,7 @@ parser = ArgumentParser()
 subparsers = parser.add_subparsers()
 
 getuuid_parser = subparsers.add_parser('getuuid')
-getuuid_parser.add_argument('ports', type=str, nargs='+')
+getuuid_parser.add_argument('port', type=str)
 getuuid_parser.add_argument('-t', '--timeout', type=float, default=2)
 getuuid_parser.set_defaults(func=getuuid)
 

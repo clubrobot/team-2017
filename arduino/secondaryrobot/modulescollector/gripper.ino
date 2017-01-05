@@ -16,7 +16,7 @@ Gripper gripper(   5,    0,  164,   0.6,   0.2,   1.0 );
 
 // Instructions
 
-bool setGripperEnabledInstruction(Deserializer& input, Serializer& output)
+bool setGripperEnabledInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	byte enabled;
 	input >> enabled;
@@ -26,7 +26,7 @@ bool setGripperEnabledInstruction(Deserializer& input, Serializer& output)
 		gripper.disable();
 }
 
-bool setGripperPositionInstruction(Deserializer& input, Serializer& output)
+bool setGripperPositionInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	float position;
 	input >> position;
@@ -38,8 +38,8 @@ bool setGripperPositionInstruction(Deserializer& input, Serializer& output)
 void setup()
 {
 	talks.begin(Serial);
-	talks.attach(SET_GRIPPER_ENABLED , setGripperEnabledInstruction);
-	talks.attach(SET_GRIPPER_POSITION, setGripperPositionInstruction);
+	talks.bind(SET_GRIPPER_ENABLED , setGripperEnabledInstruction);
+	talks.bind(SET_GRIPPER_POSITION, setGripperPositionInstruction);
 }
 
 void loop()

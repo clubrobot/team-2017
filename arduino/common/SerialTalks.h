@@ -32,8 +32,9 @@
 
 #define SERIALTALKS_DEFAULT_UUID_LENGTH 9
 
-#define SERIALTALKS_GETUUID_OPCODE 0x0
-#define SERIALTALKS_SETUUID_OPCODE 0x1
+#define SERIALTALKS_CONNECT_OPCODE 0x0
+#define SERIALTALKS_GETUUID_OPCODE 0x1
+#define SERIALTALKS_SETUUID_OPCODE 0x2
 #define SERIALTALKS_STDOUT_OPCODE  0xFF
 #define SERIALTALKS_STDERR_OPCODE  0xFE
 
@@ -67,7 +68,7 @@ public: // Public API
 		friend class SerialTalks;
 	};
 
-	typedef bool (*Instruction)(Deserializer& input, Serializer& output);
+	typedef bool (*Instruction)(SerialTalks& inst, Deserializer& input, Serializer& output);
 
 	SerialTalks();
 
@@ -75,15 +76,16 @@ public: // Public API
 	{
 		serial.begin(SERIALTALKS_BAUDRATE);
 		m_stream = &serial;
-		
-		// Tell it's ready by sending the UUID
-		execute(SERIALTALKS_GETUUID_OPCODE, 0);
 	}
 
-	void attach(byte opcode, Instruction instruction);
+	void bind(byte opcode, Instruction instruction);
 
-	bool execute(byte opcode, byte* inputBuffer);
+	bool execinstruction(byte opcode, byte* inputBuffer);
 	bool execute();
+
+	bool isConnected() const {return m_connected;}
+
+	void waitUntilConnected(){while (!isConnected());}
 
 	bool getUUID(char* uuid);
 	void setUUID(const char* uuid);
@@ -102,6 +104,7 @@ protected: // Protected methods
 	// Attributes
 
 	Stream*     m_stream;
+	bool		m_connected;
 
 	Instruction	m_instructions[SERIALTALKS_MAX_OPCODE];
 
@@ -117,6 +120,12 @@ protected: // Protected methods
 	
 	byte        m_bytesNumber;
 	byte        m_bytesCounter;
+
+private:
+
+	static bool connectInstruction(SerialTalks& inst, Deserializer& input, Serializer& output);
+	static bool getUUIDInstruction(SerialTalks& inst, Deserializer& input, Serializer& output);
+	static bool setUUIDInstruction(SerialTalks& inst, Deserializer& input, Serializer& output);
 };
 
 extern SerialTalks talks;

@@ -2,11 +2,11 @@
 
 #include "../../common/SerialTalks.h"
 
-#define BLINK	0x02
+#define BLINK	0x0B
 #define LED		13
 
 
-bool blink(Deserializer& input, Serializer& output)
+bool blink(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	byte count = 1;
 	input >> count;
@@ -23,7 +23,7 @@ bool blink(Deserializer& input, Serializer& output)
 void setup()
 {
 	talks.begin(Serial);
-	talks.attach(BLINK, blink);
+	talks.bind(BLINK, blink);
 	pinMode(LED, OUTPUT);
 
 	char uuid[SERIALTALKS_UUID_LENGTH];
