@@ -2,6 +2,7 @@
 #-*- coding: utf-8 -*-
 
 import serial
+from time       import time
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event, current_thread
 
@@ -58,7 +59,7 @@ class SerialTalks:
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.disconnect()
 
-	def connect(self, timeout = 2):
+	def connect(self, timeout=2):
 		if not self.is_connected:
 			self.stream = serial.Serial(self.port,
 				baudrate=BAUDRATE,
@@ -74,7 +75,11 @@ class SerialTalks:
 			self.is_connected = True
 
 			# Wait until the Arduino is operational
-			if self.getuuid(timeout) is None:
+			startingtime = time()
+			while timeout is None or time() - startingtime < timeout:
+				if self.execute(CONNECT_OPCODE, timeout=0.1) is not None:
+					break
+			else:
 				self.disconnect()
 				raise TimeoutError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port))
 		else:
@@ -121,7 +126,7 @@ class SerialTalks:
 		queue = self.get_queue(opcode)
 		queue.put(args)
 
-	def poll(self, opcode, timeout = 0):
+	def poll(self, opcode, timeout=0):
 		queue = self.get_queue(opcode)
 		block = (timeout is None or timeout > 0)
 		try:
@@ -134,16 +139,14 @@ class SerialTalks:
 		while self.poll(opcode) is not None:
 			pass
 
-	def execute(self, opcode, *args):
+	def execute(self, opcode, *args, timeout=None):
 		self.flush(opcode)
 		self.send(opcode, *args)
-		output = self.poll(opcode, None)
+		output = self.poll(opcode, timeout)
 		return output
 
-	def getuuid(self, timeout = None):
-		self.flush(GETUUID_OPCODE)
-		self.send(GETUUID_OPCODE)
-		output = self.poll(GETUUID_OPCODE, timeout)
+	def getuuid(self, timeout=None):
+		output = self.execute(GETUUID_OPCODE, timeout=timeout)
 		if output is not None:
 			return output.read(STRING)
 		else:
@@ -152,7 +155,7 @@ class SerialTalks:
 	def setuuid(self, uuid):
 		return self.send(SETUUID_OPCODE, STRING(uuid))
 
-	def getlog(self, opcode, timeout = 0):
+	def getlog(self, opcode, timeout=0):
 		log = str()
 		while True:
 			try:
@@ -160,10 +163,10 @@ class SerialTalks:
 			except AttributeError:
 				return log
 
-	def getout(self, timeout = 0):
+	def getout(self, timeout=0):
 		return self.getlog(STDOUT_OPCODE, timeout)
 
-	def geterr(self, timeout = 0):
+	def geterr(self, timeout=0):
 		return self.getlog(STDERR_OPCODE, timeout)
 
 
