@@ -9,7 +9,14 @@ SerialTalks talks;
 
 // Built-in instructions
 
-static bool getUUIDInstruction(Deserializer& input, Serializer& output)
+bool SerialTalks::connectInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
+{
+	inst.m_connected = true;
+	output << inst.m_connected;
+	return true;
+}
+
+bool SerialTalks::getUUIDInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	char uuid[SERIALTALKS_UUID_LENGTH];
 	talks.getUUID(uuid);
@@ -17,7 +24,7 @@ static bool getUUIDInstruction(Deserializer& input, Serializer& output)
 	return true;
 }
 
-static bool setUUIDInstruction(Deserializer& input, Serializer& output)
+bool SerialTalks::setUUIDInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {	
 	char uuid[SERIALTALKS_UUID_LENGTH];
 	input >> uuid;
@@ -52,6 +59,8 @@ size_t SerialTalks::ostream::write(const uint8_t *buffer, size_t size)
 SerialTalks::SerialTalks()
 :	out(*this, SERIALTALKS_STDOUT_OPCODE)
 ,	err(*this, SERIALTALKS_STDERR_OPCODE)
+
+,	m_connected(false)
 {
 	// Initialize UUID stuff
 #ifdef BOARD_UUID
@@ -66,8 +75,20 @@ SerialTalks::SerialTalks()
 #endif // BOARD_UUID
 
 	// Add UUID accessors
-	attach(SERIALTALKS_GETUUID_OPCODE, getUUIDInstruction);
-	attach(SERIALTALKS_SETUUID_OPCODE, setUUIDInstruction);
+	bind(SERIALTALKS_CONNECT_OPCODE, SerialTalks::connectInstruction);
+	bind(SERIALTALKS_GETUUID_OPCODE, SerialTalks::getUUIDInstruction);
+	bind(SERIALTALKS_SETUUID_OPCODE, SerialTalks::setUUIDInstruction);
+}
+
+bool SerialTalks::isConnected() const
+{
+	return m_connected;
+}
+
+void SerialTalks::connect()
+{
+	// Tell it's ready by sending the UUID
+	execinstruction(SERIALTALKS_GETUUID_OPCODE, 0);
 }
 
 int SerialTalks::send(byte opcode, const byte* buffer, int size)
@@ -83,21 +104,21 @@ int SerialTalks::send(byte opcode, const byte* buffer, int size)
 	return count;
 }
 
-void SerialTalks::attach(byte opcode, Instruction instruction)
+void SerialTalks::bind(byte opcode, Instruction instruction)
 {
 	// Add a command to execute when receiving the specified opcode
 	if (opcode < SERIALTALKS_MAX_OPCODE)
 		m_instructions[opcode] = instruction;
 }
 
-bool SerialTalks::execute(byte opcode, byte* inputBuffer)
+bool SerialTalks::execinstruction(byte opcode, byte* inputBuffer)
 {
 	if (m_instructions[opcode] != 0)
 	{
 		Deserializer input (inputBuffer);
 		Serializer   output(m_outputBuffer);
 
-		if (m_instructions[opcode](input, output))
+		if (m_instructions[opcode](*this, input, output))
 			send(opcode, m_outputBuffer, output.buffer - m_outputBuffer);
 		return true;
 	}
@@ -137,7 +158,7 @@ bool SerialTalks::execute()
 			if (m_bytesCounter >= m_bytesNumber)
 			{
 				byte opcode = m_inputBuffer[0];
-				ret |= execute(opcode, m_inputBuffer + 1);
+				ret |= execinstruction(opcode, m_inputBuffer + 1);
 				m_state = SERIALTALKS_WAITING_STATE;
 			}
 		}
