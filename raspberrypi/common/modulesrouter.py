@@ -46,13 +46,12 @@ class ModulesRouter(TCPTalks):
 
 class ModulesManager(TCPTalks):
 
-	def __init__(self, ip, port=MODULESROUTER_DEFAULT_PORT, password=None):
+	def __init__(self, ip='loclahost', port=MODULESROUTER_DEFAULT_PORT, password=None):
 		TCPTalks.__init__(self, ip, port=port, password=password)
-
 
 class Module:
 
-	def __init__(self, parent, uuid, timeout = 2):
+	def __init__(self, parent, uuid, timeout=2):
 		self.parent = parent
 		self.uuid   = uuid
 		self.parent.execute(MODULECONNECT_OPCODE, uuid, timeout)
