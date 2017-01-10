@@ -46,8 +46,9 @@ class ModulesRouter(TCPTalks):
 
 class ModulesManager(TCPTalks):
 
-	def __init__(self, ip='loclahost', port=MODULESROUTER_DEFAULT_PORT, password=None):
+	def __init__(self, ip='localhost', port=MODULESROUTER_DEFAULT_PORT, password=None):
 		TCPTalks.__init__(self, ip, port=port, password=password)
+
 
 class Module:
 
