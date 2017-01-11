@@ -2,6 +2,7 @@
 #define __SERIALTALKS_H__
 
 #include <Arduino.h>
+#include "serialutils.h"
 
 #ifndef SERIALTALKS_BAUDRATE
 #define SERIALTALKS_BAUDRATE 115200
@@ -37,8 +38,6 @@
 #define SERIALTALKS_SETUUID_OPCODE 0x2
 #define SERIALTALKS_STDOUT_OPCODE  0xFF
 #define SERIALTALKS_STDERR_OPCODE  0xFE
-
-#include "SerialUtils.h"
 
 
 class SerialTalks
