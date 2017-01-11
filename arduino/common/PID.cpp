@@ -24,9 +24,7 @@ PID::PID(int address, float Kp, float Ki, float Kd)
 float PID::compute(float setpoint, float input)
 {
 	// Compute the elapsed time since the last call
-	float currentTime = millis();
-	float timestep = currentTime - m_previousTime;
-	m_previousTime = currentTime;
+	float timestep = m_clock.restart();
 
 	// Compute the error between the current state and the setpoint
 	float currentError = setpoint - input;
@@ -54,7 +52,7 @@ void PID::reset()
 {
 	m_errorIntegral = 0;
 	m_previousError = 0;
-	m_previousTime = millis();
+	m_clock.restart();
 }
 
 void PID::loadTunings()

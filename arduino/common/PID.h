@@ -1,6 +1,8 @@
 #ifndef __PID_H__
 #define __PID_H__
 
+#include "Clock.h"
+
 
 class PID
 {
@@ -28,9 +30,9 @@ private:
 	float m_Ki;
 	float m_Kd;
 
-	float         m_errorIntegral;
-	float         m_previousError;
-	unsigned long m_previousTime;
+	float m_errorIntegral;
+	float m_previousError;
+	Clock m_clock;
 
 	const int m_address;
 };

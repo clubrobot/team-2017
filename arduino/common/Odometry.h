@@ -5,6 +5,7 @@
 
 #include "RotaryEncoder.h"
 #include "WheeledBase.h"
+#include "Clock.h"
 
 
 struct State
@@ -40,13 +41,11 @@ public:
 	void setMovement(float linear, float angular);
 	void setMovement(const Movement& movement);
 
-	unsigned long getElapsedTime();
-
 	void update();
 
 private:
 
-	unsigned long	m_lastTime;
+	Clock           m_clock;
 
 	State			m_state;
 	Movement		m_movement;

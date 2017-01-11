@@ -8,7 +8,7 @@ Odometry::Odometry(WheeledBase& base)
 
 ,	m_base(base)
 {
-	m_lastTime = micros();
+	
 }
 
 const State& Odometry::getState() const
@@ -41,17 +41,9 @@ void Odometry::setMovement(const Movement& movement)
 	m_movement = movement;
 }
 
-unsigned long Odometry::getElapsedTime()
-{
-	unsigned long currentTime = micros();
-	unsigned long elapsedTime = currentTime - m_lastTime;
-	m_lastTime = currentTime;
-	return elapsedTime;
-}
-
 void Odometry::update()
 {
-	const float dt	= getElapsedTime() / 1e6;
+	const float dt	= m_clock.getElapsedTime();
 	if (dt > 0)
 	{
 		const float dL	= m_base.leftEncoder.getTraveledDistance();

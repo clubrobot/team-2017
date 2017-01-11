@@ -13,7 +13,8 @@ LOCAL_CPP_SRCS = \
 	$(COMMON)/WheeledBase.cpp \
 	$(COMMON)/Odometry.cpp \
 	$(COMMON)/PID.cpp \
-	$(COMMON)/Control.cpp
+	$(COMMON)/Control.cpp \
+	$(COMMON)/Clock.cpp
 
 # Sketch libraries
 ARDUINO_LIBS = EEPROM
