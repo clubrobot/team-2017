@@ -18,8 +18,6 @@ public:
 	void resetCounter();
 	long getCounter() const;
 
-	static byte readShiftRegister(int Q, int PL, int CP);
-
 	float getTraveledDistance();
 
 private:

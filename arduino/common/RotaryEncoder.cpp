@@ -1,4 +1,5 @@
 #include "RotaryEncoder.h"
+#include "hardware.h"
 #include <math.h>
 
 
@@ -72,19 +73,4 @@ float RotaryEncoder::getTraveledDistance()
 	long counts = getCounter() - oldCounter;
 	float distance = (float)counts / m_countsPerRevolution * 2.0 * M_PI * m_wheelRadius;
 	return distance;
-}
-
-byte RotaryEncoder::readShiftRegister(int Q, int PL, int CP)
-{
-	digitalWrite(PL, HIGH);
-	byte value = 0;
-	for (int i = 0; i < 8; i++)
-	{
-		value <<= 1;
-		value |= digitalRead(Q);
-		digitalWrite(CP, HIGH);
-		digitalWrite(CP, LOW);
-	}
-	digitalWrite(PL, LOW);
-	return value;
 }
