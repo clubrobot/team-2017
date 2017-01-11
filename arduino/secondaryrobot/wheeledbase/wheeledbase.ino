@@ -144,7 +144,7 @@ void setup()
 	talks.bind(SET_PID_TUNINGS_OPCODE  , setPIDTuningsInstruction);
 	talks.bind(GET_PID_TUNINGS_OPCODE  , getPIDTuningsInstruction);
 
-	TCCR2B = TCCR2B & 0b11111000 | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
+	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
 }
 
 void loop()
