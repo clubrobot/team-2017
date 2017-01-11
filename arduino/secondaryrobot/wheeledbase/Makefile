@@ -12,11 +12,11 @@ LOCAL_CPP_SRCS = \
 	$(COMMON)/RotaryEncoder.cpp \
 	$(COMMON)/WheeledBase.cpp \
 	$(COMMON)/Odometry.cpp \
-	$(COMMON)/MyPID.cpp \
+	$(COMMON)/PID.cpp \
 	$(COMMON)/Control.cpp
 
 # Sketch libraries
-ARDUINO_LIBS = EEPROM PID
+ARDUINO_LIBS = EEPROM
 
 # Congratulations! You made a pretty Makefile :)
 # Now let the grown-ups do the hard work :D

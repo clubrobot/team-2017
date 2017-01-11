@@ -5,7 +5,7 @@
 
 #include "WheeledBase.h"
 #include "Odometry.h"
-#include "MyPID.h"
+#include "PID.h"
 
 #define LINEAR_VELOCITY_PID_ADDRESS  0x040
 #define ANGULAR_VELOCITY_PID_ADDRESS 0x060
@@ -19,8 +19,8 @@ public:
 
 	Control(WheeledBase& base, Odometry& odometry);
 
-	const MyPID& getLinearVelocityPID () const {return m_linearVelocityPID;}
-	const MyPID& getAngularVelocityPID() const {return m_angularVelocityPID;}
+	const PID& getLinearVelocityPID () const {return m_linearVelocityPID;}
+	const PID& getAngularVelocityPID() const {return m_angularVelocityPID;}
 
 	void setLinearVelocityPIDTunings(float Kp, float Ki, float Kd)
 	{
@@ -43,11 +43,11 @@ public:
 
 private:
 
-	void setVelocitiesSetpointsDependingOnTargetVelocities();
-	void setVelocitiesSetpointsDependingOnTargetStance();
+	void setVelocitiesSetpointsDependingOnTargetVelocities(float& linearVelocitySetpoint, float& angularVelocitySetpoint);
+	void setVelocitiesSetpointsDependingOnTargetStance    (float& linearVelocitySetpoint, float& angularVelocitySetpoint);
 
-	MyPID        m_linearVelocityPID;
-	MyPID        m_angularVelocityPID;
+	PID          m_linearVelocityPID;
+	PID          m_angularVelocityPID;
 
 	Movement     m_targetVelocities;
 	State        m_targetStance;

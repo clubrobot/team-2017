@@ -38,15 +38,11 @@ void Control::setTargetStance(float x, float y, float theta, float linear, float
 void Control::enable()
 {
 	m_enabled = true;
-	m_linearVelocityPID .enable();
-	m_angularVelocityPID.enable();
 }
 
 void Control::disable()
 {
 	m_enabled = false;
-	m_linearVelocityPID .disable();
-	m_angularVelocityPID.disable();
 }
 
 void Control::step()
@@ -54,24 +50,22 @@ void Control::step()
 	if (m_enabled)
 	{
 		// Set velocities setpoints depending on the current control target
+		float linearVelocitySetpoint;
+		float angularVelocitySetpoint;
 		switch (m_target)
 		{
 		case VELOCITIES:
-			setVelocitiesSetpointsDependingOnTargetVelocities();
+			setVelocitiesSetpointsDependingOnTargetVelocities(linearVelocitySetpoint, angularVelocitySetpoint);
 			break;
 		case STANCE:
-			setVelocitiesSetpointsDependingOnTargetStance();
+			setVelocitiesSetpointsDependingOnTargetStance(linearVelocitySetpoint, angularVelocitySetpoint);
 			break;
 		}
 
 		// Get the linear and angular output velocities
 		const Movement& m = m_odometry.getMovement();
-		m_linearVelocityPID .setInput(m.linear);
-		m_angularVelocityPID.setInput(m.angular);
-		m_linearVelocityPID .step();
-		m_angularVelocityPID.step();
-		const float linearVelocity  = m_linearVelocityPID .getOutput();
-		const float angularVelocity = m_angularVelocityPID.getOutput();
+		const float linearVelocity  = m_linearVelocityPID .compute(linearVelocitySetpoint , m.linear);
+		const float angularVelocity = m_angularVelocityPID.compute(angularVelocitySetpoint, m.angular);
 
 		// Convert the linear and angular velocities into wheels' speed
 		m_base.leftMotor .setSpeed(linearVelocity - angularVelocity * m_base.axleTrack / 2);
@@ -85,10 +79,10 @@ void Control::reset()
 	m_angularVelocityPID.reset();
 }
 
-void Control::setVelocitiesSetpointsDependingOnTargetVelocities()
+void Control::setVelocitiesSetpointsDependingOnTargetVelocities(float& linearVelocitySetpoint, float& angularVelocitySetpoint)
 {
-	m_linearVelocityPID .setSetpoint(m_targetVelocities.linear);
-	m_angularVelocityPID.setSetpoint(m_targetVelocities.angular);
+	linearVelocitySetpoint  = m_targetVelocities.linear;
+	angularVelocitySetpoint = m_targetVelocities.angular;
 }
 
 static float truemod(float x, float y)
@@ -111,7 +105,7 @@ static float saturate(float x, float a, float b)
 		return x;
 }
 
-void Control::setVelocitiesSetpointsDependingOnTargetStance()
+void Control::setVelocitiesSetpointsDependingOnTargetStance(float& linearVelocitySetpoint, float& angularVelocitySetpoint)
 {
 	const float Kp_lin = 1, lin_max = m_targetVelocities.linear , lin_dz = 10;
 	const float Kp_ang = 1, ang_max = m_targetVelocities.angular, ang_dz = M_PI / 6;
@@ -143,6 +137,6 @@ void Control::setVelocitiesSetpointsDependingOnTargetStance()
 		dist = 0;
 	}
 	talks.out << millis() << "\t" << saturate(Kp_lin * dist, -lin_max, lin_max) << "\t" << saturate(Kp_ang * angl, -ang_max, ang_max) << "\n";
-	m_linearVelocityPID .setSetpoint(saturate(Kp_lin * dist, -lin_max, lin_max));
-	m_angularVelocityPID.setSetpoint(saturate(Kp_ang * angl, -ang_max, ang_max));
+	linearVelocitySetpoint  = saturate(Kp_lin * dist, -lin_max, lin_max);
+	angularVelocitySetpoint = saturate(Kp_ang * angl, -ang_max, ang_max);
 }
