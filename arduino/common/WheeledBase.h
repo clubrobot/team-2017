@@ -11,7 +11,7 @@ public:
 	virtual void setLinearVelocity () = 0;
 	virtual void setAngularVelocity() = 0;
 
-	float getAxleTrack() const{return m_axleTrack;}
+	float getAxleTrack() const {return m_axleTrack;}
 
 	void setAxleTrack(float axleTrack){m_axleTrack = axleTrack;}
 
@@ -19,7 +19,7 @@ public:
 
 protected:
 
-	const float m_axleTrack;
+	float m_axleTrack;
 };
 
 #endif // __WHEELEDBASE_H__
