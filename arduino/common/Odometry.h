@@ -34,8 +34,8 @@ public:
 
 protected:
 
-	virtual float getLeftWheelTraveledDistance () const = 0;
-	virtual float getRightWheelTraveledDistance() const = 0;
+	virtual float getLeftWheelTraveledDistance () = 0;
+	virtual float getRightWheelTraveledDistance() = 0;
 
 	Clock m_clock;
 
