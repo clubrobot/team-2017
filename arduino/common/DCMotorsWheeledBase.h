@@ -1,20 +1,20 @@
-#ifndef __DCMOTORSBASE_H__
-#define __DCMOTORSBASE_H__
+#ifndef __DCMOTORSWHEELEDBASE_H__
+#define __DCMOTORSWHEELEDBASE_H__
 
 #include "WheeledBase.h"
-#include "DCMotorWheel.h"
+#include "DCMotor.h"
 #include "Odometry.h"
 #include "PID.h"
 
 
-class DCMotorsBase : public WheeledBase
+class DCMotorsWheeledBase : public WheeledBase
 {
 public:
 
 	void setLinearVelocity (float linearVelocity);
 	void setAngularVelocity(float angularVelocity);
 
-	void setWheels(DCMotorWheel& left, DCMotorWheel& right);
+	void setWheels(DCMotor& leftWheel, DCMotor& rightWheel);
 	void setOdometry(Odometry& odometry);
 
 	/* */ PID& getLinearVelocityController () /* */{return m_linearVelocityController;}
@@ -26,8 +26,8 @@ public:
 
 protected:
 
-	DCMotorWheel* m_leftWheel;
-	DCMotorWheel* m_rightWheel;
+	DCMotor* m_leftWheel;
+	DCMotor* m_rightWheel;
 
 	Odometry* m_odometry;
 

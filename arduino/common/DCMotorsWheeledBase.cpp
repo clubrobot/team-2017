@@ -1,28 +1,28 @@
-#include "DCMotorsBase.h"
+#include "DCMotorsWheeledBase.h"
 
 
-void DCMotorsBase::setLinearVelocity(float linearVelocity)
+void DCMotorsWheeledBase::setLinearVelocity(float linearVelocity)
 {
 	m_linearVelocitySetpoint = linearVelocity;
 }
 
-void DCMotorsBase::setAngularVelocity(float angularVelocity)
+void DCMotorsWheeledBase::setAngularVelocity(float angularVelocity)
 {
 	m_angularVelocitySetpoint = angularVelocity;
 }
 
-void DCMotorsBase::setWheels(DCMotorWheel& left, DCMotorWheel& right)
+void DCMotorsWheeledBase::setWheels(DCMotorWheel& leftWheel, DCMotorWheel& rightWheel)
 {
-	m_leftWheel  = &left;
-	m_rightWheel = &right;
+	m_leftWheel  = &leftWheel;
+	m_rightWheel = &rightWheel;
 }
 
-void DCMotorsBase::setOdometry(Odometry& odometry)
+void DCMotorsWheeledBase::setOdometry(Odometry& odometry)
 {
 	m_odometry = &odometry;
 }
 
-void DCMotorsBase::update()
+void DCMotorsWheeledBase::update()
 {
 	// Alias linear and angular velocities setpoints and inputs
 	const float LVSetpoint = m_linearVelocitySetpoint;
@@ -34,7 +34,7 @@ void DCMotorsBase::update()
 	const float LVOutput = m_linearVelocityController .compute(LVSetpoint, LVInput);
 	const float AVOutput = m_angularVelocityController.compute(AVSetpoint, AVInput);
 
-	// Convert linear and angular velocities into wheels' speed
-	m_leftWheel ->setSpeed(LVOutput - AVOutput * m_axleTrack / 2);
-	m_rightWheel->setSpeed(LVOutput + AVOutput * m_axleTrack / 2);
+	// Convert linear and angular velocities into wheels' velocities
+	m_leftWheel ->setVelocity(LVOutput - AVOutput * m_axleTrack / 2);
+	m_rightWheel->setVelocity(LVOutput + AVOutput * m_axleTrack / 2);
 }
