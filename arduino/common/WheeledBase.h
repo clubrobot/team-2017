@@ -1,24 +1,25 @@
 #ifndef __WHEELEDBASE_H__
 #define __WHEELEDBASE_H__
 
-#include <Arduino.h>
 
-#include "DCMotor.h"
-#include "RotaryEncoder.h"
-
-struct WheeledBase
+class WheeledBase
 {
-	WheeledBase();
+public:
 
-	DCMotor			leftMotor;
-	DCMotor 		rightMotor;
+	virtual ~WheeledBase(){}
 
-	DCDriver		driver;
+	virtual void setLinearVelocity () = 0;
+	virtual void setAngularVelocity() = 0;
 
-	RotaryEncoder 	leftEncoder;
-	RotaryEncoder 	rightEncoder;
+	float getAxleTrack() const{return m_axleTrack;}
 
-	const float 	axleTrack;
+	void setAxleTrack(float axleTrack){m_axleTrack = axleTrack;}
+
+	virtual void update(){}
+
+protected:
+
+	const float m_axleTrack;
 };
 
 #endif // __WHEELEDBASE_H__
