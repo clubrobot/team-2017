@@ -1,9 +1,10 @@
 #include <Arduino.h>
 
 #include "../../common/SerialTalks.h"
-#include "../../common/WheeledBase.h"
-#include "../../common/Odometry.h"
-#include "../../common/Control.h"
+#include "../../common/DCMotor.h"
+#include "../../common/Codewheel.h"
+#include "../../common/CodewheelsOdometry.h"
+#include "../../common/DCMotorWheeledBase.h"
 
 // Opcodes declaration
 
@@ -27,21 +28,25 @@
 
 // Load the different modules
 
-WheeledBase	base; // See WheeledBase.cpp for initialization details
+DCMotor leftWheel;
+DCMotor rightWheel;
 
-Odometry	odometry(base);
-Control		control(base, odometry);
+Codewheel leftCodewheel;
+Codewheel rightCodewheel;
+
+DCMotorWheeledBase base;
+
+CodewheelsOdometry odometry;
 
 // Instructions
 
 bool setMotorsSpeedsInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
-	float leftSpeed, rightSpeed;
-	input >> leftSpeed >> rightSpeed;
+	float leftVelocity, rightVelocity;
+	input >> leftVelocity >> rightVelocity;
 
-	control.disable();
-	base.leftMotor .setSpeed(leftSpeed);
-	base.rightMotor.setSpeed(rightSpeed);
+	leftWheel .setVelocity(leftVelocity);
+	rightWheel.setVelocity(rightVelocity);
 
 	return false;
 }
@@ -62,8 +67,7 @@ bool gotoInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 	float x, y, theta, linear, angular;
 	input >> x >> y >> theta >> linear >> angular;
 
-	control.enable();
-	control.setTargetStance(x, y, theta, linear, angular);
+	talks.err << "gotoInstruction: not implemented yet\n";
 	
 	return false;
 }
@@ -72,21 +76,26 @@ bool setStateInstruction(SerialTalks& inst, Deserializer& input, Serializer& out
 {
 	float x, y, theta;
 	input >> x >> y >> theta;
-	odometry.setState(x, y, theta);
+
+	odometry.calibrateXAxis(x);
+	odometry.calibrateYAxis(y);
+	odometry.calibrateOrientation(theta);
+
 	return false;
 }
 
 bool getStateInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
-	const State& s = odometry.getState();
-	output << float(s.x) << float(s.y) << float(s.theta);
+	const Position& p = odometry.getPosition();
+	output << float(p.x) << float(p.y) << float(p.theta);
 	return true;
 }
 
 bool getVelocitiesInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
-	const Movement& m = odometry.getMovement();
-	output << float(m.linear) << float(m.angular);
+	const float linearVelocity  = odometry.getLinearVelocity ();
+	const float angularVelocity = odometry.getAngularVelocity();
+	output << float(linearVelocity) << float(angularVelocity);
 	return true;
 }
 
@@ -98,10 +107,10 @@ bool setPIDTuningsInstruction(SerialTalks& inst, Deserializer& input, Serializer
 	switch (id)
 	{
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
-		control.setLinearVelocityPIDTunings(Kp, Ki, Kd);
+		base.getLinearVelocityController().setTunings(Kp, Ki, Kd);
 		return false;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
-		control.setAngularVelocityPIDTunings(Kp, Ki, Kd);
+		base.getAngularVelocityController().setTunings(Kp, Ki, Kd);
 		return false;
 	default:
 		talks.err << "setPIDTuningInstruction: unknown PID controller identifier: " << id << "\n";
@@ -117,14 +126,14 @@ bool getPIDTuningsInstruction(SerialTalks& inst, Deserializer& input, Serializer
 	switch (id)
 	{
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
-		output << control.getLinearVelocityPID().getKp();
-		output << control.getLinearVelocityPID().getKi();
-		output << control.getLinearVelocityPID().getKd();
+		output << base.getLinearVelocityController().getKp();
+		output << base.getLinearVelocityController().getKi();
+		output << base.getLinearVelocityController().getKd();
 		return true;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
-		output << control.getAngularVelocityPID().getKp();
-		output << control.getAngularVelocityPID().getKi();
-		output << control.getAngularVelocityPID().getKd();
+		output << base.getAngularVelocityController().getKp();
+		output << base.getAngularVelocityController().getKi();
+		output << base.getAngularVelocityController().getKd();
 		return true;
 	default:
 		talks.err << "getPIDTuningInstruction: unknown PID controller identifier: " << id << "\n";
