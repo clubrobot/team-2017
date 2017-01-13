@@ -1,56 +1,61 @@
 #ifndef __DCMOTOR_H__
 #define __DCMOTOR_H__
 
-#include <Arduino.h>
-
 #include "NonCopyable.h"
+
+#define FORWARD  0
+#define BACKWARD 1
 
 
 class DCMotor : private NonCopyable
 {
 public:
 
-	enum Direction {FORWARD, BACKWARD};
+	void setVelocity(float velocity);
 
-	DCMotor(int EN, int IN1, int IN2, float wheelRadius, float speedConstant, int speedReductionRatio, int suppliedVoltage);
+	float getMaximumVelocity() const;
+
+	void enable();
+	void disable();
+
+	void attach(int EN, int PWM, int DIR);
+
+	void setRadius(float radius);
+	void setConstants(float velocityConstant, int reductionRatio);
+	void setSuppliedVoltage(float suppliedVoltage);
+
+	void update();
+	
+protected:
 
 	int getPWM() const;
 
-	void enable(bool enable = true);
-	void setSpeed(float speed);
+	bool  m_enabled;
+	float m_velocity; // in mm/s (millimeters per second)
 
-	float getMaxSpeed() const;
+	int	m_EN;
+	int	m_PWM;
+	int	m_DIR;
 
-private:
-
-	void updatePins();
-
-	bool		m_enable;
-	float 		m_speed; // in mm/s (millimeters per second)
-
-	const int	m_enablePin;
-	const int	m_velocityPin;
-	const int	m_directionPin;
-
-	const float m_wheelRadius; // in mm (millimeters)
-	const float	m_speedConstant; // in RPM/V (revolution per minute per volt)
-	const int	m_speedReductionRatio;
-	const float m_suppliedVoltage; // in V (volt)
+	float m_radius; // in mm (millimeters)
+	float m_velocityConstant; // in RPM/V (revolution per minute per volt)
+	int	  m_reductionRatio;
+	float m_suppliedVoltage; // in V (volt)
 };
 
 class DCDriver
 {
 public:
 
-	DCDriver(int RESET, int FAULT);
+	void attach(int RESET, int FAULT);
 
 	void reset();
 	bool isFaulty();
 
 private:
 
-	const int m_resetPin;
-	const int m_faultPin;
+	int m_RESET;
+	int m_FAULT;
 };
 
 #endif // __DCMOTOR_H__
