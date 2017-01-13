@@ -14,12 +14,14 @@
 #define DRIVER_RESET	12
 #define DRIVER_FAULT    A7
 
-// Rotary encoders
+// Codewheels
 
 #define QUAD_COUNTER_XY     A0
 #define QUAD_COUNTER_SEL1    7
 #define QUAD_COUNTER_SEL2    8
 #define QUAD_COUNTER_OE     A5
+#define QUAD_COUNTER_RST_X  A2
+#define QUAD_COUNTER_RST_Y  A3
 #define SHIFT_REG_DATA      13
 #define SHIFT_REG_LATCH      4
 #define SHIFT_REG_CLOCK      2
