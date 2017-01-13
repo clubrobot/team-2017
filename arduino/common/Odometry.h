@@ -1,56 +1,50 @@
 #ifndef __ODOMETRY_H__
 #define __ODOMETRY_H__
 
-#include <Arduino.h>
-
-#include "RotaryEncoder.h"
 #include "WheeledBase.h"
 #include "Clock.h"
 
 
-struct State
+struct Position
 {
-	State() : x(0), y(0), theta(0){}
-	State(float x, float y, float theta) : x(x), y(y), theta(theta){}
+	Position() : x(0), y(0), theta(0){}
+	Position(float x, float y, float theta) : x(x), y(y), theta(theta){}
 
 	float x, y;
 	float theta;
-};
-
-struct Movement
-{
-	Movement() : linear(0), angular(0){}
-	Movement(float linear, float angular) : linear(linear), angular(angular){}
-
-	float linear;
-	float angular;
 };
 
 class Odometry
 {
 public:
 
-	Odometry(WheeledBase& base);
+	virtual ~Odometry(){}
 
-	const State&	getState() const;
-	const Movement&	getMovement() const;
+	const Position&	getPosition() const;
+	float getLinearVelocity () const;
+	float getAngularVelocity() const;
 
-	void setState(float x, float y, float theta);
-	void setState(const State& state);
+	void calibrateXAxis(float x);
+	void calibrateYAxis(float y);
+	void calibrateOrientation(float theta);
 
-	void setMovement(float linear, float angular);
-	void setMovement(const Movement& movement);
+	void setAxleTrack(float axleTrack);
 
-	void update();
+	virtual void update();
 
-private:
+protected:
 
-	Clock           m_clock;
+	virtual float getLeftWheelTraveledDistance () const = 0;
+	virtual float getRightWheelTraveledDistance() const = 0;
 
-	State			m_state;
-	Movement		m_movement;
+	Clock m_clock;
 
-	WheeledBase&	m_base;
+	Position m_position;
+
+	float m_linearVelocity;
+	float m_angularVelocity;
+
+	float m_axleTrack;
 };
 
 #endif // __ODOMETRY_H__

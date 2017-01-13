@@ -2,63 +2,60 @@
 #include <math.h>
 
 
-Odometry::Odometry(WheeledBase& base)
-:	m_state(0, 0, 0)
-,	m_movement(0, 0)
-
-,	m_base(base)
+const Position&	Odometry::getPosition() const
 {
-	
+	return m_position;
 }
 
-const State& Odometry::getState() const
+float Odometry::getLinearVelocity () const
 {
-	return m_state;
+	return m_linearVelocity;
 }
 
-const Movement& Odometry::getMovement() const
+float Odometry::getAngularVelocity() const
 {
-	return m_movement;
+	return m_angularVelocity;
 }
 
-void Odometry::setState(float x, float y, float theta)
+void Odometry::calibrateXAxis(float x)
 {
-	setState(State(x, y, theta));
+	m_position.x = x;
 }
 
-void Odometry::setState(const State& state)
+void Odometry::calibrateYAxis(float y)
 {
-	m_state = state;
+	m_position.y = y;
 }
 
-void Odometry::setMovement(float linear, float angular)
+void Odometry::calibrateOrientation(float theta)
 {
-	setMovement(Movement(linear, angular));
+	m_position.theta = theta;
 }
 
-void Odometry::setMovement(const Movement& movement)
+void Odometry::setAxleTrack(float axleTrack)
 {
-	m_movement = movement;
+	m_axleTrack = axleTrack;
 }
 
 void Odometry::update()
 {
-	const float dt	= m_clock.getElapsedTime();
+	const float dt = m_clock.restart();
 	if (dt > 0)
 	{
-		const float dL	= m_base.leftEncoder.getTraveledDistance();
-		const float dR	= m_base.rightEncoder.getTraveledDistance();
-		const float dM	= (dL + dR) / 2;
+		const float dL = getLeftWheelTraveledDistance ();
+		const float dR = getRightWheelTraveledDistance();
+		const float dM = (dL + dR) / 2;
 
-		const float dx		= dM * cos(m_state.theta);
-		const float dy		= dM * sin(m_state.theta);
-		const float dtheta	= (dR - dL) / m_base.axleTrack;
+		const float dtheta = (dR - dL) / m_axleTrack;
+		const float mtheta = m_position.theta + dtheta / 2;
+		const float dx     = dM * cos(mtheta);
+		const float dy     = dM * sin(mtheta);
 
-		m_movement.linear	= dM / dt;
-		m_movement.angular	= dtheta / dt;
+		m_linearVelocity  = dM / dt;
+		m_angularVelocity = dtheta / dt;
 
-		m_state.x		+= dx;
-		m_state.y		+= dy;
-		m_state.theta	+= dtheta;
+		m_position.x     += dx;
+		m_position.y     += dy;
+		m_position.theta += dtheta;
 	}
 }
