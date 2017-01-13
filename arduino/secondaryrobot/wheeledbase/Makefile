@@ -9,11 +9,11 @@ LOCAL_INO_SRCS = wheeledbase.ino
 LOCAL_CPP_SRCS = \
 	$(COMMON)/SerialTalks.cpp \
 	$(COMMON)/DCMotor.cpp \
-	$(COMMON)/RotaryEncoder.cpp \
-	$(COMMON)/WheeledBase.cpp \
+	$(COMMON)/Codewheel.cpp \
+	$(COMMON)/DCMotorsWheeledBase.cpp \
 	$(COMMON)/Odometry.cpp \
+	$(COMMON)/CodewheelsOdometry.cpp \
 	$(COMMON)/PID.cpp \
-	$(COMMON)/Control.cpp \
 	$(COMMON)/Clock.cpp \
 	$(COMMON)/hardware.cpp
 
