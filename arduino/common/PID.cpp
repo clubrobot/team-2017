@@ -21,23 +21,28 @@ PID::PID(int address, float Kp, float Ki, float Kd)
 	reset();
 }
 
-float PID::compute(float setpoint, float input)
+bool PID::compute(float setpoint, float input, float& output)
 {
-	// Compute the elapsed time since the last call
-	float timestep = m_clock.restart();
+	if (m_clock.getElapsedTime() > m_timestep)
+	{
+		// Compute the elapsed time since the last call
+		float timestep = m_clock.restart();
 
-	// Compute the error between the current state and the setpoint
-	float currentError = setpoint - input;
+		// Compute the error between the current state and the setpoint
+		float currentError = setpoint - input;
 
-	// Compute the error integral
-	m_errorIntegral += currentError * timestep;
+		// Compute the error integral
+		m_errorIntegral += currentError * timestep;
 
-	// Compute the error derivative
-	float errorDerivative = (currentError - m_previousError) / timestep;
-	m_previousError = currentError;
+		// Compute the error derivative
+		float errorDerivative = (currentError - m_previousError) / timestep;
+		m_previousError = currentError;
 
-	// Compute the PID controller's output
-	return m_Kp * currentError + m_Ki * m_errorIntegral - m_Kd * errorDerivative;
+		// Compute the PID controller's output
+		output = m_Kp * currentError + m_Ki * m_errorIntegral - m_Kd * errorDerivative;
+		return true;
+	}
+	return false;
 }
 
 void PID::setTunings(float Kp, float Ki, float Kd)
@@ -46,6 +51,11 @@ void PID::setTunings(float Kp, float Ki, float Kd)
 	m_Ki = Ki;
 	m_Kd = Kd;
 	saveTunings();
+}
+
+void PID::setTimestep(float timestep)
+{
+	m_timestep = timestep;
 }
 
 void PID::reset()

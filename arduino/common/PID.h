@@ -13,11 +13,13 @@ public:
 
 	void setTunings(float Kp, float Ki, float Kd);
 
-	float compute(float setpoint, float input);
+	bool compute(float setpoint, float input, float& output);
 
 	float getKp() const {return m_Kp;}
 	float getKi() const {return m_Ki;}
 	float getKd() const {return m_Kd;}
+
+	void setTimestep(float timestep);
 
 	void reset();
 
@@ -32,7 +34,9 @@ private:
 
 	float m_errorIntegral;
 	float m_previousError;
+
 	Clock m_clock;
+	float m_timestep;
 
 	const int m_address;
 };
