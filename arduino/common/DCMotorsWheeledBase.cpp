@@ -37,10 +37,13 @@ void DCMotorsWheeledBase::update()
 	const float AVInput = m_odometry->getAngularVelocity();
 
 	// Compute linear and angular velocities outputs
-	const float LVOutput = m_linearVelocityController ->compute(LVSetpoint, LVInput);
-	const float AVOutput = m_angularVelocityController->compute(AVSetpoint, AVInput);
-
-	// Convert linear and angular velocities into wheels' velocities
-	m_leftWheel ->setVelocity(LVOutput - AVOutput * m_axleTrack / 2);
-	m_rightWheel->setVelocity(LVOutput + AVOutput * m_axleTrack / 2);
+	float LVOutput;
+	float AVOutput;
+	if (m_linearVelocityController ->compute(LVSetpoint, LVInput, LVOutput) | // single pipe IS important
+		m_angularVelocityController->compute(AVSetpoint, AVInput, AVOutput))
+	{
+		// Convert linear and angular velocities into wheels' velocities
+		m_leftWheel ->setVelocity(LVOutput - AVOutput * m_axleTrack / 2);
+		m_rightWheel->setVelocity(LVOutput + AVOutput * m_axleTrack / 2);
+	}
 }
