@@ -1,18 +1,18 @@
 #include "CodewheelsOdometry.h"
 
 
-void setWheels(Codewheel& leftWheel, Codewheel& rightWheel)
+void CodewheelsOdometry::setWheels(Codewheel& leftWheel, Codewheel& rightWheel)
 {
 	m_leftWheel  = &leftWheel;
 	m_rightWheel = &rightWheel;
 }
 
-float getLeftWheelTraveledDistance ()
+float CodewheelsOdometry::getLeftWheelTraveledDistance ()
 {
 	return m_leftWheel->restart();
 }
 
-float getRightWheelTraveledDistance()
+float CodewheelsOdometry::getRightWheelTraveledDistance()
 {
 	return m_rightWheel->restart();
 }

@@ -16,8 +16,8 @@ protected:
 	virtual float getLeftWheelTraveledDistance ();
 	virtual float getRightWheelTraveledDistance();
 
-	Codewheel* leftWheel;
-	Codewheel* rightWheel;
+	Codewheel* m_leftWheel;
+	Codewheel* m_rightWheel;
 };
 
 #endif // __CODEWHEELSODOMETRY_H__
