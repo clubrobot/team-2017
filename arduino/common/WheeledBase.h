@@ -8,8 +8,8 @@ public:
 
 	virtual ~WheeledBase(){}
 
-	virtual void setLinearVelocity () = 0;
-	virtual void setAngularVelocity() = 0;
+	virtual void setLinearVelocity (float linearVelocity ) = 0;
+	virtual void setAngularVelocity(float angularVelocity) = 0;
 
 	float getAxleTrack() const {return m_axleTrack;}
 
