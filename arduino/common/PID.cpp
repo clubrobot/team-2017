@@ -27,6 +27,8 @@ bool PID::compute(float setpoint, float input, float& output)
 	{
 		// Compute the elapsed time since the last call
 		float timestep = m_clock.restart();
+		if (timestep > 2 * m_timestep)
+			timestep = m_timestep;
 
 		// Compute the error between the current state and the setpoint
 		float currentError = setpoint - input;
