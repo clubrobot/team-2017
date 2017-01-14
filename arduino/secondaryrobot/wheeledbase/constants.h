@@ -21,4 +21,9 @@
 #define RIGHT_CODEWHEEL_RADIUS  23.0 // mm
 #define CODEWHEELS_AXLE_TRACK  318.0 // mm
 
+// Timesteps
+
+#define ODOMETRY_TIMESTEP          5e-3 // s
+#define PID_CONTROLLERS_TIMESTEP  20e-3 // s
+
 #endif // __CONSTANTS_H__

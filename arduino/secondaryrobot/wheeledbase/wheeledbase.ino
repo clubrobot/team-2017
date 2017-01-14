@@ -71,6 +71,10 @@ void setup()
 
 	odometry.setWheels(leftCodewheel, rightCodewheel);
 	odometry.setAxleTrack(CODEWHEELS_AXLE_TRACK);
+	odometry.setTimestep(ODOMETRY_TIMESTEP);
+
+	linearVelocityPID .setTimestep(PID_CONTROLLERS_TIMESTEP);
+	angularVelocityPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
 
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
 }
@@ -86,7 +90,4 @@ void loop()
 
 	// Integrate engineering control
 	base.update();
-
-	// Delay
-	delayMicroseconds(5000);
 }
