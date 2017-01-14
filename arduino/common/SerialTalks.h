@@ -84,7 +84,7 @@ public: // Public API
 
 	bool isConnected() const {return m_connected;}
 
-	void waitUntilConnected(){while (!isConnected());}
+	void waitUntilConnected();
 
 	bool getUUID(char* uuid);
 	void setUUID(const char* uuid);

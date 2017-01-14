@@ -154,6 +154,12 @@ bool SerialTalks::execute()
 	return ret;
 }
 
+void SerialTalks::waitUntilConnected()
+{
+	while (!isConnected())
+		execute();
+}
+
 bool SerialTalks::getUUID(char* uuid)
 {
 	for (int i = 0; i < int(EEPROM.length()); i++)
