@@ -4,7 +4,7 @@
 #include "../../common/DCMotor.h"
 #include "../../common/Codewheel.h"
 #include "../../common/CodewheelsOdometry.h"
-#include "../../common/DCMotorWheeledBase.h"
+#include "../../common/DCMotorsWheeledBase.h"
 
 // Opcodes declaration
 
@@ -23,8 +23,10 @@
 // PID controllers identifiers
 
 #define LINEAR_VELOCITY_PID_IDENTIFIER  0x02
-#define ANGULAR_VELOCITY_PID_IDENTIFIER 0x03
+#define LINEAR_VELOCITY_PID_ADDRESS     0x040
 
+#define ANGULAR_VELOCITY_PID_IDENTIFIER 0x03
+#define ANGULAR_VELOCITY_PID_ADDRESS    0x060
 
 // Load the different modules
 
@@ -34,7 +36,10 @@ DCMotor rightWheel;
 Codewheel leftCodewheel;
 Codewheel rightCodewheel;
 
-DCMotorWheeledBase base;
+DCMotorsWheeledBase base;
+
+PID linearVelocityPID (LINEAR_VELOCITY_PID_ADDRESS);
+PID angularVelocityPID(ANGULAR_VELOCITY_PID_ADDRESS);
 
 CodewheelsOdometry odometry;
 
@@ -56,8 +61,8 @@ bool moveInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
 	float linear, angular;
 	input >> linear >> angular;
 
-	control.enable();
-	control.setTargetVelocities(linear, angular);
+	base.setLinearVelocity (linear);
+	base.setAngularVelocity(angular);
 
 	return false;
 }
@@ -107,10 +112,10 @@ bool setPIDTuningsInstruction(SerialTalks& inst, Deserializer& input, Serializer
 	switch (id)
 	{
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
-		base.getLinearVelocityController().setTunings(Kp, Ki, Kd);
+		linearVelocityPID.setTunings(Kp, Ki, Kd);
 		return false;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
-		base.getAngularVelocityController().setTunings(Kp, Ki, Kd);
+		angularVelocityPID.setTunings(Kp, Ki, Kd);
 		return false;
 	default:
 		talks.err << "setPIDTuningInstruction: unknown PID controller identifier: " << id << "\n";
@@ -126,14 +131,14 @@ bool getPIDTuningsInstruction(SerialTalks& inst, Deserializer& input, Serializer
 	switch (id)
 	{
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
-		output << base.getLinearVelocityController().getKp();
-		output << base.getLinearVelocityController().getKi();
-		output << base.getLinearVelocityController().getKd();
+		output << linearVelocityPID.getKp();
+		output << linearVelocityPID.getKi();
+		output << linearVelocityPID.getKd();
 		return true;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
-		output << base.getAngularVelocityController().getKp();
-		output << base.getAngularVelocityController().getKi();
-		output << base.getAngularVelocityController().getKd();
+		output << angularVelocityPID.getKp();
+		output << angularVelocityPID.getKi();
+		output << angularVelocityPID.getKd();
 		return true;
 	default:
 		talks.err << "getPIDTuningInstruction: unknown PID controller identifier: " << id << "\n";
@@ -162,9 +167,6 @@ void loop()
 
 	// Integrate odometry
 	odometry.update();
-
-	// Integrate engineering control
-	control.step();
 
 	// Delay
 	delayMicroseconds(5000);
