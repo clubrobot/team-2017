@@ -15,7 +15,7 @@ float Codewheel::restart()
 	return distance;
 }
 
-void Codewheel::attachCounter(int XY, int SEL1, int SEL2, int EN, int RST)
+void Codewheel::attachCounter(int XY, int SEL1, int SEL2, int OE, int RST)
 {
 	m_COUNTER_XY   = XY;
 	m_COUNTER_SEL1 = SEL1;
@@ -70,8 +70,8 @@ void Codewheel::update()
 		delayMicroseconds(100); // TODO: is this necessary? Can we reduce it?
 		int SEL1 = i & 0x01;
 		int SEL2 = (~i >> 1) & 0x01;
-		digitalWrite(m_SEL1, SEL1);
-		digitalWrite(m_SEL2, SEL2);
+		digitalWrite(m_COUNTER_SEL1, SEL1);
+		digitalWrite(m_COUNTER_SEL2, SEL2);
 		m_currentCounter <<= 8;
 		m_currentCounter += readShiftRegister(m_REGISTER_DATA, m_REGISTER_LATCH, m_REGISTER_CLOCK);
 	}
