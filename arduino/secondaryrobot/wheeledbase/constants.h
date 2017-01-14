@@ -3,9 +3,9 @@
 
 // DC motors constants
 
-#define DCMOTOR_VELOCITY_CONSTANT 622 // RPM
-#define DCMOTOR_REDUCTION_RATIO    19
-#define DCMOTOR_SUPPLIED_VOLTAGE   11 // V
+#define DCMOTORS_VELOCITY_CONSTANT 622 // RPM
+#define DCMOTORS_REDUCTION_RATIO    19
+#define DCMOTORS_SUPPLIED_VOLTAGE   11 // V
 
 // Codewheels constants
 
