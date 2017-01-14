@@ -11,16 +11,12 @@ class DCMotorsWheeledBase : public WheeledBase
 {
 public:
 
-	void setLinearVelocity (float linearVelocity);
-	void setAngularVelocity(float angularVelocity);
+	virtual void setLinearVelocity (float linearVelocity);
+	virtual void setAngularVelocity(float angularVelocity);
 
 	void setWheels(DCMotor& leftWheel, DCMotor& rightWheel);
 	void setOdometry(Odometry& odometry);
-
-	/* */ PID& getLinearVelocityController () /* */{return m_linearVelocityController;}
-	const PID& getLinearVelocityController () const{return m_linearVelocityController;}
-	/* */ PID& getAngularVelocityController() /* */{return m_angularVelocityController;}
-	const PID& getAngularVelocityController() const{return m_angularVelocityController;}
+	void setPIDControllers(PID& linear, PID& angular);
 
 	void update();
 
@@ -34,8 +30,8 @@ protected:
 	float m_linearVelocitySetpoint;
 	float m_angularVelocitySetpoint;
 
-	PID m_linearVelocityController;
-	PID m_angularVelocityController;
+	PID* m_linearVelocityController;
+	PID* m_angularVelocityController;
 };
 
 #endif // __DCMOTORSBASE_H__
