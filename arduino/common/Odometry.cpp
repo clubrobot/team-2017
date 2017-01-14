@@ -37,11 +37,17 @@ void Odometry::setAxleTrack(float axleTrack)
 	m_axleTrack = axleTrack;
 }
 
+void Odometry::setTimestep(float timestep)
+{
+	m_timestep = timestep;
+}
+
 void Odometry::update()
 {
-	const float dt = m_clock.restart();
-	if (dt > 0)
+	if (m_clock.getElapsedTime() > m_timestep)
 	{
+		const float dt = m_clock.restart();
+		
 		const float dL = getLeftWheelTraveledDistance ();
 		const float dR = getRightWheelTraveledDistance();
 		const float dM = (dL + dR) / 2;

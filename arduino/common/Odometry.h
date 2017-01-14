@@ -30,6 +30,8 @@ public:
 
 	void setAxleTrack(float axleTrack);
 
+	void setTimestep(float timestep);
+
 	virtual void update();
 
 protected:
@@ -38,6 +40,7 @@ protected:
 	virtual float getRightWheelTraveledDistance() = 0;
 
 	Clock m_clock;
+	float m_timestep;
 
 	Position m_position;
 
