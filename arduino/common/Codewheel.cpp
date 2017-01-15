@@ -1,4 +1,5 @@
 #include "Codewheel.h"
+#include "SerialTalks.h"
 #include <math.h>
 #include "hardware.h"
 
@@ -68,8 +69,8 @@ void Codewheel::update()
 	for (int i = 0; i < 4; i++)
 	{
 		delayMicroseconds(100); // TODO: is this necessary? Can we reduce it?
-		int SEL1 = i & 0x01;
-		int SEL2 = (~i >> 1) & 0x01;
+		byte SEL1 = i & 0x01;
+		byte SEL2 = (~i >> 1) & 0x01;
 		digitalWrite(m_COUNTER_SEL1, SEL1);
 		digitalWrite(m_COUNTER_SEL2, SEL2);
 		m_currentCounter <<= 8;

@@ -1,4 +1,5 @@
 #include "hardware.h"
+#include "SerialTalks.h"
 
 
 byte readShiftRegister(int Q, int PL, int CP)
