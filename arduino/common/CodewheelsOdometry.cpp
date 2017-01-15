@@ -9,10 +9,12 @@ void CodewheelsOdometry::setWheels(Codewheel& leftWheel, Codewheel& rightWheel)
 
 float CodewheelsOdometry::getLeftWheelTraveledDistance ()
 {
+	m_leftWheel->update();
 	return m_leftWheel->restart();
 }
 
 float CodewheelsOdometry::getRightWheelTraveledDistance()
 {
+	m_rightWheel->update();
 	return m_rightWheel->restart();
 }
