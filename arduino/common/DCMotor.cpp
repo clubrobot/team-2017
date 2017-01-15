@@ -1,4 +1,5 @@
 #include "DCMotor.h"
+#include "SerialTalks.h"
 
 #include <Arduino.h>
 
@@ -16,6 +17,9 @@ float DCMotor::getMaximumVelocity() const
 
 void DCMotor::attach(int EN, int PWM, int DIR)
 {
+	m_EN  = EN;
+	m_PWM = PWM;
+	m_DIR = DIR;
 	pinMode(m_EN, OUTPUT);
 	pinMode(m_PWM, OUTPUT);
 	pinMode(m_DIR, OUTPUT);
@@ -41,6 +45,7 @@ void DCMotor::update()
 {
 	if (m_velocity != 0)
 	{
+		//talks.out << getPWM() << "\n";
 		digitalWrite(m_EN, HIGH);
 		analogWrite(m_PWM, getPWM());
 		digitalWrite(m_DIR, (m_velocity > 0) ? FORWARD : BACKWARD);
