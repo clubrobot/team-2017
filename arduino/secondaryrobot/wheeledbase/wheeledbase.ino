@@ -15,6 +15,8 @@
 
 // Load the different modules
 
+DCDriver driver;
+
 DCMotor leftWheel;
 DCMotor rightWheel;
 
@@ -41,6 +43,9 @@ void setup()
 	talks.bind(GET_VELOCITIES_OPCODE, GET_VELOCITIES);
 	talks.bind(SET_PID_TUNINGS_OPCODE, SET_PID_TUNINGS);
 	talks.bind(GET_PID_TUNINGS_OPCODE, GET_PID_TUNINGS);
+
+	driver.attach(DRIVER_RESET, DRIVER_FAULT);
+	driver.reset();
 
 	leftWheel.attach(LEFT_MOTOR_EN, LEFT_MOTOR_PWM, LEFT_MOTOR_DIR);
 	leftWheel.setConstants(DCMOTORS_VELOCITY_CONSTANT, DCMOTORS_REDUCTION_RATIO);
