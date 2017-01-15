@@ -45,7 +45,6 @@ void DCMotor::update()
 {
 	if (m_velocity != 0)
 	{
-		//talks.out << getPWM() << "\n";
 		digitalWrite(m_EN, HIGH);
 		analogWrite(m_PWM, getPWM());
 		digitalWrite(m_DIR, (m_velocity > 0) ? FORWARD : BACKWARD);
@@ -69,9 +68,10 @@ int DCMotor::getPWM() const
 
 void DCDriver::attach(int RESET, int FAULT)
 {
+	m_RESET = RESET;
+	m_FAULT = FAULT;
 	pinMode(m_RESET, OUTPUT);
 	pinMode(m_FAULT, INPUT);
-	reset();
 }
 
 void DCDriver::reset()
