@@ -18,9 +18,14 @@ public:
 	void setOdometry(Odometry& odometry);
 	void setPIDControllers(PID& linear, PID& angular);
 
+	void enable();
+	void disable();
+
 	void update();
 
 protected:
+
+	bool m_enabled;
 
 	DCMotor* m_leftWheel;
 	DCMotor* m_rightWheel;
