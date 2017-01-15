@@ -21,6 +21,11 @@ LOCAL_CPP_SRCS = \
 # Sketch libraries
 ARDUINO_LIBS = EEPROM
 
+# Define
+ifneq ($(SHOW_CONTROL_VARIABLES),)
+	CPPFLAGS += -DSHOW_CONTROL_VARIABLES
+endif
+
 # Congratulations! You made a pretty Makefile :)
 # Now let the grown-ups do the hard work :D
 MODULEMK_DIR = ../..
