@@ -27,6 +27,7 @@ bool SET_OPENLOOP_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer&
 	float leftVelocity  = input.read<float>();
 	float rightVelocity = input.read<float>();
 
+	base.disable();
 	leftWheel .setVelocity(leftVelocity);
 	rightWheel.setVelocity(rightVelocity);
 
@@ -38,6 +39,7 @@ bool SET_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
 	float linearVelocity  = input.read<float>();
 	float angularVelocity = input.read<float>();
 
+	base.enable();
 	base.setLinearVelocity (linearVelocity);
 	base.setAngularVelocity(angularVelocity);
 

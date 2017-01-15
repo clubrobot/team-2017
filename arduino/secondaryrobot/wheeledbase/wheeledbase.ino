@@ -68,6 +68,7 @@ void setup()
 	base.setOdometry(odometry);
 	base.setPIDControllers(linearVelocityPID, angularVelocityPID);
 	base.setAxleTrack(WHEELS_AXLE_TRACK);
+	base.disable();
 
 	odometry.setWheels(leftCodewheel, rightCodewheel);
 	odometry.setAxleTrack(CODEWHEELS_AXLE_TRACK);
