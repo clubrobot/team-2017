@@ -62,12 +62,14 @@ void setup()
 	leftCodewheel.setAxis(Y);
 	leftCodewheel.setCountsPerRevolution(-CODEWHEELS_COUNTS_PER_REVOLUTION); // negative -> backward
 	leftCodewheel.setRadius(LEFT_CODEWHEEL_RADIUS);
+	leftCodewheel.reset();
 
 	rightCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_X);
 	rightCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
 	rightCodewheel.setAxis(X);
 	rightCodewheel.setCountsPerRevolution(CODEWHEELS_COUNTS_PER_REVOLUTION); // positive -> forward
 	rightCodewheel.setRadius(RIGHT_CODEWHEEL_RADIUS);
+	rightCodewheel.reset();
 
 	base.setWheels(leftWheel, rightWheel);
 	base.setOdometry(odometry);
