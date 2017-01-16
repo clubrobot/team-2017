@@ -11,7 +11,6 @@ UltrasonicSensor::Sensor(int ep): EchoPin(ep)
   dureeMesure;
   mesure = 1000;
   currentState = PRET;
-
 }
 
 void UltrasonicSensor::impulsion_US(int pin) {
