@@ -15,7 +15,7 @@
 
 #define LEFT_WHEEL_RADIUS   62.0 // mm
 #define RIGHT_WHEEL_RADIUS  62.0 // mm
-#define WHEELS_AXLE_TRACK  200.0 // mm
+#define WHEELS_AXLE_TRACK  198.0 // mm
 
 #define LEFT_CODEWHEEL_RADIUS   22.7 // mm
 #define RIGHT_CODEWHEEL_RADIUS  23.0 // mm
