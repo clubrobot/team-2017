@@ -56,9 +56,9 @@ void DCMotorsWheeledBase::update()
 			m_angularVelocityController->compute(AVSetpoint, AVInput, AVOutput))
 		{
 #if SHOW_CONTROL_VARIABLES
-			talks.out << millis() << ",";
-			talks.out << LVSetpoint << "," << LVInput << "," << LVOutput << ",";
-			talks.out << AVSetpoint << "," << AVInput << "," << AVOutput << "\n";
+			talks.out << millis() << "\t";
+			talks.out << LVSetpoint << "\t" << LVInput << "\t" << LVOutput << "\t";
+			talks.out << AVSetpoint << "\t" << AVInput << "\t" << AVOutput << "\n";
 #endif
 			// Convert linear and angular velocities into wheels' velocities
 			m_leftWheel ->setVelocity(LVOutput - AVOutput * m_axleTrack / 2);
