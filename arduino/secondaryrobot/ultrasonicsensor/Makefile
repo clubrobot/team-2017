@@ -6,7 +6,7 @@ BOARD_SUB  = atmega328
 COMMON = ../../common
 LOCAL_INO_SRCS = test.ino
 LOCAL_CPP_SRCS = \
-	instructions.cpp \
+	instruction.cpp \
 	$(COMMON)/SerialTalks.cpp \
 	$(COMMON)/UltrasonicSensor.cpp \
 	$(COMMON)/Clock.cpp \
