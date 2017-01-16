@@ -22,6 +22,11 @@ class ModulesRouter(TCPTalks):
 		self.bind(MODULEEXECUTE_OPCODE, self.moduleexecute)
 		self.modules = dict()
 
+	def disconnect(self):
+		TCPTalks.disconnect(self)
+		for module in self.modules.values():
+			module.disconnect()
+
 	def moduleconnect(self, uuid, timeout):
 		try:
 			module = self.modules[uuid]
