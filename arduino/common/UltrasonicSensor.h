@@ -1,5 +1,5 @@
-#ifndef __SENSOR_H__
-#define __SENSOR_H__
+#ifndef __ULTRASONICSENSOR_H__
+#define __ULTRASONICSENSOR_H__
 
 #define VALMIN 2
 #define VALMAX 200
@@ -7,7 +7,7 @@
 
 enum State {EMISSION = 0, RECEPTION = 1, ATTENTE = 2, PRET = 3};
 
-class Sensor {
+class UltrasonicSensor {
   public :
     
     Sensor(int echo);

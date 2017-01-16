@@ -1,8 +1,8 @@
-#include "Sensor.h"
+#include "UltrasonicSensor.h"
 #include <arduino.h>
 
 
-Sensor::Sensor(int ep): EchoPin(ep)
+UltrasonicSensor::Sensor(int ep): EchoPin(ep)
 {
   pinMode(ep, INPUT);
   debutMesure = 0;
@@ -14,7 +14,7 @@ Sensor::Sensor(int ep): EchoPin(ep)
 
 }
 
-void Sensor::impulsion_US(int pin) {
+void UltrasonicSensor::impulsion_US(int pin) {
   pinMode(pin, OUTPUT);
   digitalWrite(pin, LOW);           // Permet de s'assurer que le pin est à l'état bas
   delayMicroseconds(2);
@@ -25,7 +25,7 @@ void Sensor::impulsion_US(int pin) {
 }
 
 
-void Sensor::update() {
+void UltrasonicSensor::update() {
   unsigned long cm;
   switch (currentState) {
     case EMISSION :
