@@ -24,6 +24,6 @@
 // Timesteps
 
 #define ODOMETRY_TIMESTEP          5e-3 // s
-#define PID_CONTROLLERS_TIMESTEP  100e-3 // s
+#define PID_CONTROLLERS_TIMESTEP  20e-3 // s
 
 #endif // __CONSTANTS_H__
