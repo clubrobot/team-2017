@@ -13,4 +13,9 @@ LOCAL_CPP_SRCS = \
 
 
 # Sketch libraries
-ARDUINO_LIBS = EEPROM 
+ARDUINO_LIBS = EEPROM Servo
+
+# Congratulations! You made a pretty Makefile :)
+# Now let the grown-ups do the hard work :D
+MODULEMK_DIR = ../..
+include $(MODULEMK_DIR)/Module.mk

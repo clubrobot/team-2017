@@ -1,8 +1,8 @@
-#include <arduino.h>
+#include <Arduino.h>
 
 #include "../../common/UltrasonicSensor.h"
 #include "../../common/SerialTalks.h"
-#include " instruction.h"
+#include "instruction.h"
 
 int echoPin1 = 5;  
 
