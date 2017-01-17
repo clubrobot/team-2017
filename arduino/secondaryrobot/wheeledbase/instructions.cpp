@@ -1,5 +1,7 @@
 #include "instructions.h"
 
+#include "addresses.h"
+
 #include "../../common/DCMotor.h"
 #include "../../common/Codewheel.h"
 #include "../../common/CodewheelsOdometry.h"
@@ -103,14 +105,18 @@ bool SET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 	{
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
 		linearVelocityPID.setTunings(Kp, Ki, Kd);
-		return false;
+		linearVelocityPID.saveTunings(LINEAR_VELOCITY_PID_ADDRESS);
+		break;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
 		angularVelocityPID.setTunings(Kp, Ki, Kd);
-		return false;
+		linearVelocityPID.saveTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+		break;
 	default:
 		talks.err << "SET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
-		return false;
+		break;
 	}
+
+	return false;
 }
 
 bool GET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
