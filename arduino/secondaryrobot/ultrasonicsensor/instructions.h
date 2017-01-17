@@ -2,6 +2,7 @@
 #define __INSTRUCTIONS_H__
 
 #include "../../common/SerialTalks.h"
+#include "PIN.h"
 
 // Opcodes declaration
 #define GET_MESURE_OPCODE 0x06

@@ -1,16 +1,14 @@
 #ifndef __ULTRASONICSENSOR_H__
 #define __ULTRASONICSENSOR_H__
 
-#define VALMIN 2
-#define VALMAX 200
-#define TEMPORISATION 3600
+#include <Arduino.h>
 
 enum State {EMISSION = 0, RECEPTION = 1, ATTENTE = 2, PRET = 3};
 
 class UltrasonicSensor {
   public :
     
-    Sensor(int echo=0);
+    UltrasonicSensor(int echo);
     void impulsion_US(int pin);
     void setcurrentState(State st ) { currentState = st;}
     int getDistance() { return mesure;}
@@ -39,4 +37,5 @@ class UltrasonicSensor {
       PRET       : Pret à effectuer une nouvelle mesure
     */
 };
+
 #endif

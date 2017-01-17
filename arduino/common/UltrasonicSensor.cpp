@@ -1,8 +1,12 @@
 #include "UltrasonicSensor.h"
-#include <arduino.h>
 
 
-UltrasonicSensor::Sensor(int ep): EchoPin(ep)
+
+#define VALMIN 2
+#define VALMAX 200
+#define TEMPORISATION 3600
+
+UltrasonicSensor::UltrasonicSensor(int ep): EchoPin(ep)
 {
   pinMode(ep, INPUT);
   debutMesure = 0;

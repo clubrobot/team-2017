@@ -2,12 +2,10 @@
 
 #include "../../common/UltrasonicSensor.h"
 #include "../../common/SerialTalks.h"
-#include "instruction.h"
+#include "instructions.h"
  
-int triggPin = 7;
-int echoPin1 = 5;  
 
-UltrasonicSensor Capteur1(echoPin1);
+UltrasonicSensor Capteur1(ECHOPIN);
 
 void setup() {  
   talks.begin(Serial);
