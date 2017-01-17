@@ -3,7 +3,8 @@
 #include "../../common/UltrasonicSensor.h"
 #include "../../common/SerialTalks.h"
 #include "instruction.h"
-
+ 
+int triggPin = 7;
 int echoPin1 = 5;  
 
 UltrasonicSensor Capteur1(echoPin1);
