@@ -5,29 +5,6 @@
 #include <math.h>
 
 
-PID::PID(int address)
-:	m_minOutput(-INFINITY)
-,	m_maxOutput(+INFINITY)
-,	m_address(address)
-{
-	loadTunings();
-	reset();
-}
-
-PID::PID(int address, float Kp, float Ki, float Kd)
-:	m_Kp(Kp)
-,	m_Ki(Ki)
-,	m_Kd(Kd)
-
-,	m_minOutput(-INFINITY)
-,	m_maxOutput(+INFINITY)
-
-,	m_address(address)
-{
-	saveTunings();
-	reset();
-}
-
 bool PID::compute(float setpoint, float input, float& output)
 {
 	if (m_clock.getElapsedTime() > m_timestep)
@@ -70,7 +47,6 @@ void PID::setTunings(float Kp, float Ki, float Kd)
 	m_Kp = Kp;
 	m_Ki = Ki;
 	m_Kd = Kd;
-	saveTunings();
 }
 
 void PID::setOutputLimits(float minOutput, float maxOutput)
@@ -91,17 +67,15 @@ void PID::reset()
 	m_clock.restart();
 }
 
-void PID::loadTunings()
+void PID::loadTunings(int address)
 {
-	int address = m_address;
 	EEPROM.get(address, m_Kp); address += sizeof(m_Kp);
 	EEPROM.get(address, m_Ki); address += sizeof(m_Ki);
 	EEPROM.get(address, m_Kd); address += sizeof(m_Kd);
 }
 
-void PID::saveTunings() const
+void PID::saveTunings(int address) const
 {
-	int address = m_address;
 	EEPROM.put(address, m_Kp); address += sizeof(m_Kp);
 	EEPROM.put(address, m_Ki); address += sizeof(m_Ki);
 	EEPROM.put(address, m_Kd); address += sizeof(m_Kd);
