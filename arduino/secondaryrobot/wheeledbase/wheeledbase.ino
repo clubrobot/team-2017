@@ -3,15 +3,13 @@
 #include "PIN.h"
 #include "constants.h"
 #include "instructions.h"
+#include "addresses.h"
 
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
 #include "../../common/Codewheel.h"
 #include "../../common/CodewheelsOdometry.h"
 #include "../../common/DCMotorsWheeledBase.h"
-
-#define LINEAR_VELOCITY_PID_ADDRESS  0x040
-#define ANGULAR_VELOCITY_PID_ADDRESS 0x060
 
 // Load the different modules
 
@@ -25,8 +23,8 @@ Codewheel rightCodewheel;
 
 DCMotorsWheeledBase base;
 
-PID linearVelocityPID (LINEAR_VELOCITY_PID_ADDRESS);
-PID angularVelocityPID(ANGULAR_VELOCITY_PID_ADDRESS);
+PID linearVelocityPID;
+PID angularVelocityPID;
 
 CodewheelsOdometry odometry;
 
@@ -81,8 +79,13 @@ void setup()
 	odometry.setAxleTrack(CODEWHEELS_AXLE_TRACK);
 	odometry.setTimestep(ODOMETRY_TIMESTEP);
 
-	linearVelocityPID .setTimestep(PID_CONTROLLERS_TIMESTEP);
+	linearVelocityPID.loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
+	linearVelocityPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
+	linearVelocityPID.reset();
+	
+	angularVelocityPID.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
 	angularVelocityPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
+	angularVelocityPID.reset();
 
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
 }

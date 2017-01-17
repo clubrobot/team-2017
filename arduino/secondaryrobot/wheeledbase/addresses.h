@@ -1,0 +1,7 @@
+#ifndef __ADDRESSES_H__
+#define __ADDRESSES_H__
+
+#define LINEAR_VELOCITY_PID_ADDRESS  0x040
+#define ANGULAR_VELOCITY_PID_ADDRESS 0x060
+
+#endif // __ADDRESSES_H__
