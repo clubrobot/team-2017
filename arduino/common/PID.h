@@ -12,6 +12,7 @@ public:
 	PID(int address, float Kp, float Ki, float Kd);
 
 	void setTunings(float Kp, float Ki, float Kd);
+	void setOutputLimits(float minOutput, float maxOutput);
 
 	bool compute(float setpoint, float input, float& output);
 
@@ -31,6 +32,10 @@ private:
 	float m_Kp;
 	float m_Ki;
 	float m_Kd;
+
+	float m_output;
+	float m_minOutput;
+	float m_maxOutput;
 
 	float m_errorIntegral;
 	float m_previousError;

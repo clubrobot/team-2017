@@ -1,10 +1,14 @@
 #include "PID.h"
+#include "SerialTalks.h"
 #include <Arduino.h>
 #include <EEPROM.h>
+#include <math.h>
 
 
 PID::PID(int address)
-:	m_address(address)
+:	m_minOutput(-INFINITY)
+,	m_maxOutput(+INFINITY)
+,	m_address(address)
 {
 	loadTunings();
 	reset();
@@ -14,6 +18,9 @@ PID::PID(int address, float Kp, float Ki, float Kd)
 :	m_Kp(Kp)
 ,	m_Ki(Ki)
 ,	m_Kd(Kd)
+
+,	m_minOutput(-INFINITY)
+,	m_maxOutput(+INFINITY)
 
 ,	m_address(address)
 {
@@ -28,22 +35,33 @@ bool PID::compute(float setpoint, float input, float& output)
 		// Compute the elapsed time since the last call
 		float timestep = m_clock.restart();
 		if (timestep > 2 * m_timestep)
-			timestep = m_timestep;
-
+		{
+			reset();
+			m_output = 0;
+			output = m_output;
+			return false;
+		}
+		
 		// Compute the error between the current state and the setpoint
 		float currentError = setpoint - input;
 
 		// Compute the error integral
 		m_errorIntegral += currentError * timestep;
+		if (m_errorIntegral > m_maxOutput / m_Ki)
+			m_errorIntegral = m_maxOutput / m_Ki;
+		else if (m_errorIntegral < m_minOutput / m_Ki)
+			m_errorIntegral = m_minOutput / m_Ki;
 
 		// Compute the error derivative
 		float errorDerivative = (currentError - m_previousError) / timestep;
 		m_previousError = currentError;
 
 		// Compute the PID controller's output
-		output = m_Kp * currentError + m_Ki * m_errorIntegral - m_Kd * errorDerivative;
+		m_output = m_Kp * currentError + m_Ki * m_errorIntegral - m_Kd * errorDerivative;
+		output = m_output;
 		return true;
 	}
+	output = m_output;
 	return false;
 }
 
@@ -53,6 +71,12 @@ void PID::setTunings(float Kp, float Ki, float Kd)
 	m_Ki = Ki;
 	m_Kd = Kd;
 	saveTunings();
+}
+
+void PID::setOutputLimits(float minOutput, float maxOutput)
+{
+	m_minOutput = minOutput;
+	m_maxOutput = maxOutput;
 }
 
 void PID::setTimestep(float timestep)

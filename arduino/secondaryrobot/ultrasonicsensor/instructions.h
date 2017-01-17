@@ -1,11 +1,11 @@
-#ifndef __INSTRUCTION_H__
-#define __INSTRUCTION_H__
+#ifndef __INSTRUCTIONS_H__
+#define __INSTRUCTIONS_H__
 
 #include "../../common/SerialTalks.h"
 
 // Opcodes declaration
-#define GET_MESURE_OPCODE 0x02
-#define MESURE 0x03
+#define GET_MESURE_OPCODE 0x06
+#define MESURE_OPCODE     0x07
 
 
 // Instructions prototypes
