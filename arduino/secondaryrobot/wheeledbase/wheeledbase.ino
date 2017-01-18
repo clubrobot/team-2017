@@ -51,7 +51,7 @@ void setup()
 	leftWheel.setRadius(LEFT_WHEEL_RADIUS);
 
 	rightWheel.attach(RIGHT_MOTOR_EN, RIGHT_MOTOR_PWM, RIGHT_MOTOR_DIR);
-	rightWheel.setConstants(DCMOTORS_VELOCITY_CONSTANT, DCMOTORS_REDUCTION_RATIO);
+	rightWheel.setConstants(-DCMOTORS_VELOCITY_CONSTANT, DCMOTORS_REDUCTION_RATIO);
 	rightWheel.setSuppliedVoltage(DCMOTORS_SUPPLIED_VOLTAGE);
 	rightWheel.setRadius(RIGHT_WHEEL_RADIUS);
 
@@ -93,7 +93,7 @@ void setup()
 // Loop
 
 void loop()
-{
+{	
 	talks.execute();
 
 	// Integrate odometry

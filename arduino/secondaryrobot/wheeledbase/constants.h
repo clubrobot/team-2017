@@ -13,13 +13,13 @@
 
 // Mechanical constants
 
-#define LEFT_WHEEL_RADIUS   62.0 // mm
-#define RIGHT_WHEEL_RADIUS  62.0 // mm
-#define WHEELS_AXLE_TRACK  198.0 // mm
+#define LEFT_WHEEL_RADIUS   47.6 // mm
+#define RIGHT_WHEEL_RADIUS  47.6 // mm
+#define WHEELS_AXLE_TRACK  125.0 // mm
 
 #define LEFT_CODEWHEEL_RADIUS   22.7 // mm
 #define RIGHT_CODEWHEEL_RADIUS  23.0 // mm
-#define CODEWHEELS_AXLE_TRACK  318.0 // mm
+#define CODEWHEELS_AXLE_TRACK  209.5 // mm
 
 // Timesteps
 
