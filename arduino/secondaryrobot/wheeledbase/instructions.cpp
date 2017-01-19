@@ -109,11 +109,10 @@ bool SET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 		break;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
 		angularVelocityPID.setTunings(Kp, Ki, Kd);
-		linearVelocityPID.saveTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+		angularVelocityPID.saveTunings(ANGULAR_VELOCITY_PID_ADDRESS);
 		break;
 	default:
 		talks.err << "SET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
-		break;
 	}
 
 	return false;
@@ -122,22 +121,27 @@ bool SET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 bool GET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	byte id = input.read<byte>();
+	float Kp, Ki, Kd;
 
 	switch (id)
 	{
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
-		output.write<float>(linearVelocityPID.getKp());
-		output.write<float>(linearVelocityPID.getKi());
-		output.write<float>(linearVelocityPID.getKd());
-		return true;
+		Kp = linearVelocityPID.getKp();
+		Ki = linearVelocityPID.getKi();
+		Kd = linearVelocityPID.getKd();
+		break;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
-		output.write<float>(angularVelocityPID.getKp());
-		output.write<float>(angularVelocityPID.getKi());
-		output.write<float>(angularVelocityPID.getKd());
-		return true;
+		Kp = angularVelocityPID.getKp();
+		Ki = angularVelocityPID.getKi();
+		Kd = angularVelocityPID.getKd();
+		break;
 	default:
 		talks.err << "GET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
-		return true;
 	}
+
+	output.write<float>(Kp);
+	output.write<float>(Ki);
+	output.write<float>(Kd);
+	return true;
 }
 
