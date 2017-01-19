@@ -43,12 +43,11 @@ void DCMotor::setSuppliedVoltage(float suppliedVoltage)
 
 void DCMotor::update()
 {
-	int pwm = getPWM();
-	if (pwm != 0)
+	if (m_velocity != 0)
 	{
 		digitalWrite(m_EN, HIGH);
-		analogWrite(m_PWM, pwm);
-		digitalWrite(m_DIR, (pwm > 0) ? FORWARD : BACKWARD);
+		analogWrite(m_PWM, getPWM());
+		digitalWrite(m_DIR, (m_velocity * m_velocityConstant > 0) ? FORWARD : BACKWARD);
 	}
 	else
 	{
@@ -59,10 +58,10 @@ void DCMotor::update()
 int DCMotor::getPWM() const
 {
 	int PWM = m_velocity * (60 * m_reductionRatio / m_velocityConstant) / (2 * M_PI * m_radius) * (255 / m_suppliedVoltage);
-	if (PWM > 255)
+	if (PWM > 255 || PWM < -255)
 		return 255;
-	else if (PWM < -255)
-		return -255;
+	else if (PWM < 0)
+		return -PWM;
 	else
 		return PWM;
 }
