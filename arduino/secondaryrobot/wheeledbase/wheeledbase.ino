@@ -23,8 +23,13 @@ Codewheel rightCodewheel;
 
 DCMotorsWheeledBase base;
 
+#if CONTROL_IN_POSITION
+PID linearPositionPID;
+PID angularPositionPID;
+#else
 PID linearVelocityPID;
 PID angularVelocityPID;
+#endif // CONTROL_IN_POSITION
 
 CodewheelsOdometry odometry;
 
@@ -71,7 +76,11 @@ void setup()
 
 	base.setWheels(leftWheel, rightWheel);
 	base.setOdometry(odometry);
+#if CONTROL_IN_POSITION
+	base.setPIDControllers(linearPositionPID, angularPositionPID);
+#else
 	base.setPIDControllers(linearVelocityPID, angularVelocityPID);
+#endif
 	base.setAxleTrack(WHEELS_AXLE_TRACK);
 	base.disable();
 
@@ -79,6 +88,15 @@ void setup()
 	odometry.setAxleTrack(CODEWHEELS_AXLE_TRACK);
 	odometry.setTimestep(ODOMETRY_TIMESTEP);
 
+#if CONTROL_IN_POSITION
+	linearPositionPID.loadTunings(LINEAR_POSITION_PID_ADDRESS);
+	linearPositionPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
+	linearPositionPID.reset();
+	
+	angularPositionPID.loadTunings(ANGULAR_POSITION_PID_ADDRESS);
+	angularPositionPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
+	angularPositionPID.reset();
+#else
 	linearVelocityPID.loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
 	linearVelocityPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
 	linearVelocityPID.reset();
@@ -86,6 +104,7 @@ void setup()
 	angularVelocityPID.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
 	angularVelocityPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
 	angularVelocityPID.reset();
+#endif // CONTROL_IN_POSITION
 
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
 }

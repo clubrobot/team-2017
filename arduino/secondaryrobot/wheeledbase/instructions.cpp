@@ -17,8 +17,13 @@ extern Codewheel rightCodewheel;
 
 extern DCMotorsWheeledBase base;
 
+#if CONTROL_IN_POSITION
+extern PID linearPositionPID;
+extern PID angularPositionPID;
+#else
 extern PID linearVelocityPID;
 extern PID angularVelocityPID;
+#endif // CONTROL_IN_POSITION
 
 extern CodewheelsOdometry odometry;
 
@@ -103,6 +108,16 @@ bool SET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 
 	switch (id)
 	{
+#if CONTROL_IN_POSITION
+	case LINEAR_POSITION_PID_IDENTIFIER:
+		linearPositionPID.setTunings(Kp, Ki, Kd);
+		linearPositionPID.saveTunings(LINEAR_POSITION_PID_ADDRESS);
+		break;
+	case ANGULAR_POSITION_PID_IDENTIFIER:
+		angularPositionPID.setTunings(Kp, Ki, Kd);
+		angularPositionPID.saveTunings(ANGULAR_POSITION_PID_ADDRESS);
+		break;
+#else
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
 		linearVelocityPID.setTunings(Kp, Ki, Kd);
 		linearVelocityPID.saveTunings(LINEAR_VELOCITY_PID_ADDRESS);
@@ -111,6 +126,7 @@ bool SET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 		angularVelocityPID.setTunings(Kp, Ki, Kd);
 		angularVelocityPID.saveTunings(ANGULAR_VELOCITY_PID_ADDRESS);
 		break;
+#endif // CONTROL_IN_POSITION
 	default:
 		talks.err << "SET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
 	}
@@ -125,6 +141,18 @@ bool GET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 
 	switch (id)
 	{
+#if CONTROL_IN_POSITION
+	case LINEAR_POSITION_PID_IDENTIFIER:
+		Kp = linearPositionPID.getKp();
+		Ki = linearPositionPID.getKi();
+		Kd = linearPositionPID.getKd();
+		break;
+	case ANGULAR_POSITION_PID_IDENTIFIER:
+		Kp = angularPositionPID.getKp();
+		Ki = angularPositionPID.getKi();
+		Kd = angularPositionPID.getKd();
+		break;
+#else
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
 		Kp = linearVelocityPID.getKp();
 		Ki = linearVelocityPID.getKi();
@@ -135,6 +163,7 @@ bool GET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 		Ki = angularVelocityPID.getKi();
 		Kd = angularVelocityPID.getKd();
 		break;
+#endif // CONTROL_IN_POSITION
 	default:
 		talks.err << "GET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
 	}
