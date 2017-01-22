@@ -5,6 +5,10 @@
 #include "DCMotor.h"
 #include "Odometry.h"
 #include "PID.h"
+#include "Clock.h"
+
+#define OUTPUT_CONTROL_VARIABLES 1 // Debug
+#define CONTROL_IN_POSITION 0 // Experimental
 
 
 class DCMotorsWheeledBase : public WheeledBase
@@ -16,7 +20,11 @@ public:
 
 	void setWheels(DCMotor& leftWheel, DCMotor& rightWheel);
 	void setOdometry(Odometry& odometry);
+#if CONTROL_IN_POSITION
 	void setPIDControllers(PID& linear, PID& angular);
+#else
+	void setPIDControllers(PID& linear, PID& angular);
+#endif
 
 	void enable();
 	void disable();
@@ -35,8 +43,18 @@ protected:
 	float m_linearVelocitySetpoint;
 	float m_angularVelocitySetpoint;
 
+#if CONTROL_IN_POSITION
+	float m_traveledDistanceSetpoint;
+	float m_thetaSetpoint;
+
+	Clock m_clock;
+
+	PID* m_linearPositionController;
+	PID* m_angularPositionController;
+#else
 	PID* m_linearVelocityController;
 	PID* m_angularVelocityController;
+#endif
 };
 
 #endif // __DCMOTORSBASE_H__

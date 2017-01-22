@@ -23,15 +23,28 @@ void DCMotorsWheeledBase::setOdometry(Odometry& odometry)
 	m_odometry = &odometry;
 }
 
+#if CONTROL_IN_POSITION
+void DCMotorsWheeledBase::setPIDControllers(PID& linear, PID& angular)
+{
+	m_linearPositionController  = &linear;
+	m_angularPositionController = &angular;
+}
+#else
 void DCMotorsWheeledBase::setPIDControllers(PID& linear, PID& angular)
 {
 	m_linearVelocityController  = &linear;
 	m_angularVelocityController = &angular;
 }
+#endif
 
 void DCMotorsWheeledBase::enable()
 {
 	m_enabled = true;
+#if CONTROL_IN_POSITION
+	m_clock.restart();
+	m_traveledDistanceSetpoint = m_odometry->getTraveledDistance();
+	m_thetaSetpoint            = m_odometry->getPosition().theta;
+#endif
 }
 
 void DCMotorsWheeledBase::disable()
@@ -43,26 +56,44 @@ void DCMotorsWheeledBase::update()
 {
 	if (m_enabled)
 	{
+#if CONTROL_IN_POSITION
+		// Compute linear and angular position setpoints
+		float timestep = m_clock.restart();
+		m_traveledDistanceSetpoint += m_linearVelocitySetpoint  * timestep;
+		m_thetaSetpoint            += m_angularVelocitySetpoint * timestep;
+
+		// Aliases
+		const float linearSetpoint  = m_traveledDistanceSetpoint;
+		const float angularSetpoint = m_thetaSetpoint;
+		const float linearInput  = m_odometry->getTraveledDistance();
+		const float angularInput = m_odometry->getPosition().theta;
+#else
 		// Alias linear and angular velocities setpoints and inputs
-		const float LVSetpoint = m_linearVelocitySetpoint;
-		const float AVSetpoint = m_angularVelocitySetpoint;
-		const float LVInput = m_odometry->getLinearVelocity();
-		const float AVInput = m_odometry->getAngularVelocity();
+		const float linearSetpoint  = m_linearVelocitySetpoint;
+		const float angularSetpoint = m_angularVelocitySetpoint;
+		const float linearInput  = m_odometry->getLinearVelocity();
+		const float angularInput = m_odometry->getAngularVelocity();
+#endif // CONTROL_IN_POSITION
 
 		// Compute linear and angular velocities outputs
-		float LVOutput;
-		float AVOutput;
-		if (m_linearVelocityController ->compute(LVSetpoint, LVInput, LVOutput) | // single pipe IS important
-			m_angularVelocityController->compute(AVSetpoint, AVInput, AVOutput))
+		float linearOutput;
+		float angularOutput;
+#if CONTROL_IN_POSITION
+		if (m_linearPositionController ->compute(linearSetpoint,  linearInput,  linearOutput) | // single pipe IS important
+			m_angularPositionController->compute(angularSetpoint, angularInput, angularOutput))
+#else
+		if (m_linearVelocityController ->compute(linearSetpoint,  linearInput,  linearOutput) | // single pipe IS important
+			m_angularVelocityController->compute(angularSetpoint, angularInput, angularOutput))
+#endif // CONTROL_IN_POSITION
 		{
-#if SHOW_CONTROL_VARIABLES
+#if OUTPUT_CONTROL_VARIABLES
 			talks.out << millis() << "\t";
-			talks.out << LVSetpoint << "\t" << LVInput << "\t" << LVOutput << "\t";
-			talks.out << AVSetpoint << "\t" << AVInput << "\t" << AVOutput << "\n";
+			talks.out << linearSetpoint  << "\t" << linearInput  << "\t" << linearOutput  << "\t";
+			talks.out << angularSetpoint << "\t" << angularInput << "\t" << angularOutput << "\n";
 #endif
 			// Convert linear and angular velocities into wheels' velocities
-			m_leftWheel ->setVelocity(LVOutput - AVOutput * m_axleTrack / 2);
-			m_rightWheel->setVelocity(LVOutput + AVOutput * m_axleTrack / 2);
+			m_leftWheel ->setVelocity(linearOutput - angularOutput * m_axleTrack / 2);
+			m_rightWheel->setVelocity(linearOutput + angularOutput * m_axleTrack / 2);
 		}
 	}
 }
