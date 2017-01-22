@@ -7,39 +7,51 @@
 
 bool PID::compute(float setpoint, float input, float& output)
 {
-	if (m_clock.getElapsedTime() > m_timestep)
+	bool updated = m_clock.getElapsedTime() > m_timestep;
+	if (updated)
 	{
-		// Compute the elapsed time since the last call
+		// Compute the elapsed time since the last computation
 		float timestep = m_clock.restart();
+
+		// If this time is more than 2 times the timestep, we consider that the user manually
+		// disabled the controller. So we reset it in order to avoid aberrations.
 		if (timestep > 2 * m_timestep)
 		{
-			reset();
 			m_output = 0;
-			output = m_output;
-			return false;
+			m_errorIntegral = 0;
+			m_previousError = setpoint - input;
 		}
-		
-		// Compute the error between the current state and the setpoint
-		float currentError = setpoint - input;
 
-		// Compute the error integral
-		m_errorIntegral += currentError * timestep;
-		if (m_errorIntegral > m_maxOutput / m_Ki)
-			m_errorIntegral = m_maxOutput / m_Ki;
-		else if (m_errorIntegral < m_minOutput / m_Ki)
-			m_errorIntegral = m_minOutput / m_Ki;
+		// Else we compute the output depending on the current error and the previously computed
+		// variables.
+		else
+		{
+			// Compute the error between the current state and the setpoint
+			float currentError = setpoint - input;
 
-		// Compute the error derivative
-		float errorDerivative = (currentError - m_previousError) / timestep;
-		m_previousError = currentError;
+			// Compute the error integral
+			m_errorIntegral += currentError * timestep;
+			if (m_errorIntegral > m_maxOutput / m_Ki)
+				m_errorIntegral = m_maxOutput / m_Ki;
+			else if (m_errorIntegral < m_minOutput / m_Ki)
+				m_errorIntegral = m_minOutput / m_Ki;
 
-		// Compute the PID controller's output
-		m_output = m_Kp * currentError + m_Ki * m_errorIntegral - m_Kd * errorDerivative;
-		output = m_output;
-		return true;
+			// Compute the error derivative
+			float errorDerivative = (currentError - m_previousError) / timestep;
+			m_previousError = currentError;
+
+			// Compute the PID controller's output
+			m_output = m_Kp * currentError + m_Ki * m_errorIntegral - m_Kd * errorDerivative;
+			if m_output > m_maxOutput
+				m_output = m_maxOutput;
+			else if m_output < m_minOutput
+				m_output = m_minOutput;
+		}
 	}
+
+	// Update output variable
 	output = m_output;
-	return false;
+	return updated;
 }
 
 void PID::setTunings(float Kp, float Ki, float Kd)
@@ -62,6 +74,7 @@ void PID::setTimestep(float timestep)
 
 void PID::reset()
 {
+	m_output = 0;
 	m_errorIntegral = 0;
 	m_previousError = 0;
 	m_clock.restart();
