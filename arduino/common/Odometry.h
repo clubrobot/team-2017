@@ -21,6 +21,7 @@ public:
 	virtual ~Odometry(){}
 
 	const Position&	getPosition() const;
+	float getTraveledDistance() const;
 	float getLinearVelocity () const;
 	float getAngularVelocity() const;
 
@@ -43,6 +44,7 @@ protected:
 	float m_timestep;
 
 	Position m_position;
+	float m_traveledDistance;
 
 	float m_linearVelocity;
 	float m_angularVelocity;

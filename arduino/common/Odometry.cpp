@@ -8,7 +8,12 @@ const Position&	Odometry::getPosition() const
 	return m_position;
 }
 
-float Odometry::getLinearVelocity () const
+float Odometry::getTraveledDistance() const
+{
+	return m_traveledDistance;
+}
+
+float Odometry::getLinearVelocity() const
 {
 	return m_linearVelocity;
 }
@@ -58,11 +63,12 @@ void Odometry::update()
 		const float dx     = dM * cos(mtheta);
 		const float dy     = dM * sin(mtheta);
 
+		m_position.x       += dx;
+		m_position.y       += dy;
+		m_position.theta   += dtheta;
+		m_traveledDistance += dM;
+
 		m_linearVelocity  = dM / dt;
 		m_angularVelocity = dtheta / dt;
-
-		m_position.x     += dx;
-		m_position.y     += dy;
-		m_position.theta += dtheta;
 	}
 }
