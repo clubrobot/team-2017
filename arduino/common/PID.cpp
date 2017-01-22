@@ -42,9 +42,9 @@ bool PID::compute(float setpoint, float input, float& output)
 
 			// Compute the PID controller's output
 			m_output = m_Kp * currentError + m_Ki * m_errorIntegral - m_Kd * errorDerivative;
-			if m_output > m_maxOutput
+			if (m_output > m_maxOutput)
 				m_output = m_maxOutput;
-			else if m_output < m_minOutput
+			else if (m_output < m_minOutput)
 				m_output = m_minOutput;
 		}
 	}
