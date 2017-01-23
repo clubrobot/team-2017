@@ -76,6 +76,11 @@ bool SET_POSITION(SerialTalks& inst, Deserializer& input, Serializer& output)
 	odometry.calibrateYAxis(y);
 	odometry.calibrateOrientation(theta);
 
+#if CONTROL_IN_POSITION
+	base.disable();
+	base.enable();
+#endif
+
 	return false;
 }
 
@@ -166,6 +171,7 @@ bool GET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 #endif // CONTROL_IN_POSITION
 	default:
 		talks.err << "GET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
+		return true;
 	}
 
 	output.write<float>(Kp);
