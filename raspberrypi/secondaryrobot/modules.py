@@ -85,16 +85,16 @@ class WheeledBase(Module):
 		return Kp, Kd, Ki
 
 	def get_linear_velocity_PID_tunings(self, timeout=1):
-		self.get_tunings(LINEAR_VELOCITY_PID_IDENTIFIER, timeout=timeout)
+		return self.get_tunings(LINEAR_VELOCITY_PID_IDENTIFIER, timeout=timeout)
 	
 	def get_angular_velocity_PID_tunings(self, timeout=1):
-		self.get_tunings(ANGULAR_VELOCITY_PID_IDENTIFIER, timeout=timeout)
+		return self.get_tunings(ANGULAR_VELOCITY_PID_IDENTIFIER, timeout=timeout)
 
 	def get_linear_position_PID_tunings(self, timeout=1):
-		self.get_tunings(LINEAR_POSITION_PID_IDENTIFIER, timeout=timeout)
+		return self.get_tunings(LINEAR_POSITION_PID_IDENTIFIER, timeout=timeout)
 	
 	def get_angular_position_PID_tunings(self, timeout=1):
-		self.get_tunings(ANGULAR_POSITION_PID_IDENTIFIER, timeout=timeout)
+		return self.get_tunings(ANGULAR_POSITION_PID_IDENTIFIER, timeout=timeout)
 
 
 class Gripper(Module):
