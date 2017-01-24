@@ -10,6 +10,7 @@
 #include "../../common/Codewheel.h"
 #include "../../common/CodewheelsOdometry.h"
 #include "../../common/DCMotorsWheeledBase.h"
+#include "../../common/TrajectoryPlanner.h"
 
 // Load the different modules
 
@@ -32,6 +33,8 @@ PID angularVelocityPID;
 #endif // CONTROL_IN_POSITION
 
 CodewheelsOdometry odometry;
+
+TrajectoryPlanner trajectory;
 
 // Setup
 
@@ -106,6 +109,10 @@ void setup()
 	angularVelocityPID.reset();
 #endif // CONTROL_IN_POSITION
 
+	trajectory.setWheeledBase(base);
+	trajectory.setOdometry(odometry);
+	trajectory.disable();
+
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
 }
 
@@ -120,4 +127,7 @@ void loop()
 
 	// Integrate engineering control
 	base.update();
+
+	// Update trajectory
+	trajectory.update();
 }

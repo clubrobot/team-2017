@@ -16,6 +16,7 @@ LOCAL_CPP_SRCS = \
 	$(COMMON)/CodewheelsOdometry.cpp \
 	$(COMMON)/PID.cpp \
 	$(COMMON)/Clock.cpp \
+	$(COMMON)/TrajectoryPlanner.cpp \
 	$(COMMON)/hardware.cpp
 
 # Sketch libraries

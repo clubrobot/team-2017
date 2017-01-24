@@ -6,6 +6,7 @@
 #include "../../common/Codewheel.h"
 #include "../../common/CodewheelsOdometry.h"
 #include "../../common/DCMotorsWheeledBase.h"
+#include "../../common/TrajectoryPlanner.h"
 
 // Global variables
 
@@ -27,6 +28,8 @@ extern PID angularVelocityPID;
 
 extern CodewheelsOdometry odometry;
 
+extern TrajectoryPlanner trajectory;
+
 // Instructions
 
 bool SET_OPENLOOP_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
@@ -35,6 +38,7 @@ bool SET_OPENLOOP_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer&
 	float rightVelocity = input.read<float>();
 
 	base.disable();
+	trajectory.disable();
 	leftWheel .setVelocity(leftVelocity);
 	rightWheel.setVelocity(rightVelocity);
 
@@ -47,6 +51,7 @@ bool SET_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
 	float angularVelocity = input.read<float>();
 	
 	base.enable();
+	trajectory.disable();
 	base.setLinearVelocity (linearVelocity);
 	base.setAngularVelocity(angularVelocity);
 
@@ -61,8 +66,13 @@ bool GOTO(SerialTalks& inst, Deserializer& input, Serializer& output)
 	float linearVelocity  = input.read<float>();
 	float angularVelocity = input.read<float>();
 
-	talks.err << "GOTO: not implemented yet\n";
+	trajectory.setMaximumLinearVelocity (linearVelocity);
+	trajectory.setMaximumAngularVelocity(angularVelocity);
 	
+	trajectory.reset();
+	trajectory.addWaypoint(Position(x, y, theta));
+	trajectory.enable();
+
 	return false;
 }
 
