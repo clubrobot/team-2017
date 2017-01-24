@@ -1,7 +1,5 @@
 #include "UltrasonicSensor.h"
 
-
-
 #define VALMIN 2
 #define VALMAX 200
 #define TEMPORISATION 3600
@@ -13,7 +11,7 @@ UltrasonicSensor::UltrasonicSensor(int ep): EchoPin(ep)
   finMesure = 0;
   currentTime = 0;
   dureeMesure;
-  mesure = 1000;
+  mesure = 0;
   currentState = PRET;
 }
 
@@ -29,7 +27,7 @@ void UltrasonicSensor::impulsion_US(int pin) {
 
 
 void UltrasonicSensor::update() {
-  unsigned long cm;
+ unsigned long cm;
   switch (currentState) {
     case EMISSION :
       /*code EMISSION : Emission du signal par le module SR04 (ultrason)

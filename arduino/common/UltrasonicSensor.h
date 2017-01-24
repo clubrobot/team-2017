@@ -8,7 +8,7 @@ enum State {EMISSION = 0, RECEPTION = 1, ATTENTE = 2, PRET = 3};
 class UltrasonicSensor {
   public :
     
-    UltrasonicSensor(int echo);
+    UltrasonicSensor(int ep);
     void impulsion_US(int pin);
     void setcurrentState(State st ) { currentState = st;}
     int getDistance() { return mesure;}

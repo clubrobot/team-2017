@@ -14,5 +14,8 @@ void setup() {
 }
 
 void loop() {
-    talks.execute();    
+    talks.execute(); 
+    Capteur1.update();
+    Capteur1.impulsion_US(TRIGGPIN);
+    Capteur1.setcurrentState(EMISSION);  
 }
