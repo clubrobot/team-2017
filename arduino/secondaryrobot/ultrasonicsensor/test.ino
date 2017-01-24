@@ -3,6 +3,7 @@
 #include "../../common/UltrasonicSensor.h"
 #include "../../common/SerialTalks.h"
 #include "instructions.h"
+#include "PIN.h"
  
 
 UltrasonicSensor Capteur1(ECHOPIN);

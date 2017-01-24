@@ -10,8 +10,7 @@ UltrasonicSensor::UltrasonicSensor(int ep): EchoPin(ep)
   debutMesure = 0;
   finMesure = 0;
   currentTime = 0;
-  dureeMesure;
-  mesure = 0;
+  mesure = 1000;
   currentState = PRET;
 }
 
