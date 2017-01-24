@@ -39,12 +39,15 @@ void DCMotorsWheeledBase::setPIDControllers(PID& linear, PID& angular)
 
 void DCMotorsWheeledBase::enable()
 {
-	m_enabled = true;
-#if CONTROL_IN_POSITION
-	m_clock.restart();
-	m_traveledDistanceSetpoint = m_odometry->getTraveledDistance();
-	m_thetaSetpoint            = m_odometry->getPosition().theta;
-#endif
+	if (!m_enabled)
+	{
+		m_enabled = true;
+	#if CONTROL_IN_POSITION
+		m_clock.restart();
+		m_traveledDistanceSetpoint = m_odometry->getTraveledDistance();
+		m_thetaSetpoint            = m_odometry->getPosition().theta;
+	#endif
+	}
 }
 
 void DCMotorsWheeledBase::disable()
@@ -62,7 +65,9 @@ void DCMotorsWheeledBase::update()
 		m_traveledDistanceSetpoint += m_linearVelocitySetpoint  * timestep;
 		m_thetaSetpoint            += m_angularVelocitySetpoint * timestep;
 
-		// Aliases
+		// TODO: Clamp setpoints if they are too far from the current inputs
+		
+		// Alias linear and angular velocities setpoints and inputs
 		const float linearSetpoint  = m_traveledDistanceSetpoint;
 		const float angularSetpoint = m_thetaSetpoint;
 		const float linearInput  = m_odometry->getTraveledDistance();
