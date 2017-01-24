@@ -18,8 +18,7 @@ public:
 
 	bool addWaypoint(const Position& waypoint);
 
-	void setMaximumLinearVelocity(float linearVelocity);
-	void setMaximumAngularVelocity(float angularVelocity);
+	void setMaximumVelocities(float linearVelocity, float angularVelocity);
 
 	void enable();
 	void disable();

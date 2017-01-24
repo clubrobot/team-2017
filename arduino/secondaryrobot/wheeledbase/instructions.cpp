@@ -66,8 +66,7 @@ bool GOTO(SerialTalks& inst, Deserializer& input, Serializer& output)
 	float linearVelocity  = input.read<float>();
 	float angularVelocity = input.read<float>();
 
-	trajectory.setMaximumLinearVelocity (linearVelocity);
-	trajectory.setMaximumAngularVelocity(angularVelocity);
+	trajectory.setMaximumVelocities(linearVelocity, angularVelocity);
 	
 	trajectory.reset();
 	trajectory.addWaypoint(Position(x, y, theta));
