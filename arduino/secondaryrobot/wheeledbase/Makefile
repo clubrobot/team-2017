@@ -17,7 +17,8 @@ LOCAL_CPP_SRCS = \
 	$(COMMON)/PID.cpp \
 	$(COMMON)/Clock.cpp \
 	$(COMMON)/TrajectoryPlanner.cpp \
-	$(COMMON)/hardware.cpp
+	$(COMMON)/hardware.cpp \
+	$(COMMON)/mathutils.cpp
 
 # Sketch libraries
 ARDUINO_LIBS = EEPROM
