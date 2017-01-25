@@ -21,9 +21,17 @@
 #define RIGHT_CODEWHEEL_RADIUS  22.75 // mm
 #define CODEWHEELS_AXLE_TRACK  209.26 // mm
 
+// Trajectory constants
+
+#define MAX_LINEAR_VELOCITY      400 // mm/s
+#define MAX_ANGULAR_VELOCITY     1.0 // rad/s^2
+#define MAX_LINEAR_ACCELERATION  250 // mm/s^2
+#define MAX_ANGULAR_ACCELERATION 3.0 // rad/s^2
+
 // Timesteps
 
 #define ODOMETRY_TIMESTEP          5e-3 // s
 #define PID_CONTROLLERS_TIMESTEP  20e-3 // s
+#define TRAJECTORY_TIMESTEP       50e-3 // s
 
 #endif // __CONSTANTS_H__
