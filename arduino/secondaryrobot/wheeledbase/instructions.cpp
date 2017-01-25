@@ -70,6 +70,7 @@ bool GOTO(SerialTalks& inst, Deserializer& input, Serializer& output)
 	
 	trajectory.reset();
 	trajectory.addWaypoint(Position(x, y, theta));
+	base.enable();
 	trajectory.enable();
 
 	return false;

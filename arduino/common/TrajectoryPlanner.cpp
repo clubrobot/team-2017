@@ -1,4 +1,7 @@
 #include "TrajectoryPlanner.h"
+#include <math.h>
+#include "mathutils.h"
+#include "SerialTalks.h"
 
 
 void TrajectoryPlanner::setOdometry(Odometry& odometry)
@@ -27,9 +30,24 @@ void TrajectoryPlanner::setMaximumVelocities(float linearVelocity, float angular
 	m_maximumAngularVelocity = angularVelocity;
 }
 
+void TrajectoryPlanner::setMaximumAccelerations(float linearAcceleration, float angularAcceleration)
+{
+	m_maximumLinearAcceleration  = linearAcceleration;
+	m_maximumAngularAcceleration = angularAcceleration;
+}
+
+void TrajectoryPlanner::setTimestep(float timestep)
+{
+	m_timestep = timestep;
+}
+
 void TrajectoryPlanner::enable()
 {
-	m_enabled = true;
+	if (!m_enabled)
+	{
+		m_enabled = true;
+		m_clock.restart();
+	}
 }
 
 void TrajectoryPlanner::disable()
@@ -43,37 +61,32 @@ void TrajectoryPlanner::reset()
 }
 
 void TrajectoryPlanner::update()
-{/*
-	const float Kp_lin = 1, lin_max = m_targetVelocities.linear , lin_dz = 10;
-	const float Kp_ang = 1, ang_max = m_targetVelocities.angular, ang_dz = M_PI / 6;
-
-	State r = m_odometry.getState(); r.theta = inrange(r.theta, -M_PI, M_PI);
-	State t = m_targetStance;
-
-	const float dx = t.x - r.x;
-	const float dy = t.y - r.y;
-
-	float dist = sqrt(dx * dx + dy * dy);
-	float angl = inrange(atan2(dy, dx) - r.theta, -M_PI, M_PI);
-
-	// Let the robot go backward if the angle is greater than 90°
-	if (abs(angl) > M_PI / 2)
+{
+	if (m_enabled && m_clock.getElapsedTime() > m_timestep)
 	{
-		dist = -dist;
-		angl = inrange(angl + M_PI, -M_PI, M_PI);
-	}
+		const float timestep = m_clock.restart();
+		
+		const Position& current = m_odometry->getPosition();
+		const Position& target  = m_waypoints[0];
 
-	// Get the right orientation if the robot is close enough to its destination
-	if (abs(dist) < lin_dz)
-	{
-		angl = inrange(t.theta - r.theta, -M_PI, M_PI);
+		const float dx = target.x - current.x;
+		const float dy = target.y - current.y;
+
+		float linearDelta  = sqrt(dx * dx + dy * dy);
+		float angularDelta = inrange(atan2(dy, dx) - current.theta, -M_PI, M_PI);
+
+		// Let the robot go backward if the angle is greater than 90°
+		if (fabs(angularDelta) > M_PI / 2)
+		{
+			linearDelta  = -linearDelta;
+			angularDelta = inrange(angularDelta + M_PI, -M_PI, M_PI);
+		}
+
+		// Set velocities setpoints
+		float linearVelocitySetpoint  = saturate(linearDelta,  -m_maximumLinearVelocity,  m_maximumLinearVelocity);
+		float angularVelocitySetpoint = saturate(angularDelta, -m_maximumAngularVelocity, m_maximumAngularVelocity);
+		m_wheeledbase->setLinearVelocity (linearVelocitySetpoint);
+		m_wheeledbase->setAngularVelocity(angularVelocitySetpoint);
+		talks.out << linearVelocitySetpoint << "\t" << angularVelocitySetpoint << "\n";
 	}
-	// Else if make the robot turn on the spot if it is not well oriented to reach its destination
-	else if (abs(angl) > ang_dz)
-	{
-		dist = 0;
-	}
-	talks.out << millis() << "\t" << saturate(Kp_lin * dist, -lin_max, lin_max) << "\t" << saturate(Kp_ang * angl, -ang_max, ang_max) << "\n";
-	linearVelocitySetpoint  = saturate(Kp_lin * dist, -lin_max, lin_max);
-	angularVelocitySetpoint = saturate(Kp_ang * angl, -ang_max, ang_max);*/
 }

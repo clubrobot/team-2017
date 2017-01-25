@@ -111,6 +111,9 @@ void setup()
 
 	trajectory.setWheeledBase(base);
 	trajectory.setOdometry(odometry);
+	trajectory.setMaximumVelocities(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+	trajectory.setMaximumAccelerations(MAX_LINEAR_ACCELERATION, MAX_ANGULAR_ACCELERATION);
+	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
 	trajectory.disable();
 
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
