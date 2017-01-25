@@ -7,7 +7,7 @@
 #include "PID.h"
 #include "Clock.h"
 
-#define OUTPUT_CONTROL_VARIABLES 1 // Debug
+#define OUTPUT_CONTROL_VARIABLES 0 // Debug
 #define CONTROL_IN_POSITION 0 // Experimental
 
 
