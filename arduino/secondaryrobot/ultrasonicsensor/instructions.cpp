@@ -8,14 +8,16 @@ extern UltrasonicSensor Capteur1;
  bool GET_MESURE(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
     output.write<int>(Capteur1.getDistance());
-	return false;
+	return true;
 } 
 
 bool MESURE(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
     Capteur1.update();
-    Capteur1.impulsion_US(TRIGGPIN);
-    Capteur1.setcurrentState(EMISSION);
+    if(Capteur1.getState() == PRET){
+        Capteur1.impulsion_US(TRIGGPIN);
+        Capteur1.setcurrentState(EMISSION);
+    }
     return false;
 }
 

@@ -3,6 +3,7 @@
 #include "../../common/UltrasonicSensor.h"
 #include "../../common/SerialTalks.h"
 #include "instructions.h"
+#include "PIN.h"
  
 
 UltrasonicSensor Capteur1(ECHOPIN);
@@ -14,5 +15,10 @@ void setup() {
 }
 
 void loop() {
-    talks.execute();    
+    talks.execute(); 
+    Capteur1.update();
+    if(Capteur1.getState() == PRET){
+        Capteur1.impulsion_US(TRIGGPIN);
+        Capteur1.setcurrentState(EMISSION);
+    }
 }
