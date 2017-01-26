@@ -59,23 +59,17 @@ public: // Public API
 	
 	protected:
 
-		ostream(SerialTalks& parent, byte opcode);
+		void begin(SerialTalks& parent, byte opcode);
 
-		SerialTalks& m_parent;
-		const byte   m_opcode;
+		SerialTalks* m_parent;
+		byte         m_opcode;
 
 		friend class SerialTalks;
 	};
 
-	typedef bool (*Instruction)(SerialTalks& inst, Deserializer& input, Serializer& output);
+	typedef void (*Instruction)(SerialTalks& inst, Deserializer& input, Serializer& output);
 
-	SerialTalks();
-
-	template<typename GenericSerial> void begin(GenericSerial& serial)
-	{
-		serial.begin(SERIALTALKS_BAUDRATE);
-		m_stream = &serial;
-	}
+	void begin(Stream& stream);
 
 	void bind(byte opcode, Instruction instruction);
 
@@ -122,9 +116,9 @@ protected: // Protected methods
 
 private:
 
-	static bool connectInstruction(SerialTalks& inst, Deserializer& input, Serializer& output);
-	static bool getUUIDInstruction(SerialTalks& inst, Deserializer& input, Serializer& output);
-	static bool setUUIDInstruction(SerialTalks& inst, Deserializer& input, Serializer& output);
+	static void CONNECT(SerialTalks& talks, Deserializer& input, Serializer& output);
+	static void GETUUID(SerialTalks& talks, Deserializer& input, Serializer& output);
+	static void SETUUID(SerialTalks& talks, Deserializer& input, Serializer& output);
 };
 
 extern SerialTalks talks;

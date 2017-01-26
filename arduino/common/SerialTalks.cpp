@@ -1,5 +1,5 @@
-#include <EEPROM.h>
 #include "SerialTalks.h"
+#include <EEPROM.h>
 
 
 // Global instance
@@ -9,36 +9,32 @@ SerialTalks talks;
 
 // Built-in instructions
 
-bool SerialTalks::connectInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
+void SerialTalks::CONNECT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	inst.m_connected = true;
-	return true;
+	talks.m_connected = true;
 }
 
-bool SerialTalks::getUUIDInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
+void SerialTalks::GETUUID(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	char uuid[SERIALTALKS_UUID_LENGTH];
 	talks.getUUID(uuid);
 	output << uuid;
-	return true;
 }
 
-bool SerialTalks::setUUIDInstruction(SerialTalks& inst, Deserializer& input, Serializer& output)
+void SerialTalks::SETUUID(SerialTalks& inst, Deserializer& input, Serializer& output)
 {	
 	char uuid[SERIALTALKS_UUID_LENGTH];
 	input >> uuid;
-    talks.setUUID(uuid);
-    return false;
+	talks.setUUID(uuid);
 }
 
 
 // SerialTalks::ostream
 
-SerialTalks::ostream::ostream(SerialTalks& parent, byte opcode)
-:	m_parent(parent)
-,	m_opcode(opcode)
+void SerialTalks::ostream::begin(SerialTalks& parent, byte opcode)
 {
-	
+	m_parent = &parent;
+	m_opcode = opcode;
 }
 
 size_t SerialTalks::ostream::write(uint8_t c)
@@ -49,18 +45,20 @@ size_t SerialTalks::ostream::write(uint8_t c)
 
 size_t SerialTalks::ostream::write(const uint8_t *buffer, size_t size)
 {
-	return m_parent.send(m_opcode, buffer, size + 1);
+	return m_parent->send(m_opcode, buffer, size + 1);
 }
 
 
 // SerialTalks
 
-SerialTalks::SerialTalks()
-:	out(*this, SERIALTALKS_STDOUT_OPCODE)
-,	err(*this, SERIALTALKS_STDERR_OPCODE)
-
-,	m_connected(false)
+void SerialTalks::begin(Stream& stream)
 {
+	// Initialize attributes
+	m_stream = &stream;
+	m_connected = false;
+	out.begin(*this, SERIALTALKS_STDOUT_OPCODE);
+	err.begin(*this, SERIALTALKS_STDERR_OPCODE);
+
 	// Initialize UUID stuff
 #ifdef BOARD_UUID
 	setUUID(BOARD_UUID);
@@ -74,9 +72,9 @@ SerialTalks::SerialTalks()
 #endif // BOARD_UUID
 
 	// Add UUID accessors
-	bind(SERIALTALKS_CONNECT_OPCODE, SerialTalks::connectInstruction);
-	bind(SERIALTALKS_GETUUID_OPCODE, SerialTalks::getUUIDInstruction);
-	bind(SERIALTALKS_SETUUID_OPCODE, SerialTalks::setUUIDInstruction);
+	bind(SERIALTALKS_CONNECT_OPCODE, SerialTalks::CONNECT);
+	bind(SERIALTALKS_GETUUID_OPCODE, SerialTalks::GETUUID);
+	bind(SERIALTALKS_SETUUID_OPCODE, SerialTalks::SETUUID);
 }
 
 int SerialTalks::send(byte opcode, const byte* buffer, int size)
@@ -106,8 +104,8 @@ bool SerialTalks::execinstruction(byte opcode, byte* inputBuffer)
 		Deserializer input (inputBuffer);
 		Serializer   output(m_outputBuffer);
 
-		if (m_instructions[opcode](*this, input, output))
-			send(opcode, m_outputBuffer, output.buffer - m_outputBuffer);
+		m_instructions[opcode](*this, input, output);
+		send(opcode, m_outputBuffer, output.buffer - m_outputBuffer);
 		return true;
 	}
 	return false;
@@ -135,9 +133,9 @@ bool SerialTalks::execute()
 		case SERIALTALKS_INSTRUCTION_STARTING_STATE:
 			m_bytesNumber  = inc;
 			m_bytesCounter = 0;
-			m_state = (m_bytesNumber < SERIALTALKS_INPUT_BUFFER_SIZE)
-			?	SERIALTALKS_INSTRUCTION_RECEIVING_STATE
-			:	SERIALTALKS_WAITING_STATE;
+			m_state = (m_bytesNumber < SERIALTALKS_INPUT_BUFFER_SIZE) ?
+				SERIALTALKS_INSTRUCTION_RECEIVING_STATE :
+				SERIALTALKS_WAITING_STATE;
 			continue;
 
 		// The first instruction byte is the opcode and the others the parameters
