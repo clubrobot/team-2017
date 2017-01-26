@@ -232,7 +232,7 @@ class TCPTalks:
 		while self.poll(opcode) is not None:
 			pass
 	
-	def execute(self, opcode, *args, **kwargs, timeout=1):
+	def execute(self, opcode, *args, timeout=1, **kwargs):
 		self.flush(opcode)
 		self.send(opcode, *args, **kwargs)
 		output = self.poll(opcode, timeout=timeout)

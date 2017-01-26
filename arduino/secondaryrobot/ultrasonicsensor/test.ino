@@ -6,7 +6,8 @@
 #include "PIN.h"
  
 
-UltrasonicSensor Capteur1(ECHOPIN);
+UltrasonicSensor Capteur1(ECHOPIN1);
+UltrasonicSensor Capteur2(ECHOPIN2)
 
 void setup() {
     Serial.begin(SERIALTALKS_BAUDRATE);
@@ -18,8 +19,11 @@ void setup() {
 void loop() {
     talks.execute(); 
     Capteur1.update();
-    if(Capteur1.getState() == PRET){
+    Capteur2.update();
+    if(Capteur1.getState() == PRET && Capteur2.getState() == PRET){
         Capteur1.impulsion_US(TRIGGPIN);
+        Capteur2.impulsion_US(TRIGGPIN);
         Capteur1.setcurrentState(EMISSION);
+        Capteur2.setcurrentState(EMISSION);
     }
 }
