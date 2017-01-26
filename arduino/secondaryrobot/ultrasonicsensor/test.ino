@@ -9,10 +9,10 @@
 UltrasonicSensor Capteur1(ECHOPIN);
 
 void setup() {
-  Serial.begin(SERIALTALKS_BAUDRATE);
-  talks.begin(Serial);
-  talks.bind(GET_MESURE_OPCODE, GET_MESURE);
-  talks.bind(MESURE_OPCODE, MESURE);
+    Serial.begin(SERIALTALKS_BAUDRATE);
+    talks.begin(Serial);
+    talks.bind(GET_MESURE_OPCODE, GET_MESURE);
+    talks.bind(MESURE_OPCODE, MESURE);
 }
 
 void loop() {
