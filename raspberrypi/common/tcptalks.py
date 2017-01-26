@@ -62,7 +62,7 @@ def _loads(rawbytes):
 
 class TCPTalks:
 
-	def __init__(self, ip = None, port = 25565, password = None):
+	def __init__(self, ip=None, port=25565, password=None):
 		Thread.__init__(self)
 
 		# Instructions
@@ -88,7 +88,7 @@ class TCPTalks:
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.disconnect()
 
-	def connect(self, timeout = 2):
+	def connect(self, timeout=2):
 		if self.is_connected:
 			raise RuntimeError('already connected')
 			
@@ -216,7 +216,7 @@ class TCPTalks:
 		except Exception as e:
 			return self.sendback(opcode, e)
 
-	def poll(self, opcode, timeout = 0):	
+	def poll(self, opcode, timeout=0):	
 		queue = self.get_queue(opcode)
 		block = (timeout is None or timeout > 0)
 		try:
@@ -232,10 +232,10 @@ class TCPTalks:
 		while self.poll(opcode) is not None:
 			pass
 	
-	def execute(self, opcode, *args, **kwargs):
+	def execute(self, opcode, *args, **kwargs, timeout=1):
 		self.flush(opcode)
 		self.send(opcode, *args, **kwargs)
-		output = self.poll(opcode, None)
+		output = self.poll(opcode, timeout=timeout)
 		if isinstance(output, Exception):
 			raise output
 		else:

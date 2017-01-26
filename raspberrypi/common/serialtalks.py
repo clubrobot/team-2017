@@ -144,13 +144,13 @@ class SerialTalks:
 		while self.poll(opcode) is not None:
 			pass
 
-	def execute(self, opcode, *args, timeout=None):
+	def execute(self, opcode, *args, timeout=1):
 		self.flush(opcode)
 		self.send(opcode, *args)
 		output = self.poll(opcode, timeout)
 		return output
 
-	def getuuid(self, timeout=None):
+	def getuuid(self, timeout=1):
 		output = self.execute(GETUUID_OPCODE, timeout=timeout)
 		if output is not None:
 			return output.read(STRING)
