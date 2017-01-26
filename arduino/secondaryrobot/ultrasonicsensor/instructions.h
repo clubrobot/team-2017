@@ -10,7 +10,7 @@
 
 
 // Instructions prototypes
-bool GET_MESURE(SerialTalks& inst, Deserializer& input, Serializer& output);
-bool MESURE(SerialTalks& inst, Deserializer& input, Serializer& output);
+void GET_MESURE(SerialTalks& inst, Deserializer& input, Serializer& output);
+void MESURE(SerialTalks& inst, Deserializer& input, Serializer& output);
 
 #endif
