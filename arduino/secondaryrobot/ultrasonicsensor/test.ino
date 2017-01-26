@@ -7,7 +7,7 @@
  
 
 UltrasonicSensor Capteur1(ECHOPIN1);
-UltrasonicSensor Capteur2(ECHOPIN2)
+UltrasonicSensor Capteur2(ECHOPIN2);
 
 void setup() {
     Serial.begin(SERIALTALKS_BAUDRATE);
