@@ -32,7 +32,7 @@ extern TrajectoryPlanner trajectory;
 
 // Instructions
 
-bool SET_OPENLOOP_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
+void SET_OPENLOOP_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	float leftVelocity  = input.read<float>();
 	float rightVelocity = input.read<float>();
@@ -41,11 +41,9 @@ bool SET_OPENLOOP_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer&
 	trajectory.disable();
 	leftWheel .setVelocity(leftVelocity);
 	rightWheel.setVelocity(rightVelocity);
-
-	return false;
 }
 
-bool SET_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
+void SET_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	float linearVelocity  = input.read<float>();
 	float angularVelocity = input.read<float>();
@@ -54,11 +52,9 @@ bool SET_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
 	trajectory.disable();
 	base.setLinearVelocity (linearVelocity);
 	base.setAngularVelocity(angularVelocity);
-
-	return false;
 }
 
-bool GOTO(SerialTalks& inst, Deserializer& input, Serializer& output)
+void GOTO(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	float x               = input.read<float>();
 	float y               = input.read<float>();
@@ -72,11 +68,9 @@ bool GOTO(SerialTalks& inst, Deserializer& input, Serializer& output)
 	trajectory.addWaypoint(Position(x, y, theta));
 	base.enable();
 	trajectory.enable();
-
-	return false;
 }
 
-bool SET_POSITION(SerialTalks& inst, Deserializer& input, Serializer& output)
+void SET_POSITION(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	float x     = input.read<float>();
 	float y     = input.read<float>();
@@ -90,31 +84,27 @@ bool SET_POSITION(SerialTalks& inst, Deserializer& input, Serializer& output)
 	base.disable();
 	base.enable();
 #endif
-
-	return false;
 }
 
-bool GET_POSITION(SerialTalks& inst, Deserializer& input, Serializer& output)
+void GET_POSITION(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	const Position& position = odometry.getPosition();
 	
 	output.write<float>(position.x);
 	output.write<float>(position.y);
 	output.write<float>(position.theta);
-	return true;
 }
 
-bool GET_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
+void GET_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	const float linearVelocity  = odometry.getLinearVelocity ();
 	const float angularVelocity = odometry.getAngularVelocity();
 	
 	output.write<float>(linearVelocity);
 	output.write<float>(angularVelocity);
-	return true;
 }
 
-bool SET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
+void SET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	byte  id = input.read<byte>();
 	float Kp = input.read<float>();
@@ -145,11 +135,9 @@ bool SET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 	default:
 		talks.err << "SET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
 	}
-
-	return false;
 }
 
-bool GET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
+void GET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
 	byte id = input.read<byte>();
 	float Kp, Ki, Kd;
@@ -181,12 +169,11 @@ bool GET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output)
 #endif // CONTROL_IN_POSITION
 	default:
 		talks.err << "GET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
-		return true;
+		return;
 	}
 
 	output.write<float>(Kp);
 	output.write<float>(Ki);
 	output.write<float>(Kd);
-	return true;
 }
 

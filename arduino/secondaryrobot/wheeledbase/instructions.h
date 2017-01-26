@@ -1,5 +1,5 @@
-#ifndef __INSTRUCTIONS_H__
-#define __INSTRUCTIONS_H__
+#ifndef __talksRUCTIONS_H__
+#define __talksRUCTIONS_H__
 
 #include "../../common/SerialTalks.h"
 
@@ -28,20 +28,20 @@
 
 // Instructions prototypes
 
-bool SET_OPENLOOP_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output);
+void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-bool SET_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output);
+void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-bool GOTO(SerialTalks& inst, Deserializer& input, Serializer& output);
+void GOTO(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-bool SET_POSITION(SerialTalks& inst, Deserializer& input, Serializer& output);
+void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-bool GET_POSITION(SerialTalks& inst, Deserializer& input, Serializer& output);
+void GET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-bool GET_VELOCITIES(SerialTalks& inst, Deserializer& input, Serializer& output);
+void GET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-bool SET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output);
+void SET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-bool GET_PID_TUNINGS(SerialTalks& inst, Deserializer& input, Serializer& output);
+void GET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-#endif // __INSTRUCTIONS_H__
+#endif // __talksRUCTIONS_H__
