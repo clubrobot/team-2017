@@ -40,6 +40,16 @@ UINT   = USHORT
 DOUBLE = FLOAT
 
 
+# Exceptions
+
+class AlreadyConnectedError(ConnectionError): pass
+class ConnectionFailedError(ConnectionError): pass
+class NotConnectedError    (ConnectionError): pass
+class MuteError(TimeoutError): pass
+
+
+# Main class
+
 class SerialTalks:
 
 	def __init__(self, port):
@@ -62,11 +72,11 @@ class SerialTalks:
 
 	def connect(self, timeout=2):
 		if not self.is_connected:
-			self.stream = serial.Serial(self.port,
-				baudrate=BAUDRATE,
-				bytesize=serial.EIGHTBITS,
-				parity=serial.PARITY_NONE,
-				stopbits=serial.STOPBITS_ONE)
+			try:
+				self.stream = serial.Serial(self.port, baudrate=BAUDRATE, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE)
+			except serial.serialutil.SerialException as e:
+				raise ConnectionFailedError(str(e))
+
 			self.stream.timeout	= 1
 		
 			# Create a listening thread that will wait for inputs
@@ -82,9 +92,9 @@ class SerialTalks:
 					break
 			else:
 				self.disconnect()
-				raise TimeoutError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port))
+				raise MuteError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port))
 		else:
-			raise RuntimeError('{} is already connected'.format(self.port))
+			raise AlreadyConnectedError('{} is already connected'.format(self.port))
 
 	def disconnect(self):
 		if self.is_connected:
@@ -100,7 +110,7 @@ class SerialTalks:
 
 	def rawsend(self, rawbytes):
 		if not self.is_connected:
-			raise RuntimeError('\'{}\' is not connected.'.format(self.port))
+			raise NotConnectedError('\'{}\' is not connected.'.format(self.port))
 		
 		sentbytes = self.stream.write(rawbytes)
 		return sentbytes

@@ -14,6 +14,16 @@ AUTHENTIFICATION_OPCODE = 0xAA
 DISCONNECT_OPCODE       = 0xFF
 
 
+# Exceptions
+
+class ForeverAloneError(TimeoutError): pass
+class ConnectionFailedError(ConnectionError): pass
+class NotConnectedError    (ConnectionError): pass
+class AuthentificationError(Exception): pass
+
+
+# Utility functions
+
 def _serversocket(port, timeout):
 	# Create a server
 	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,7 +37,7 @@ def _serversocket(port, timeout):
 		clientsocket = serversocket.accept()[0]
 		return clientsocket
 	except socket.timeout:
-		raise TimeoutError('no connection request') from None
+		raise ForeverAloneError('no connection request') from None
 	finally:
 		serversocket.close() # The server is no longer needed
 
@@ -44,7 +54,7 @@ def _clientsocket(ip, port, timeout):
 			return clientsocket
 		except ConnectionRefusedError:
 			continue
-	raise TimeoutError('no server found') from None
+	raise ForeverAloneError('no server found') from None
 
 
 def _loads(rawbytes):
@@ -59,6 +69,8 @@ def _loads(rawbytes):
 			b = i
 	return pickle.loads(rawbytes[:b]), rawbytes[b:]
 
+
+# Main class
 
 class TCPTalks:
 
@@ -90,7 +102,7 @@ class TCPTalks:
 
 	def connect(self, timeout=2):
 		if self.is_connected:
-			raise RuntimeError('already connected')
+			raise AlreadyConnectedError('already connected')
 			
 		# The remote controller is not able to execute custom instructions
 		# as long as the following flag remains unset
@@ -122,7 +134,7 @@ class TCPTalks:
 			else: # Remote controller
 				if not self.authentificate():
 					self.disconnect()
-					raise RuntimeError('authentification failed')
+					raise AuthentificationError('authentification failed')
 
 	def authentificate(self):
 		self.sendback(AUTHENTIFICATION_OPCODE, self.password)
@@ -142,13 +154,13 @@ class TCPTalks:
 			# Send a disconnect notification to the other
 			try:
 				self.send(DISCONNECT_OPCODE)
-			except RuntimeError:
+			except NotConnectedError:
 				pass
 
 			# Stop the listening thread
 			self.listener.stop.set()
 			if self.listener is not current_thread():
-				self.listener.join()
+				self.listener.join(timeout=1)
 
 			# Close the socket
 			self.socket.close()
@@ -161,7 +173,7 @@ class TCPTalks:
 
 	def rawsend(self, rawbytes):
 		if not self.is_connected:
-			raise RuntimeError('not connected')
+			raise NotConnectedError('not connected')
 		
 		sentbytes = 0
 		while(sentbytes < len(rawbytes)):
@@ -203,7 +215,7 @@ class TCPTalks:
 		try:
 			# Make sure that the authentification was well performed
 			if not self.is_authentificated:
-				raise RuntimeError('you are not authentificated')
+				raise AuthentificationError('you are not authentificated')
 
 			# Get the function or method associated with the received opcode
 			try:
@@ -245,7 +257,7 @@ class TCPTalks:
 		if self.listener is not current_thread():
 			self.listener.join()
 		else:
-			raise RuntimeError('cannot sleep the listening thread')
+			raise RuntimeError('cannot call the \'sleep_until_disconnected\' method from within the listening thread')
 
 
 class TCPListener(Thread):
