@@ -8,7 +8,7 @@ from common.serialtalks import SerialTalks, AlreadyConnectedError, ConnectionFai
 
 MODULESROUTER_DEFAULT_PORT = 25566
 
-MODULE_SETUP_OPCODE   = 0x10
+MODULE_CONNECT_OPCODE = 0x10
 MODULE_EXECUTE_OPCODE = 0x11
 MODULE_GETATTR_OPCODE = 0x12
 MODULE_SETATTR_OPCODE = 0x13
@@ -25,7 +25,7 @@ class ModulesRouter(TCPTalks):
 
 	def __init__(self, port=MODULESROUTER_DEFAULT_PORT, password=None):
 		TCPTalks.__init__(self, port=port, password=password)
-		self.bind(MODULE_SETUP_OPCODE,   self.module_setup)
+		self.bind(MODULE_CONNECT_OPCODE, self.module_connect)
 		self.bind(MODULE_EXECUTE_OPCODE, self.module_execute)
 		self.bind(MODULE_GETATTR_OPCODE, self.module_getattr)
 		self.bind(MODULE_SETATTR_OPCODE, self.module_setattr)
@@ -49,9 +49,12 @@ class ModulesRouter(TCPTalks):
 			module.connect()
 		except AlreadyConnectedError: pass
 		except (ConnectionFailedError, MuteError):
-			raise ModuleError('modules router has no module \'{}\''.format(uuid))		
+			raise ModuleError('modules router has no module \'{}\''.format(uuid))
 
 		return module
+
+	def module_connect(self, uuid):
+		self.module_setup(uuid)
 
 	def module_execute(self, uuid, methodname, *args, **kwargs):
 		module = self.module_setup(uuid)
@@ -77,7 +80,7 @@ class Module:
 	def __init__(self, parent, uuid, timeout=2):
 		self.parent = parent
 		self.uuid   = uuid
-		self.parent.execute(MODULE_SETUP_OPCODE, uuid, timeout=timeout)
+		self.parent.execute(MODULE_CONNECT_OPCODE, uuid, timeout=timeout)
 
 	def __getattr__(self, name):
 		methods = (
