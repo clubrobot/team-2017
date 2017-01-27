@@ -87,6 +87,5 @@ void TrajectoryPlanner::update()
 		float angularVelocitySetpoint = saturate(angularDelta, -m_maximumAngularVelocity, m_maximumAngularVelocity);
 		m_wheeledbase->setLinearVelocity (linearVelocitySetpoint);
 		m_wheeledbase->setAngularVelocity(angularVelocitySetpoint);
-		talks.out << linearVelocitySetpoint << "\t" << angularVelocitySetpoint << "\n";
 	}
 }
