@@ -61,7 +61,7 @@ class ModulesRouter(TCPTalks):
 		module = self.module_setup(uuid)
 		return getattr(module, attrname)
 
-	def module_setattr(self, uuid, attrname, attrvalue)
+	def module_setattr(self, uuid, attrname, attrvalue):
 		module = self.module_setup(uuid)
 		return setattr(module, attrname, attrvalue)
 
