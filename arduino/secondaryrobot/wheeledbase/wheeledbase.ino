@@ -40,6 +40,7 @@ TrajectoryPlanner trajectory;
 
 void setup()
 {
+	Serial.begin(SERIALTALKS_BAUDRATE);
 	talks.begin(Serial);
 	talks.bind(SET_OPENLOOP_VELOCITIES_OPCODE, SET_OPENLOOP_VELOCITIES);
 	talks.bind(SET_VELOCITIES_OPCODE, SET_VELOCITIES);
