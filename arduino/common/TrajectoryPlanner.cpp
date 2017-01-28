@@ -72,6 +72,8 @@ void TrajectoryPlanner::update()
 		const float dx = target.x - current.x;
 		const float dy = target.y - current.y;
 
+#if 0
+		// Compute the oriented distance between the robot and its target
 		float linearDelta  = sqrt(dx * dx + dy * dy);
 		float angularDelta = inrange(atan2(dy, dx) - current.theta, -M_PI, M_PI);
 
@@ -85,6 +87,23 @@ void TrajectoryPlanner::update()
 		// Set velocities setpoints
 		float linearVelocitySetpoint  = saturate(linearDelta,  -m_maximumLinearVelocity,  m_maximumLinearVelocity);
 		float angularVelocitySetpoint = saturate(angularDelta, -m_maximumAngularVelocity, m_maximumAngularVelocity);
+#else
+		// Use the robot frame of reference 
+		const float du =  cos(current.theta) * dx + sin(current.theta) * dy;
+		const float dv = -sin(current.theta) * dx + cos(current.theta) * dy;
+		const float theta = target.theta - current.theta;
+
+		// Compute the oriented distance between the robot and its target
+		float linearDelta  = sqrt(du * du + dv * dv);
+		float angularDelta = atan2(dv, du);
+
+		// Compute the needed orientation to reach the target position
+		float theta_sp = inrange(2 * angularDelta - theta, -M_PI, M_PI);
+
+		// Compute setpoints
+		float linearVelocitySetpoint  = saturate(sign(du)       * linearDelta *  4, -m_maximumLinearVelocity,  +m_maximumLinearVelocity);
+		float angularVelocitySetpoint = saturate(sign(theta_sp) * linearDelta / 20, -m_maximumAngularVelocity, +m_maximumAngularVelocity);
+#endif
 		m_wheeledbase->setLinearVelocity (linearVelocitySetpoint);
 		m_wheeledbase->setAngularVelocity(angularVelocitySetpoint);
 	}
