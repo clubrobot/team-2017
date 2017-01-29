@@ -1,14 +1,13 @@
 # Board properties
-BOARD_UUID = gripper
+BOARD_UUID = modulescollector
 BOARD_TAG  = nano
 BOARD_SUB  = atmega328
 
 # Sketch sources
 COMMON = ../../common
-LOCAL_INO_SRCS = gripper.ino
+LOCAL_INO_SRCS = modulescollector.ino
 LOCAL_CPP_SRCS = \
 	$(COMMON)/SerialTalks.cpp \
-	$(COMMON)/Gripper.cpp
 
 # Sketch libraries
 ARDUINO_LIBS = EEPROM Servo
