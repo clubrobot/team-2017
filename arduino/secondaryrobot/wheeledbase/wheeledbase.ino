@@ -32,7 +32,7 @@ PID linearVelocityPID;
 PID angularVelocityPID;
 #endif // CONTROL_IN_POSITION
 
-CodewheelsOdometry odometry;
+Odometry odometry;
 
 TrajectoryPlanner trajectory;
 

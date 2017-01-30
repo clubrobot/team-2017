@@ -13,7 +13,6 @@ LOCAL_CPP_SRCS = \
 	$(COMMON)/Codewheel.cpp \
 	$(COMMON)/DCMotorsWheeledBase.cpp \
 	$(COMMON)/Odometry.cpp \
-	$(COMMON)/CodewheelsOdometry.cpp \
 	$(COMMON)/PID.cpp \
 	$(COMMON)/Clock.cpp \
 	$(COMMON)/TrajectoryPlanner.cpp \

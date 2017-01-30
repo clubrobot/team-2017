@@ -43,6 +43,12 @@ void Odometry::setAxleTrack(float axleTrack)
 	m_axleTrack = axleTrack;
 }
 
+void Odometry::setWheels(AbstractCodewheel& leftWheel, AbstractCodewheel& rightWheel)
+{
+	m_leftWheel  = &leftWheel;
+	m_rightWheel = &rightWheel;
+}
+
 void Odometry::setTimestep(float timestep)
 {
 	m_timestep = timestep;
@@ -54,8 +60,8 @@ void Odometry::update()
 	{
 		const float dt = m_clock.restart();
 		
-		const float dL = getLeftWheelTraveledDistance ();
-		const float dR = getRightWheelTraveledDistance();
+		const float dL = m_leftWheel ->restart();
+		const float dR = m_rightWheel->restart();
 		const float dM = (dL + dR) / 2;
 
 		const float dtheta = (dR - dL) / m_axleTrack;

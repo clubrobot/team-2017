@@ -2,12 +2,13 @@
 #define __CODEWHEEL_H__
 
 #include "NonCopyable.h"
+#include "Odometry.h"
 
 #define X 0
 #define Y 1
 
 
-class Codewheel : private NonCopyable
+class Codewheel : private NonCopyable, public AbstractCodewheel
 {
 public:
 

@@ -14,6 +14,14 @@ struct Position
 	float theta;
 };
 
+class AbstractCodewheel
+{
+public:
+
+	virtual float getTraveledDistance() = 0;
+	virtual float restart() = 0;
+};
+
 class Odometry
 {
 public:
@@ -30,15 +38,13 @@ public:
 	void calibrateOrientation(float theta);
 
 	void setAxleTrack(float axleTrack);
+	void setWheels(AbstractCodewheel& leftWheel, AbstractCodewheel& rightWheel);
 
 	void setTimestep(float timestep);
 
 	virtual void update();
 
 protected:
-
-	virtual float getLeftWheelTraveledDistance () = 0;
-	virtual float getRightWheelTraveledDistance() = 0;
 
 	Clock m_clock;
 	float m_timestep;
@@ -50,6 +56,8 @@ protected:
 	float m_angularVelocity;
 
 	float m_axleTrack;
+	AbstractCodewheel* m_leftWheel;
+	AbstractCodewheel* m_rightWheel;
 };
 
 #endif // __ODOMETRY_H__

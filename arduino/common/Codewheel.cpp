@@ -6,6 +6,7 @@
 
 float Codewheel::getTraveledDistance()
 {
+	update();
 	return (float)(m_currentCounter - m_startCounter) / m_countsPerRevolution * 2.0 * M_PI * m_radius;
 }
 
@@ -68,7 +69,6 @@ void Codewheel::update()
 	m_currentCounter = 0;
 	for (int i = 0; i < 4; i++)
 	{
-		delayMicroseconds(100); // TODO: is this necessary? Can we reduce it?
 		byte SEL1 = i & 0x01;
 		byte SEL2 = (~i >> 1) & 0x01;
 		digitalWrite(m_COUNTER_SEL1, SEL1);
