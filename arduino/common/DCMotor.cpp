@@ -66,7 +66,7 @@ int DCMotor::getPWM() const
 		return PWM;
 }
 
-void DCDriver::attach(int RESET, int FAULT)
+void DCMotorsDriver::attach(int RESET, int FAULT)
 {
 	m_RESET = RESET;
 	m_FAULT = FAULT;
@@ -74,14 +74,14 @@ void DCDriver::attach(int RESET, int FAULT)
 	pinMode(m_FAULT, INPUT);
 }
 
-void DCDriver::reset()
+void DCMotorsDriver::reset()
 {
 	digitalWrite(m_RESET, LOW);
 	delayMicroseconds(10); // One may adjust this value.
 	digitalWrite(m_RESET, HIGH);
 }
 
-bool DCDriver::isFaulty()
+bool DCMotorsDriver::isFaulty()
 {
 	return (digitalRead(m_FAULT) == LOW);
 }

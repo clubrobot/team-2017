@@ -43,7 +43,7 @@ protected:
 	float m_suppliedVoltage; // in V (volt)
 };
 
-class DCDriver
+class DCMotorsDriver
 {
 public:
 

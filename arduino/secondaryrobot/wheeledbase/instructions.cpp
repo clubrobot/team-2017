@@ -4,7 +4,6 @@
 
 #include "../../common/DCMotor.h"
 #include "../../common/Codewheel.h"
-#include "../../common/CodewheelsOdometry.h"
 #include "../../common/DCMotorsWheeledBase.h"
 #include "../../common/TrajectoryPlanner.h"
 
@@ -26,7 +25,7 @@ extern PID linearVelocityPID;
 extern PID angularVelocityPID;
 #endif // CONTROL_IN_POSITION
 
-extern CodewheelsOdometry odometry;
+extern Odometry odometry;
 
 extern TrajectoryPlanner trajectory;
 

@@ -8,13 +8,12 @@
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
 #include "../../common/Codewheel.h"
-#include "../../common/CodewheelsOdometry.h"
 #include "../../common/DCMotorsWheeledBase.h"
 #include "../../common/TrajectoryPlanner.h"
 
 // Load the different modules
 
-DCDriver driver;
+DCMotorsDriver driver;
 
 DCMotor leftWheel;
 DCMotor rightWheel;
