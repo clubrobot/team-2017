@@ -62,6 +62,7 @@ void TrajectoryPlanner::reset()
 
 void TrajectoryPlanner::update()
 {
+	m_thresholdRadius = m_wheeledbase->getAxleTrack() / 2;
 	if (m_enabled && m_clock.getElapsedTime() > m_timestep)
 	{
 		const float timestep = m_clock.restart();
@@ -97,12 +98,33 @@ void TrajectoryPlanner::update()
 		float linearDelta  = sqrt(du * du + dv * dv);
 		float angularDelta = atan2(dv, du);
 
-		// Compute the needed orientation to reach the target position
-		float theta_sp = inrange(2 * angularDelta - theta, -M_PI, M_PI);
+		// Are we under the threshold radius?
+		bool underThresholdRadius = linearDelta < m_thresholdRadius * 2 * abs(sin(angularDelta - theta));
 
-		// Compute setpoints
-		float linearVelocitySetpoint  = saturate(sign(du)       * linearDelta *  4, -m_maximumLinearVelocity,  +m_maximumLinearVelocity);
-		float angularVelocitySetpoint = saturate(sign(theta_sp) * linearDelta / 20, -m_maximumAngularVelocity, +m_maximumAngularVelocity);
+		// Compute the needed orientation to reach the target position with the right orientation
+		float angularPositionSetpoint = (!underThresholdRadius) ?
+			theta + 2 * (angularDelta - theta) :
+			theta;
+		angularPositionSetpoint = inrange(angularPositionSetpoint, -M_PI, M_PI);
+
+		// Let the robot turn on the spot if it is not well oriented
+		bool turnOnTheSpot = !underThresholdRadius && cos(angularPositionSetpoint) < 0;
+
+		// Compute the circular arc distance to be traveled in order to reach the destination
+		// The robot may move backward depending on which circular arc it is located
+		float linearPositionSetpoint;
+		if (!underThresholdRadius && !turnOnTheSpot)
+		{
+			float circularArcAngle = inrange(2 * (angularDelta - theta), -M_PI, M_PI);
+			linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
+		}
+		else if (turnOnTheSpot)
+			linearPositionSetpoint = 0;
+		else
+			linearPositionSetpoint = du;
+
+		float linearVelocitySetpoint  = saturate(1 * linearPositionSetpoint,  -m_maximumLinearVelocity,  +m_maximumLinearVelocity);
+		float angularVelocitySetpoint = saturate(5 * angularPositionSetpoint, -m_maximumAngularVelocity, +m_maximumAngularVelocity);
 #endif
 		m_wheeledbase->setLinearVelocity (linearVelocitySetpoint);
 		m_wheeledbase->setAngularVelocity(angularVelocitySetpoint);

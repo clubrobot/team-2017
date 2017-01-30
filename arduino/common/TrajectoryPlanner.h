@@ -43,6 +43,7 @@ private:
 	float m_maximumAngularVelocity;
 	float m_maximumLinearAcceleration;
 	float m_maximumAngularAcceleration;
+	float m_thresholdRadius;
 
 	Clock m_clock;
 	float m_timestep;
