@@ -10,11 +10,10 @@ LOCAL_CPP_SRCS = \
 	instructions.cpp \
 	$(COMMON)/SerialTalks.cpp \
 	$(COMMON)/DCMotor.cpp \
-	$(COMMON)/Codewheel.cpp \
-	$(COMMON)/DCMotorsWheeledBase.cpp \
-	$(COMMON)/Odometry.cpp \
+	$(COMMON)/DifferentialController.cpp \
 	$(COMMON)/PID.cpp \
-	$(COMMON)/Clock.cpp \
+	$(COMMON)/Codewheel.cpp \
+	$(COMMON)/Odometry.cpp \
 	$(COMMON)/TrajectoryPlanner.cpp \
 	$(COMMON)/hardware.cpp \
 	$(COMMON)/mathutils.cpp

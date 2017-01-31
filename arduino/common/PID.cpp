@@ -1,53 +1,8 @@
 #include "PID.h"
-#include "SerialTalks.h"
-#include <Arduino.h>
 #include <EEPROM.h>
-#include <math.h>
 #include "mathutils.h"
+#include "SerialTalks.h"
 
-
-bool PID::compute(float setpoint, float input, float& output)
-{
-	bool updated = m_clock.getElapsedTime() > m_timestep;
-	if (updated)
-	{
-		// Compute the elapsed time since the last computation
-		float timestep = m_clock.restart();
-
-		// If this time is more than 2 times the timestep, we consider that the user manually
-		// disabled the controller. So we reset it in order to avoid aberrations.
-		if (timestep > 2 * m_timestep)
-		{
-			m_output = 0;
-			m_errorIntegral = 0;
-			m_previousError = setpoint - input;
-		}
-
-		// Else we compute the output depending on the current error and the previously computed
-		// variables.
-		else
-		{
-			// Compute the error between the current state and the setpoint
-			float currentError = setpoint - input;
-
-			// Compute the error integral
-			m_errorIntegral += currentError * timestep;
-			m_errorIntegral = saturate(m_errorIntegral, m_minOutput / m_Ki, m_maxOutput / m_Ki);
-
-			// Compute the error derivative
-			float errorDerivative = (currentError - m_previousError) / timestep;
-			m_previousError = currentError;
-
-			// Compute the PID controller's output
-			m_output = m_Kp * currentError + m_Ki * m_errorIntegral - m_Kd * errorDerivative;
-			m_output = saturate(m_output, m_minOutput, m_maxOutput);
-		}
-	}
-
-	// Update output variable
-	output = m_output;
-	return updated;
-}
 
 void PID::setTunings(float Kp, float Ki, float Kd)
 {
@@ -62,17 +17,28 @@ void PID::setOutputLimits(float minOutput, float maxOutput)
 	m_maxOutput = maxOutput;
 }
 
-void PID::setTimestep(float timestep)
+float PID::compute(float setpoint, float input, float timestep)
 {
-	m_timestep = timestep;
+	// Compute the error between the current state and the setpoint
+	float currentError = setpoint - input;
+
+	// Compute the error integral
+	m_errorIntegral += currentError * timestep;
+	m_errorIntegral = saturate(m_errorIntegral, m_minOutput / m_Ki, m_maxOutput / m_Ki);
+
+	// Compute the error derivative
+	float errorDerivative = (currentError - m_previousError) / timestep;
+	m_previousError = currentError;
+
+	// Compute the PID controller's output
+	float output = m_Kp * currentError + m_Ki * m_errorIntegral - m_Kd * errorDerivative;
+	return saturate(output, m_minOutput, m_maxOutput);
 }
 
 void PID::reset()
 {
-	m_output = 0;
 	m_errorIntegral = 0;
 	m_previousError = 0;
-	m_clock.restart();
 }
 
 void PID::loadTunings(int address)

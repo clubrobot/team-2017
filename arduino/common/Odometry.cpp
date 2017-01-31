@@ -49,32 +49,24 @@ void Odometry::setWheels(AbstractCodewheel& leftWheel, AbstractCodewheel& rightW
 	m_rightWheel = &rightWheel;
 }
 
-void Odometry::setTimestep(float timestep)
+void Odometry::process(float timestep)
 {
-	m_timestep = timestep;
-}
+	const float dt = timestep;
 
-void Odometry::update()
-{
-	if (m_clock.getElapsedTime() > m_timestep)
-	{
-		const float dt = m_clock.restart();
-		
-		const float dL = m_leftWheel ->restart();
-		const float dR = m_rightWheel->restart();
-		const float dM = (dL + dR) / 2;
+	const float dL = m_leftWheel ->restart();
+	const float dR = m_rightWheel->restart();
+	const float dM = (dL + dR) / 2;
 
-		const float dtheta = (dR - dL) / m_axleTrack;
-		const float mtheta = m_position.theta + dtheta / 2;
-		const float dx     = dM * cos(mtheta);
-		const float dy     = dM * sin(mtheta);
+	const float dtheta = (dR - dL) / m_axleTrack;
+	const float mtheta = m_position.theta + dtheta / 2;
+	const float dx     = dM * cos(mtheta);
+	const float dy     = dM * sin(mtheta);
 
-		m_position.x       += dx;
-		m_position.y       += dy;
-		m_position.theta   += dtheta;
-		m_traveledDistance += dM;
+	m_position.x       += dx;
+	m_position.y       += dy;
+	m_position.theta   += dtheta;
+	m_traveledDistance += dM;
 
-		m_linearVelocity  = dM / dt;
-		m_angularVelocity = dtheta / dt;
-	}
+	m_linearVelocity  = dM / dt;
+	m_angularVelocity = dtheta / dt;
 }

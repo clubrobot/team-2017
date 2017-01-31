@@ -2,7 +2,7 @@
 #define __ODOMETRY_H__
 
 #include "WheeledBase.h"
-#include "Clock.h"
+#include "PeriodicProcess.h"
 
 
 struct Position
@@ -18,15 +18,15 @@ class AbstractCodewheel
 {
 public:
 
+	virtual ~AbstractCodewheel(){}
+
 	virtual float getTraveledDistance() = 0;
 	virtual float restart() = 0;
 };
 
-class Odometry
+class Odometry : public PeriodicProcess
 {
 public:
-
-	virtual ~Odometry(){}
 
 	const Position&	getPosition() const;
 	float getTraveledDistance() const;
@@ -40,18 +40,12 @@ public:
 	void setAxleTrack(float axleTrack);
 	void setWheels(AbstractCodewheel& leftWheel, AbstractCodewheel& rightWheel);
 
-	void setTimestep(float timestep);
-
-	virtual void update();
-
 protected:
 
-	Clock m_clock;
-	float m_timestep;
+	virtual void process(float timestep);
 
 	Position m_position;
 	float m_traveledDistance;
-
 	float m_linearVelocity;
 	float m_angularVelocity;
 

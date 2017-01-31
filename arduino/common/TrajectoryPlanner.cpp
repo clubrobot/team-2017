@@ -4,14 +4,14 @@
 #include "SerialTalks.h"
 
 
-void TrajectoryPlanner::setOdometry(Odometry& odometry)
+float TrajectoryPlanner::getLinearPositionSetpoint() const
 {
-	m_odometry = &odometry;
+	return m_linearPositionSetpoint;
 }
 
-void TrajectoryPlanner::setWheeledBase(WheeledBase& wheeledbase)
+float TrajectoryPlanner::getAngularPositionSetpoint() const
 {
-	m_wheeledbase = &wheeledbase;
+	return m_angularPositionSetpoint;
 }
 
 bool TrajectoryPlanner::addWaypoint(const Position& waypoint)
@@ -24,109 +24,59 @@ bool TrajectoryPlanner::addWaypoint(const Position& waypoint)
 	return false;
 }
 
-void TrajectoryPlanner::setMaximumVelocities(float linearVelocity, float angularVelocity)
-{
-	m_maximumLinearVelocity  = linearVelocity;
-	m_maximumAngularVelocity = angularVelocity;
-}
-
-void TrajectoryPlanner::setMaximumAccelerations(float linearAcceleration, float angularAcceleration)
-{
-	m_maximumLinearAcceleration  = linearAcceleration;
-	m_maximumAngularAcceleration = angularAcceleration;
-}
-
-void TrajectoryPlanner::setTimestep(float timestep)
-{
-	m_timestep = timestep;
-}
-
-void TrajectoryPlanner::enable()
-{
-	if (!m_enabled)
-	{
-		m_enabled = true;
-		m_clock.restart();
-	}
-}
-
-void TrajectoryPlanner::disable()
-{
-	m_enabled = false;
-}
-
 void TrajectoryPlanner::reset()
 {
 	m_remainingWaypoints = 0;
 }
 
-void TrajectoryPlanner::update()
+void TrajectoryPlanner::setCartesianPositionInput(const Position& position)
 {
-	m_thresholdRadius = m_wheeledbase->getAxleTrack() / 2;
-	if (m_enabled && m_clock.getElapsedTime() > m_timestep)
+	m_cartesianPositionInput = position;
+}
+
+void TrajectoryPlanner::setThresholdRadius(float radius)
+{
+	m_thresholdRadius = radius;
+}
+
+void TrajectoryPlanner::process(float timestep)
+{
+	const Position& current = m_cartesianPositionInput;
+	const Position& target  = m_waypoints[0];
+
+	const float dx = target.x - current.x;
+	const float dy = target.y - current.y;
+
+	// Use the robot frame of reference 
+	const float du =  cos(current.theta) * dx + sin(current.theta) * dy;
+	const float dv = -sin(current.theta) * dx + cos(current.theta) * dy;
+	const float theta = target.theta - current.theta;
+
+	// Compute the oriented distance between the robot and its target
+	float linearDelta  = sqrt(du * du + dv * dv);
+	float angularDelta = atan2(dv, du);
+
+	// Are we under the threshold radius?
+	bool underThresholdRadius = linearDelta < m_thresholdRadius * 2 * abs(sin(angularDelta - theta));
+
+	// Compute the needed orientation to reach the target position with the right orientation
+	float m_angularPositionSetpoint = (!underThresholdRadius) ?
+		theta + 2 * (angularDelta - theta) :
+		theta;
+	m_angularPositionSetpoint = inrange(m_angularPositionSetpoint, -M_PI, M_PI);
+
+	// Let the robot turn on the spot if it is not well oriented
+	bool turnOnTheSpot = !underThresholdRadius && cos(m_angularPositionSetpoint) < 0;
+
+	// Compute the circular arc distance to be traveled in order to reach the destination
+	// The robot may move backward depending on which circular arc it is located
+	if (!underThresholdRadius && !turnOnTheSpot)
 	{
-		const float timestep = m_clock.restart();
-		
-		const Position& current = m_odometry->getPosition();
-		const Position& target  = m_waypoints[0];
-
-		const float dx = target.x - current.x;
-		const float dy = target.y - current.y;
-
-#if 0
-		// Compute the oriented distance between the robot and its target
-		float linearDelta  = sqrt(dx * dx + dy * dy);
-		float angularDelta = inrange(atan2(dy, dx) - current.theta, -M_PI, M_PI);
-
-		// Let the robot go backward if the angle is greater than 90°
-		if (fabs(angularDelta) > M_PI / 2)
-		{
-			linearDelta  = -linearDelta;
-			angularDelta = inrange(angularDelta + M_PI, -M_PI, M_PI);
-		}
-
-		// Set velocities setpoints
-		float linearVelocitySetpoint  = saturate(linearDelta,  -m_maximumLinearVelocity,  m_maximumLinearVelocity);
-		float angularVelocitySetpoint = saturate(angularDelta, -m_maximumAngularVelocity, m_maximumAngularVelocity);
-#else
-		// Use the robot frame of reference 
-		const float du =  cos(current.theta) * dx + sin(current.theta) * dy;
-		const float dv = -sin(current.theta) * dx + cos(current.theta) * dy;
-		const float theta = target.theta - current.theta;
-
-		// Compute the oriented distance between the robot and its target
-		float linearDelta  = sqrt(du * du + dv * dv);
-		float angularDelta = atan2(dv, du);
-
-		// Are we under the threshold radius?
-		bool underThresholdRadius = linearDelta < m_thresholdRadius * 2 * abs(sin(angularDelta - theta));
-
-		// Compute the needed orientation to reach the target position with the right orientation
-		float angularPositionSetpoint = (!underThresholdRadius) ?
-			theta + 2 * (angularDelta - theta) :
-			theta;
-		angularPositionSetpoint = inrange(angularPositionSetpoint, -M_PI, M_PI);
-
-		// Let the robot turn on the spot if it is not well oriented
-		bool turnOnTheSpot = !underThresholdRadius && cos(angularPositionSetpoint) < 0;
-
-		// Compute the circular arc distance to be traveled in order to reach the destination
-		// The robot may move backward depending on which circular arc it is located
-		float linearPositionSetpoint;
-		if (!underThresholdRadius && !turnOnTheSpot)
-		{
-			float circularArcAngle = inrange(2 * (angularDelta - theta), -M_PI, M_PI);
-			linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
-		}
-		else if (turnOnTheSpot)
-			linearPositionSetpoint = 0;
-		else
-			linearPositionSetpoint = du;
-
-		float linearVelocitySetpoint  = saturate(1 * linearPositionSetpoint,  -m_maximumLinearVelocity,  +m_maximumLinearVelocity);
-		float angularVelocitySetpoint = saturate(5 * angularPositionSetpoint, -m_maximumAngularVelocity, +m_maximumAngularVelocity);
-#endif
-		m_wheeledbase->setLinearVelocity (linearVelocitySetpoint);
-		m_wheeledbase->setAngularVelocity(angularVelocitySetpoint);
+		float circularArcAngle = inrange(2 * (angularDelta - theta), -M_PI, M_PI);
+		m_linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
 	}
+	else if (turnOnTheSpot)
+		m_linearPositionSetpoint = 0;
+	else
+		m_linearPositionSetpoint = du;
 }

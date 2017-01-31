@@ -7,9 +7,13 @@
 
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
+#include "../../common/PID.h"
 #include "../../common/Codewheel.h"
-#include "../../common/DCMotorsWheeledBase.h"
+#include "../../common/Odometry.h"
 #include "../../common/TrajectoryPlanner.h"
+#include "../../common/mathutils.h"
+
+#define CONTROL_IN_POSITION 0
 
 // Load the different modules
 
@@ -18,18 +22,22 @@ DCMotorsDriver driver;
 DCMotor leftWheel;
 DCMotor rightWheel;
 
-Codewheel leftCodewheel;
-Codewheel rightCodewheel;
+DifferentialController positionController;
+DifferentialController velocityController;
 
-DCMotorsWheeledBase base;
+PID linearVelocityController;
+PID angularVelocityController;
 
 #if CONTROL_IN_POSITION
-PID linearPositionPID;
-PID angularPositionPID;
+PID linearPositionController;
+PID angularPositionController;
 #else
-PID linearVelocityPID;
-PID angularVelocityPID;
-#endif // CONTROL_IN_POSITION
+PID linearPositionToVelocityController;
+PID angularPositionToVelocityController;
+#endif
+
+Codewheel leftCodewheel;
+Codewheel rightCodewheel;
 
 Odometry odometry;
 
@@ -39,6 +47,7 @@ TrajectoryPlanner trajectory;
 
 void setup()
 {
+	// Communication
 	Serial.begin(SERIALTALKS_BAUDRATE);
 	talks.begin(Serial);
 	talks.bind(SET_OPENLOOP_VELOCITIES_OPCODE, SET_OPENLOOP_VELOCITIES);
@@ -50,6 +59,7 @@ void setup()
 	talks.bind(SET_PID_TUNINGS_OPCODE, SET_PID_TUNINGS);
 	talks.bind(GET_PID_TUNINGS_OPCODE, GET_PID_TUNINGS);
 
+	// DC motors wheels
 	driver.attach(DRIVER_RESET, DRIVER_FAULT);
 	driver.reset();
 
@@ -63,6 +73,29 @@ void setup()
 	rightWheel.setSuppliedVoltage(DCMOTORS_SUPPLIED_VOLTAGE);
 	rightWheel.setRadius(RIGHT_WHEEL_RADIUS);
 
+	// Engineering control
+	velocityController.setControllers(linearVelocityController, angularVelocityController);
+	velocityController.setAxleTrack(WHEELS_AXLE_TRACK);
+	velocityController.disable();
+
+#if CONTROL_IN_POSITION
+	positionController.setControllers(linearPositionController, angularPositionController);
+	positionController.setAxleTrack(WHEELS_AXLE_TRACK);
+	positionController.disable();
+#endif
+
+	linearVelocityController .loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
+	angularVelocityController.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+	
+#if CONTROL_IN_POSITION
+	linearPositionController .loadTunings(LINEAR_POSITION_PID_ADDRESS);
+	angularPositionController.loadTunings(ANGULAR_POSITION_PID_ADDRESS);
+#else
+	linearPositionToVelocityController .loadTunings(LINEAR_POSITION_TO_VELOCITY_PID_ADDRESS);
+	angularPositionToVelocityController.loadTunings(ANGULAR_POSITION_TO_VELOCITY_PID_ADDRESS);
+#endif
+
+	// Odometry
 	leftCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
 	leftCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
 	leftCodewheel.setAxis(Y);
@@ -77,45 +110,16 @@ void setup()
 	rightCodewheel.setRadius(RIGHT_CODEWHEEL_RADIUS);
 	rightCodewheel.reset();
 
-	base.setWheels(leftWheel, rightWheel);
-	base.setOdometry(odometry);
-#if CONTROL_IN_POSITION
-	base.setPIDControllers(linearPositionPID, angularPositionPID);
-#else
-	base.setPIDControllers(linearVelocityPID, angularVelocityPID);
-#endif
-	base.setAxleTrack(WHEELS_AXLE_TRACK);
-	base.disable();
-
 	odometry.setWheels(leftCodewheel, rightCodewheel);
 	odometry.setAxleTrack(CODEWHEELS_AXLE_TRACK);
 	odometry.setTimestep(ODOMETRY_TIMESTEP);
 
-#if CONTROL_IN_POSITION
-	linearPositionPID.loadTunings(LINEAR_POSITION_PID_ADDRESS);
-	linearPositionPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
-	linearPositionPID.reset();
-	
-	angularPositionPID.loadTunings(ANGULAR_POSITION_PID_ADDRESS);
-	angularPositionPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
-	angularPositionPID.reset();
-#else
-	linearVelocityPID.loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
-	linearVelocityPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
-	linearVelocityPID.reset();
-	
-	angularVelocityPID.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
-	angularVelocityPID.setTimestep(PID_CONTROLLERS_TIMESTEP);
-	angularVelocityPID.reset();
-#endif // CONTROL_IN_POSITION
-
-	trajectory.setWheeledBase(base);
-	trajectory.setOdometry(odometry);
-	trajectory.setMaximumVelocities(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
-	trajectory.setMaximumAccelerations(MAX_LINEAR_ACCELERATION, MAX_ANGULAR_ACCELERATION);
+	// Trajectories
+	trajectory.setThresholdRadius(WHEELS_AXLE_TRACK);
 	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
 	trajectory.disable();
 
+	// Miscellanous
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
 }
 
@@ -125,12 +129,26 @@ void loop()
 {	
 	talks.execute();
 
-	// Integrate odometry
+	// Update odometry
 	odometry.update();
 
-	// Integrate engineering control
-	base.update();
+	// Compute trajectory
+	trajectory.setCartesianPositionInput(odometry.getPosition());
+	if (trajectory.update())
+	{
+		float linearPositionSetpoint  = trajectory.getLinearPositionSetpoint();
+		float angularPositionSetpoint = trajectory.getAngularPositionSetpoint();
+#if CONTROL_IN_POSITION
+		positionController.setSetpoints(linearPositionSetpoint, angularPositionSetpoint);
+#else
+		float linearVelocitySetpoint  = linearPositionToVelocityController .compute(linearPositionSetpoint,  0, trajectory.getTimestep());
+		float angularVelocitySetpoint = angularPositionToVelocityController.compute(angularPositionSetpoint, 0, trajectory.getTimestep());
+		linearVelocitySetpoint  = saturate(linearVelocitySetpoint,  -MAX_LINEAR_VELOCITY,  +MAX_LINEAR_VELOCITY);
+		angularVelocitySetpoint = saturate(angularVelocitySetpoint, -MAX_ANGULAR_VELOCITY, +MAX_ANGULAR_VELOCITY);
+		velocityController.setSetpoints(linearVelocitySetpoint, angularVelocitySetpoint);
+#endif
+	}
 
-	// Update trajectory
-	trajectory.update();
+	// Integrate engineering control
+	velocityController.update();
 }

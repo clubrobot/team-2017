@@ -1,52 +1,40 @@
 #ifndef __TRAJECTORYPLANNER_H__
 #define __TRAJECTORYPLANNER_H__
 
+#include "PeriodicProcess.h"
 #include "Odometry.h"
-#include "WheeledBase.h"
 
 #ifndef TRAJECTORYPLANNER_MAX_WAYPOINTS
 #define TRAJECTORYPLANNER_MAX_WAYPOINTS 10
 #endif
 
 
-class TrajectoryPlanner
+class TrajectoryPlanner : public PeriodicProcess
 {
 public:
 
-	void setOdometry(Odometry& odometry);
-	void setWheeledBase(WheeledBase& wheeledbase);
+	float getLinearPositionSetpoint() const;
+	float getAngularPositionSetpoint() const;
 
 	bool addWaypoint(const Position& waypoint);
-
-	void setMaximumVelocities(float linearVelocity, float angularVelocity);
-	void setMaximumAccelerations(float linearAcceleration, float angularAcceleration);
-
-	void setTimestep(float timestep);
-
-	void enable();
-	void disable();
 	void reset();
+	
+	void setCartesianPositionInput(const Position& position);
 
-	void update();
-
+	void setThresholdRadius(float radius);
+	
 private:
 
-	bool m_enabled;
+	virtual void process(float timestep);
 
-	Odometry   * m_odometry;
-	WheeledBase* m_wheeledbase;
+	Position m_cartesianPositionInput;
+	float    m_linearPositionSetpoint;
+	float    m_angularPositionSetpoint;
 
 	Position m_waypoints[TRAJECTORYPLANNER_MAX_WAYPOINTS];
 	int      m_remainingWaypoints;
 
-	float m_maximumLinearVelocity;
-	float m_maximumAngularVelocity;
-	float m_maximumLinearAcceleration;
-	float m_maximumAngularAcceleration;
 	float m_thresholdRadius;
-
-	Clock m_clock;
-	float m_timestep;
 };
 
 #endif // __TRAJECTORYPLANNER_H__

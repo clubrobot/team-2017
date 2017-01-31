@@ -2,12 +2,13 @@
 #define __DCMOTOR_H__
 
 #include "NonCopyable.h"
+#include "DifferentialController.h"
 
 #define FORWARD  0
 #define BACKWARD 1
 
 
-class DCMotor : private NonCopyable
+class DCMotor : private NonCopyable, public AbstractMotor
 {
 public:
 
