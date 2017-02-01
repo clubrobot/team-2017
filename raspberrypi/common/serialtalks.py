@@ -202,10 +202,15 @@ class SerialListener(Thread):
 			try:
 				inc = self.parent.stream.read()
 			except serial.serialutil.SerialException:
+				inc = None
+			
+			# Disconnect if the Arduino is no longer connected
+			if not inc:
 				self.parent.disconnect()
+				break
 
 			# Finite state machine
-			if state == 'waiting' and inc == SLAVE_BYTE :
+			if state == 'waiting' and inc == SLAVE_BYTE:
 				state = 'starting'
 			
 			elif state == 'starting':
