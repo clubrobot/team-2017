@@ -74,13 +74,15 @@ void setup()
 	rightWheel.setRadius(RIGHT_WHEEL_RADIUS);
 
 	// Engineering control
-	velocityController.setControllers(linearVelocityController, angularVelocityController);
 	velocityController.setAxleTrack(WHEELS_AXLE_TRACK);
+	velocityController.setWheels(leftWheel, rightWheel);
+	velocityController.setControllers(linearVelocityController, angularVelocityController);
 	velocityController.disable();
 
 #if CONTROL_IN_POSITION
-	positionController.setControllers(linearPositionController, angularPositionController);
 	positionController.setAxleTrack(WHEELS_AXLE_TRACK);
+	positionController.setWheels(leftWheel, rightWheel);
+	positionController.setControllers(linearPositionController, angularPositionController);
 	positionController.disable();
 #endif
 
@@ -93,6 +95,8 @@ void setup()
 #else
 	linearPositionToVelocityController .loadTunings(LINEAR_POSITION_TO_VELOCITY_PID_ADDRESS);
 	angularPositionToVelocityController.loadTunings(ANGULAR_POSITION_TO_VELOCITY_PID_ADDRESS);
+	linearPositionToVelocityController .setOutputLimits(-MAX_LINEAR_VELOCITY,  +MAX_LINEAR_VELOCITY);
+	angularPositionToVelocityController.setOutputLimits(-MAX_ANGULAR_VELOCITY, +MAX_ANGULAR_VELOCITY);
 #endif
 
 	// Odometry
@@ -113,6 +117,7 @@ void setup()
 	odometry.setWheels(leftCodewheel, rightCodewheel);
 	odometry.setAxleTrack(CODEWHEELS_AXLE_TRACK);
 	odometry.setTimestep(ODOMETRY_TIMESTEP);
+	odometry.enable();
 
 	// Trajectories
 	trajectory.setThresholdRadius(WHEELS_AXLE_TRACK);
@@ -129,7 +134,6 @@ void loop()
 {	
 	talks.execute();
 
-	// Update odometry
 	odometry.update();
 
 	// Compute trajectory
@@ -143,12 +147,15 @@ void loop()
 #else
 		float linearVelocitySetpoint  = linearPositionToVelocityController .compute(linearPositionSetpoint,  0, trajectory.getTimestep());
 		float angularVelocitySetpoint = angularPositionToVelocityController.compute(angularPositionSetpoint, 0, trajectory.getTimestep());
-		linearVelocitySetpoint  = saturate(linearVelocitySetpoint,  -MAX_LINEAR_VELOCITY,  +MAX_LINEAR_VELOCITY);
-		angularVelocitySetpoint = saturate(angularVelocitySetpoint, -MAX_ANGULAR_VELOCITY, +MAX_ANGULAR_VELOCITY);
 		velocityController.setSetpoints(linearVelocitySetpoint, angularVelocitySetpoint);
 #endif
 	}
 
 	// Integrate engineering control
+	velocityController.setInputs(odometry.getLinearVelocity(), odometry.getAngularVelocity());
 	velocityController.update();
+#if CONTROL_IN_POSITION
+	positionController.setInputs(0, 0);
+	positionController.update();
+#endif
 }

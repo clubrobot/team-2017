@@ -9,6 +9,8 @@
 #include "../../common/Odometry.h"
 #include "../../common/TrajectoryPlanner.h"
 
+#define CONTROL_IN_POSITION 0
+
 // Global variables
 
 extern DCMotorsDriver driver;
@@ -22,7 +24,7 @@ extern DifferentialController velocityController;
 extern PID linearVelocityController;
 extern PID angularVelocityController;
 
-#ifdef CONTROL_IN_POSITION
+#if CONTROL_IN_POSITION
 extern PID linearPositionController;
 extern PID angularPositionController;
 #else
@@ -57,7 +59,9 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	float linearVelocity  = input.read<float>();
 	float angularVelocity = input.read<float>();
-	
+#if CONTROL_IN_POSITION
+	positionController.disable();
+#endif
 	trajectory.disable();
 	velocityController.enable();
 	velocityController.setSetpoints(linearVelocity, angularVelocity);
@@ -69,6 +73,10 @@ void GOTO(SerialTalks& talks, Deserializer& input, Serializer& output)
 	float y     = input.read<float>();
 	float theta = input.read<float>();
 
+#if CONTROL_IN_POSITION
+	velocityController.disable();
+	positionController.enable();
+#endif
 	trajectory.reset();
 	trajectory.addWaypoint(Position(x, y, theta));
 	trajectory.enable();
@@ -83,11 +91,6 @@ void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
 	odometry.calibrateXAxis(x);
 	odometry.calibrateYAxis(y);
 	odometry.calibrateOrientation(theta);
-
-#if CONTROL_IN_POSITION
-	base.disable();
-	base.enable();
-#endif
 }
 
 void GET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
