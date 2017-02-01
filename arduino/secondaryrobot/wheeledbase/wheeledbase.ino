@@ -92,6 +92,7 @@ void setup()
 #if CONTROL_IN_POSITION
 	linearPositionController .loadTunings(LINEAR_POSITION_PID_ADDRESS);
 	angularPositionController.loadTunings(ANGULAR_POSITION_PID_ADDRESS);
+	//TODO: set outputs limits
 #else
 	linearPositionToVelocityController .loadTunings(LINEAR_POSITION_TO_VELOCITY_PID_ADDRESS);
 	angularPositionToVelocityController.loadTunings(ANGULAR_POSITION_TO_VELOCITY_PID_ADDRESS);
@@ -134,7 +135,11 @@ void loop()
 {	
 	talks.execute();
 
-	odometry.update();
+	// Update odometry
+	if (odometry.update())
+	{
+		velocityController.setInputs(odometry.getLinearVelocity(), odometry.getAngularVelocity());
+	}
 
 	// Compute trajectory
 	trajectory.setCartesianPositionInput(odometry.getPosition());
@@ -144,6 +149,7 @@ void loop()
 		float angularPositionSetpoint = trajectory.getAngularPositionSetpoint();
 #if CONTROL_IN_POSITION
 		positionController.setSetpoints(linearPositionSetpoint, angularPositionSetpoint);
+		positionController.setInputs(0, 0);
 #else
 		float linearVelocitySetpoint  = linearPositionToVelocityController .compute(linearPositionSetpoint,  0, trajectory.getTimestep());
 		float angularVelocitySetpoint = angularPositionToVelocityController.compute(angularPositionSetpoint, 0, trajectory.getTimestep());
@@ -152,10 +158,8 @@ void loop()
 	}
 
 	// Integrate engineering control
-	velocityController.setInputs(odometry.getLinearVelocity(), odometry.getAngularVelocity());
 	velocityController.update();
 #if CONTROL_IN_POSITION
-	positionController.setInputs(0, 0);
 	positionController.update();
 #endif
 }
