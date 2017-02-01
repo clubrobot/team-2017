@@ -138,11 +138,11 @@ void loop()
 	// Update odometry
 	if (odometry.update())
 	{
+		trajectory.setCartesianPositionInput(odometry.getPosition());
 		velocityController.setInputs(odometry.getLinearVelocity(), odometry.getAngularVelocity());
 	}
 
 	// Compute trajectory
-	trajectory.setCartesianPositionInput(odometry.getPosition());
 	if (trajectory.update())
 	{
 		float linearPositionSetpoint  = trajectory.getLinearPositionSetpoint();
