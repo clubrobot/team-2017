@@ -205,7 +205,7 @@ class SerialListener(Thread):
 				inc = None
 			
 			# Disconnect if the Arduino is no longer connected
-			if not inc:
+			if inc is None:
 				self.parent.disconnect()
 				break
 
