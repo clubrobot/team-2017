@@ -76,6 +76,8 @@ void GOTO(SerialTalks& talks, Deserializer& input, Serializer& output)
 #if CONTROL_IN_POSITION
 	velocityController.disable();
 	positionController.enable();
+#else
+	velocityController.enable();
 #endif
 	trajectory.reset();
 	trajectory.addWaypoint(Position(x, y, theta));
