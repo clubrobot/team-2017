@@ -132,14 +132,10 @@ class SerialTalks:
 		return queue
 
 	def process(self, message):
-		try:
-			opcode = message[0]
-			args   = message[1:]
-		except IndexError: # Got that exception once, should investigate on it
-			sys.stderr.write('message \'{}\' contains no opcode'.format(message))
-		else:
-			queue = self.get_queue(opcode)
-			queue.put(args)
+		opcode = message[0]
+		args   = message[1:]
+		queue = self.get_queue(opcode)
+		queue.put(args)
 
 	def poll(self, opcode, timeout=0):
 		queue = self.get_queue(opcode)
@@ -202,10 +198,6 @@ class SerialListener(Thread):
 			try:
 				inc = self.parent.stream.read()
 			except serial.serialutil.SerialException:
-				inc = None
-			
-			# Disconnect if the Arduino is no longer connected
-			if inc is None:
 				self.parent.disconnect()
 				break
 
@@ -213,7 +205,7 @@ class SerialListener(Thread):
 			if state == 'waiting' and inc == SLAVE_BYTE:
 				state = 'starting'
 			
-			elif state == 'starting':
+			elif state == 'starting' and inc:
 				msglen = inc[0]
 				state  = 'receiving'
 
