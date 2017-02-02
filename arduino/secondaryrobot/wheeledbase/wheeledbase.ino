@@ -153,6 +153,9 @@ void loop()
 #else
 		float linearVelocitySetpoint  = linearPositionToVelocityController .compute(linearPositionSetpoint,  0, trajectory.getTimestep());
 		float angularVelocitySetpoint = angularPositionToVelocityController.compute(angularPositionSetpoint, 0, trajectory.getTimestep());
+		talks.out << millis() << "\n";
+		talks.out << linearPositionSetpoint << " -> " << linearVelocitySetpoint << "\n";
+		talks.out << angularPositionSetpoint << " -> " << angularVelocitySetpoint << "\n";
 		velocityController.setSetpoints(linearVelocitySetpoint, angularVelocitySetpoint);
 #endif
 	}
