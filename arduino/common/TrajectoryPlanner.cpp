@@ -46,44 +46,40 @@ void TrajectoryPlanner::process(float timestep)
 
 	const float dx = target.x - current.x;
 	const float dy = target.y - current.y;
-//	talks.out << "dx,dy=\t" << dx << "\t" << dy << "\n";
 
 	// Use the robot frame of reference 
 	const float du =  cos(current.theta) * dx + sin(current.theta) * dy;
 	const float dv = -sin(current.theta) * dx + cos(current.theta) * dy;
 	const float theta = target.theta - current.theta;
-//	talks.out << "du,dv,theta=\t" << du << "\t" << dv << "\t" << theta << "\n";
 
 	// Compute the oriented distance between the robot and its target
 	float linearDelta  = sqrt(du * du + dv * dv);
 	float angularDelta = atan2(dv, du);
-//	talks.out << "delta=\t" << linearDelta << "\t" << angularDelta << "\n";
 
 	// Are we under the threshold radius?
 	bool underThresholdRadius = linearDelta < m_thresholdRadius * 2 * abs(sin(angularDelta - theta));
-//	talks.out << "underThresholdRadius=\t" << underThresholdRadius << "\n";
 
 	// Compute the needed orientation to reach the target position with the right orientation
-	float m_angularPositionSetpoint = (!underThresholdRadius) ?
+	m_angularPositionSetpoint = (!underThresholdRadius) ?
 		theta + 2 * (angularDelta - theta) :
 		theta;
 	m_angularPositionSetpoint = inrange(m_angularPositionSetpoint, -M_PI, M_PI);
-//	talks.out << "angularPositionSetpoint=" << m_angularPositionSetpoint << "\n";
 
 	// Let the robot turn on the spot if it is not well oriented
 	bool turnOnTheSpot = !underThresholdRadius && cos(m_angularPositionSetpoint) < 0;
-//	talks.out << "turnOnTheSpot=" << turnOnTheSpot << "\n";
 
 	// Compute the circular arc distance to be traveled in order to reach the destination
 	// The robot may move backward depending on which circular arc it is located
 	if (!underThresholdRadius && !turnOnTheSpot)
 	{
 		float circularArcAngle = inrange(2 * (angularDelta - theta), -M_PI, M_PI);
-		m_linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
+		if (sin(angularDelta - theta) != 0)// (circularArcAngle != 0)
+			m_linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
+		else
+			m_linearPositionSetpoint = du;
 	}
 	else if (turnOnTheSpot)
 		m_linearPositionSetpoint = 0;
 	else
 		m_linearPositionSetpoint = du;
-//	talks.out << "linearPositionSetpoint=" << m_linearPositionSetpoint << "\n";
 }
