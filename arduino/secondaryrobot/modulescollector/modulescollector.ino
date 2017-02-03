@@ -4,17 +4,17 @@
 #include "../../common/SerialTalks.h"
 
 // PIN.h
-#define DISPENSER_SERVO_PIN 2
+#define DISPENSER_SERVO 2
 
 // instructions.h
-#define SET_DISPENSER_SETPOINT_OPCODE 0x0D
+#define DISPENSER_WRITE_OPCODE 0x0D
 
 // instructions.cpp
 extern Servo dispenser;
 
-void SET_DISPENSER_SETPOINT(SerialTalks& talks, Deserializer& input, Serializer& output)
+void DISPENSER_WRITE(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	dispenser.writeMicroseconds(input.read<int>());
+	dispenser.write(input.read<int>());
 }
 
 // modulescollector.ino
@@ -24,10 +24,11 @@ void setup()
 {
 	Serial.begin(SERIALTALKS_BAUDRATE);
 	talks.begin(Serial);
-	talks.bind(SET_DISPENSER_SETPOINT_OPCODE, SET_DISPENSER_SETPOINT);
+	talks.bind(DISPENSER_WRITE_OPCODE, DISPENSER_WRITE);
 
-	pinMode(DISPENSER_SERVO_PIN, OUTPUT);
-	dispenser.attach(DISPENSER_SERVO_PIN);
+	pinMode(DISPENSER_SERVO, OUTPUT);
+	dispenser.attach(DISPENSER_SERVO);
+	dispenser.write(74);
 }
 
 void loop()
