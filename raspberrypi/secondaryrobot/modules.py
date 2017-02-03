@@ -41,8 +41,8 @@ class WheeledBase(Module):
 	def set_motors_velocities(self, left, right):
 		self.send(SET_MOTORS_VELOCITIES_OPCODE, FLOAT(left), FLOAT(right))
 
-	def goto(self, x, y, theta, linear_velocity=200, angular_velocity=pi/4):
-		self.send(GOTO_OPCODE, FLOAT(x), FLOAT(y), FLOAT(theta), FLOAT(linear_velocity), FLOAT(angular_velocity))
+	def goto(self, x, y, theta):
+		self.send(GOTO_OPCODE, FLOAT(x), FLOAT(y), FLOAT(theta))
 
 	def set_velocities(self, linear_velocity, angular_velocity):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
@@ -56,13 +56,13 @@ class WheeledBase(Module):
 	def reset(self):
 		self.set_position(0, 0, 0)
 
-	def get_position(self, timeout=1):
-		output = self.execute(GET_POSITION_OPCODE, timeout=timeout)
+	def get_position(self, **kwargs):
+		output = self.execute(GET_POSITION_OPCODE, **kwargs)
 		x, y, theta = output.read(FLOAT, FLOAT, FLOAT)
 		return x, y, theta
 	
-	def get_velocities(self, timeout=1):
-		output = self.execute(GET_VELOCITIES_OPCODE, timeout=timeout)
+	def get_velocities(self, **kwargs):
+		output = self.execute(GET_VELOCITIES_OPCODE, **kwargs)
 		linear_velocity, angular_velocity = output.read(FLOAT, FLOAT)
 		return linear_velocity, angular_velocity
 
@@ -87,28 +87,28 @@ class WheeledBase(Module):
 	def set_angular_position_to_velocity_PID_tunings(self, Kp, Ki, Kd):
 		self.set_tunings(ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER, Kp, Ki, Kd)
 
-	def get_tunings(self, identifier, timeout=1):
-		output = self.execute(GET_PID_TUNINGS_OPCODE, BYTE(identifier), timeout=timeout)
+	def get_tunings(self, identifier, **kwargs):
+		output = self.execute(GET_PID_TUNINGS_OPCODE, BYTE(identifier), **kwargs)
 		Kp, Kd, Ki = output.read(FLOAT, FLOAT, FLOAT)
 		return Kp, Kd, Ki
 
-	def get_linear_velocity_PID_tunings(self, timeout=1):
-		return self.get_tunings(LINEAR_VELOCITY_PID_IDENTIFIER, timeout=timeout)
+	def get_linear_velocity_PID_tunings(self, **kwargs):
+		return self.get_tunings(LINEAR_VELOCITY_PID_IDENTIFIER, **kwargs)
 	
-	def get_angular_velocity_PID_tunings(self, timeout=1):
-		return self.get_tunings(ANGULAR_VELOCITY_PID_IDENTIFIER, timeout=timeout)
+	def get_angular_velocity_PID_tunings(self, **kwargs):
+		return self.get_tunings(ANGULAR_VELOCITY_PID_IDENTIFIER, **kwargs)
 
-	def get_linear_position_PID_tunings(self, timeout=1):
-		return self.get_tunings(LINEAR_POSITION_PID_IDENTIFIER, timeout=timeout)
+	def get_linear_position_PID_tunings(self, **kwargs):
+		return self.get_tunings(LINEAR_POSITION_PID_IDENTIFIER, **kwargs)
 	
-	def get_angular_position_PID_tunings(self, timeout=1):
-		return self.get_tunings(ANGULAR_POSITION_PID_IDENTIFIER, timeout=timeout)
+	def get_angular_position_PID_tunings(self, **kwargs):
+		return self.get_tunings(ANGULAR_POSITION_PID_IDENTIFIER, **kwargs)
 
-	def get_linear_position_to_velocity_PID_tunings(self, timeout=1):
-		return self.get_tunings(LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER, timeout=timeout)
+	def get_linear_position_to_velocity_PID_tunings(self, **kwargs):
+		return self.get_tunings(LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER, **kwargs)
 	
-	def get_angular_position_to_velocity_PID_tunings(self, timeout=1):
-		return self.get_tunings(ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER, timeout=timeout)
+	def get_angular_position_to_velocity_PID_tunings(self, **kwargs):
+		return self.get_tunings(ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER, **kwargs)
 
 
 class Gripper(Module):

@@ -94,8 +94,10 @@ class Module:
 			'getuuid', 'setuuid', 'getout', 'geterr')
 		attributes = ('port', 'is_connected')
 		if name in methods:
-			def temporary_method(*args, **kwargs):
-				return self.parent.execute(MODULE_EXECUTE_OPCODE, self.uuid, name, *args, **kwargs)
+			def temporary_method(*args, timeout=1, tcptimeout=2, **kwargs):
+				if tcptimeout < timeout:
+					tcptimeout = timeout + 1
+				return self.parent.execute(MODULE_EXECUTE_OPCODE, self.uuid, name, *args, timeout=tcptimeout, **kwargs, serialtimeout=timeout)
 			return temporary_method
 		elif name in attributes:
 			return self.parent.execute(MODULE_GETATTR_OPCODE, self.uuid, name)
