@@ -1,10 +1,9 @@
 #include <Arduino.h>
 #include <Servo.h>
+#include "PIN.h"
 
 #include "../../common/SerialTalks.h"
 
-// PIN.h
-#define DISPENSER_SERVO_PIN 2
 
 // instructions.h
 #define SET_DISPENSER_SETPOINT_OPCODE 0x0D
@@ -14,7 +13,7 @@ extern Servo dispenser;
 
 void SET_DISPENSER_SETPOINT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	dispenser.writeMicroseconds(input.read<int>());
+	dispenser.write(input.read<int>());
 }
 
 // modulescollector.ino

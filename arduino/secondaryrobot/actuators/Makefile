@@ -1,5 +1,5 @@
 # Board properties
-BOARD_UUID = modulescollector
+BOARD_UUID = actuators
 BOARD_TAG  = nano
 BOARD_SUB  = atmega328
 
