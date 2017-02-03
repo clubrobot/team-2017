@@ -1,12 +1,10 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include "PIN.h"
+#include "instructions.h"
 
 #include "../../common/SerialTalks.h"
 
-
-// instructions.h
-#define SET_DISPENSER_SETPOINT_OPCODE 0x0D
 
 // instructions.cpp
 extern Servo dispenser;
