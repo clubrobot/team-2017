@@ -60,7 +60,7 @@ void TrajectoryPlanner::process(float timestep)
 	bool underThresholdRadius = linearDelta < m_thresholdRadius * 2 * abs(sin(angularDelta - theta));
 
 	// Compute the needed orientation to reach the target position with the right orientation
-	float m_angularPositionSetpoint = (!underThresholdRadius) ?
+	m_angularPositionSetpoint = (!underThresholdRadius) ?
 		theta + 2 * (angularDelta - theta) :
 		theta;
 	m_angularPositionSetpoint = inrange(m_angularPositionSetpoint, -M_PI, M_PI);
@@ -73,7 +73,10 @@ void TrajectoryPlanner::process(float timestep)
 	if (!underThresholdRadius && !turnOnTheSpot)
 	{
 		float circularArcAngle = inrange(2 * (angularDelta - theta), -M_PI, M_PI);
-		m_linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
+		if (circularArcAngle > 1e-3)
+			m_linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
+		else
+			m_linearPositionSetpoint = du;
 	}
 	else if (turnOnTheSpot)
 		m_linearPositionSetpoint = 0;
