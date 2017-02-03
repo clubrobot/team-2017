@@ -23,8 +23,8 @@
 
 // Trajectory constants
 
-#define MAX_LINEAR_VELOCITY      400 // mm/s
-#define MAX_ANGULAR_VELOCITY     1.0 // rad/s^2
+#define MAX_LINEAR_VELOCITY      200 // mm/s
+#define MAX_ANGULAR_VELOCITY     3.0 // rad/s^2
 #define MAX_LINEAR_ACCELERATION  250 // mm/s^2
 #define MAX_ANGULAR_ACCELERATION 3.0 // rad/s^2
 
