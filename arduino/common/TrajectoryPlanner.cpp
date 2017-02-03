@@ -73,7 +73,7 @@ void TrajectoryPlanner::process(float timestep)
 	if (!underThresholdRadius && !turnOnTheSpot)
 	{
 		float circularArcAngle = inrange(2 * (angularDelta - theta), -M_PI, M_PI);
-		if (sin(angularDelta - theta) != 0)// (circularArcAngle != 0)
+		if (circularArcAngle > 1e-3)
 			m_linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
 		else
 			m_linearPositionSetpoint = du;
