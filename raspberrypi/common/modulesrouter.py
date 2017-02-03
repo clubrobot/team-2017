@@ -61,8 +61,7 @@ class ModulesRouter(TCPTalks):
 		try:
 			kwargs['timeout'] = kwargs['serialtimeout']
 			del kwargs['serialtimeout']
-		except KeyError:
-			pass
+		except KeyError: pass
 		return getattr(module, methodname)(*args, **kwargs)
 
 	def module_getattr(self, uuid, attrname):
@@ -94,10 +93,14 @@ class Module:
 			'getuuid', 'setuuid', 'getout', 'geterr')
 		attributes = ('port', 'is_connected')
 		if name in methods:
-			def temporary_method(*args, timeout=1, tcptimeout=2, **kwargs):
-				if tcptimeout < timeout:
-					tcptimeout = timeout + 1
-				return self.parent.execute(MODULE_EXECUTE_OPCODE, self.uuid, name, *args, timeout=tcptimeout, **kwargs, serialtimeout=timeout)
+			def temporary_method(*args, tcptimeout=1, **kwargs):
+				try:
+					if tcptimeout < kwargs['timeout']:
+						tcptimeout = kwargs['timeout'] + 1
+					kwargs['serialtimeout'] = kwargs['timeout']
+					del kwargs['timeout']
+				except KeyError: pass
+				return self.parent.execute(MODULE_EXECUTE_OPCODE, self.uuid, name, *args, **kwargs, timeout=tcptimeout)
 			return temporary_method
 		elif name in attributes:
 			return self.parent.execute(MODULE_GETATTR_OPCODE, self.uuid, name)
