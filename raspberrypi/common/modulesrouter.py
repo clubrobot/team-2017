@@ -58,6 +58,11 @@ class ModulesRouter(TCPTalks):
 
 	def module_execute(self, uuid, methodname, *args, **kwargs):
 		module = self.module_setup(uuid)
+		try:
+			kwargs['timeout'] = kwargs['serialtimeout']
+			del kwargs['serialtimeout']
+		except KeyError:
+			pass
 		return getattr(module, methodname)(*args, **kwargs)
 
 	def module_getattr(self, uuid, attrname):
