@@ -12,7 +12,7 @@ void DCMotor::setVelocity(float velocity)
 
 float DCMotor::getMaximumVelocity() const
 {
-	return m_suppliedVoltage * (2 * M_PI * m_radius) / (60 * m_reductionRatio / m_velocityConstant);
+	return abs(m_suppliedVoltage * (2 * M_PI * m_radius) / (60 * m_reductionRatio / m_velocityConstant));
 }
 
 void DCMotor::attach(int EN, int PWM, int DIR)
@@ -60,10 +60,8 @@ int DCMotor::getPWM() const
 	int PWM = m_velocity * (60 * m_reductionRatio / m_velocityConstant) / (2 * M_PI * m_radius) * (255 / m_suppliedVoltage);
 	if (PWM > 255 || PWM < -255)
 		return 255;
-	else if (PWM < 0)
-		return -PWM;
 	else
-		return PWM;
+		return abs(PWM);
 }
 
 void DCMotorsDriver::attach(int RESET, int FAULT)
