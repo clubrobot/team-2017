@@ -17,14 +17,19 @@
 #define RIGHT_WHEEL_RADIUS  23.8 // mm
 #define WHEELS_AXLE_TRACK  125.0 // mm
 
-#define LEFT_CODEWHEEL_RADIUS   22.74 // mm
-#define RIGHT_CODEWHEEL_RADIUS  22.75 // mm
-#define CODEWHEELS_AXLE_TRACK  209.26 // mm
+#define LEFT_CODEWHEEL_RADIUS   22.71 // mm
+#define RIGHT_CODEWHEEL_RADIUS  22.71 // mm
+#define CODEWHEELS_AXLE_TRACK  209.16 // mm
+
+// Really traveled distance > thought traveled distance -> decrease codewheels radius
+// Really rotated angle > thought rotated angle         -> increase axle track
+// Turn right when thinking moving forward              -> increase left codewheel radius
+// Turn left when thinking moving forward               -> increase right codewheel radius
 
 // Trajectory constants
 
 #define MAX_LINEAR_VELOCITY      200 // mm/s
-#define MAX_ANGULAR_VELOCITY     3.0 // rad/s^2
+#define MAX_ANGULAR_VELOCITY     1.5 // rad/s^2
 #define MAX_LINEAR_ACCELERATION  250 // mm/s^2
 #define MAX_ANGULAR_ACCELERATION 3.0 // rad/s^2
 
