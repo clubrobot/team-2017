@@ -28,6 +28,9 @@
 
 // Trajectory constants
 
+#define MIN_LINEAR_POSITION        1 // mm
+#define MIN_ANGULAR_POSITION     0.1 // rad
+
 #define MAX_LINEAR_VELOCITY      200 // mm/s
 #define MAX_ANGULAR_VELOCITY     1.5 // rad/s^2
 #define MAX_LINEAR_ACCELERATION  250 // mm/s^2

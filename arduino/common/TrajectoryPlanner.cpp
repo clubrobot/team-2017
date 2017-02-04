@@ -32,6 +32,7 @@ bool TrajectoryPlanner::addWaypoint(const Position& waypoint)
 void TrajectoryPlanner::reset()
 {
 	m_remainingWaypoints = 0;
+	m_targetReached = false;
 }
 
 void TrajectoryPlanner::setCartesianPositionInput(const Position& position)

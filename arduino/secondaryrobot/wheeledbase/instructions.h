@@ -9,7 +9,8 @@
 
 #define SET_VELOCITIES_OPCODE    0x06
 
-#define GOTO_OPCODE              0x07
+#define START_TRAJECTORY_OPCODE  0x07
+#define TRAJECTORY_ENDED_OPCODE  0x08
 
 #define SET_POSITION_OPCODE      0x0A
 #define GET_POSITION_OPCODE      0x0B
@@ -34,7 +35,9 @@ void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer
 
 void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-void GOTO(SerialTalks& talks, Deserializer& input, Serializer& output);
+void START_TRAJECTORY(SerialTalks& talks, Deserializer& input, Serializer& output);
+
+void TRAJECTORY_ENDED(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output);
 

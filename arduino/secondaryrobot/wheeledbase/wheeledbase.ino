@@ -52,7 +52,8 @@ void setup()
 	talks.begin(Serial);
 	talks.bind(SET_OPENLOOP_VELOCITIES_OPCODE, SET_OPENLOOP_VELOCITIES);
 	talks.bind(SET_VELOCITIES_OPCODE, SET_VELOCITIES);
-	talks.bind(GOTO_OPCODE, GOTO);
+	talks.bind(START_TRAJECTORY_OPCODE, START_TRAJECTORY);
+	talks.bind(TRAJECTORY_ENDED_OPCODE, TRAJECTORY_ENDED);
 	talks.bind(SET_POSITION_OPCODE, SET_POSITION);
 	talks.bind(GET_POSITION_OPCODE, GET_POSITION);
 	talks.bind(GET_VELOCITIES_OPCODE, GET_VELOCITIES);
@@ -88,6 +89,10 @@ void setup()
 
 	linearVelocityController .loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
 	angularVelocityController.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+	const float maxLinearVelocity  = (leftWheel.getMaximumVelocity() + rightWheel.getMaximumVelocity()) / 2;
+	const float maxAngularVelocity = (leftWheel.getMaximumVelocity() + rightWheel.getMaximumVelocity()) / WHEELS_AXLE_TRACK;
+	linearVelocityController .setOutputLimits(-maxLinearVelocity,  maxLinearVelocity);
+	angularVelocityController.setOutputLimits(-maxAngularVelocity, maxAngularVelocity);
 	
 #if CONTROL_IN_POSITION
 	linearPositionController .loadTunings(LINEAR_POSITION_PID_ADDRESS);
@@ -122,6 +127,7 @@ void setup()
 
 	// Trajectories
 	trajectory.setThresholdRadius(WHEELS_AXLE_TRACK);
+	trajectory.setThresholdPositions(MIN_LINEAR_POSITION, MIN_ANGULAR_POSITION);
 	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
 	trajectory.disable();
 
