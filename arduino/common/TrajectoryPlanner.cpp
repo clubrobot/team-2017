@@ -14,6 +14,11 @@ float TrajectoryPlanner::getAngularPositionSetpoint() const
 	return m_angularPositionSetpoint;
 }
 
+bool TrajectoryPlanner::hasReachedItsTarget() const
+{
+	return m_targetReached;
+}
+
 bool TrajectoryPlanner::addWaypoint(const Position& waypoint)
 {
 	if (m_remainingWaypoints < TRAJECTORYPLANNER_MAX_WAYPOINTS)
@@ -37,6 +42,12 @@ void TrajectoryPlanner::setCartesianPositionInput(const Position& position)
 void TrajectoryPlanner::setThresholdRadius(float radius)
 {
 	m_thresholdRadius = radius;
+}
+
+void TrajectoryPlanner::setThresholdPositions(float linearPosition, float angularPosition)
+{
+	m_thresholdLinearPosition  = linearPosition;
+	m_thresholdAngularPosition = angularPosition;
 }
 
 void TrajectoryPlanner::process(float timestep)
@@ -73,7 +84,7 @@ void TrajectoryPlanner::process(float timestep)
 	if (!underThresholdRadius && !turnOnTheSpot)
 	{
 		float circularArcAngle = inrange(2 * (angularDelta - theta), -M_PI, M_PI);
-		if (circularArcAngle > 1e-3)
+		if (circularArcAngle > 1e-6)
 			m_linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
 		else
 			m_linearPositionSetpoint = du;
@@ -82,4 +93,7 @@ void TrajectoryPlanner::process(float timestep)
 		m_linearPositionSetpoint = 0;
 	else
 		m_linearPositionSetpoint = du;
+
+	// Has the robot reached its target?
+	m_targetReached = abs(m_linearPositionSetpoint) < m_thresholdLinearPosition && abs(m_angularPositionSetpoint) < m_thresholdAngularPosition;
 }
