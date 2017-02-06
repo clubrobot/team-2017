@@ -7,6 +7,8 @@
 
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
+#include "../../common/DifferentialController.h"
+#include "../../common/VelocityController.h"
 #include "../../common/PID.h"
 #include "../../common/Codewheel.h"
 #include "../../common/Odometry.h"
@@ -23,7 +25,7 @@ DCMotor leftWheel;
 DCMotor rightWheel;
 
 DifferentialController positionController;
-DifferentialController velocityController;
+VelocityController     velocityController;
 
 PID linearVelocityController;
 PID angularVelocityController;
@@ -76,6 +78,8 @@ void setup()
 
 	// Engineering control
 	velocityController.setAxleTrack(WHEELS_AXLE_TRACK);
+	velocityController.setMaximumAccelerations(INFINITY, INFINITY);
+	velocityController.setMaximumDeccelerations(INFINITY, INFINITY);
 	velocityController.setWheels(leftWheel, rightWheel);
 	velocityController.setControllers(linearVelocityController, angularVelocityController);
 	velocityController.disable();
