@@ -3,7 +3,7 @@
 
 import sys
 import serial
-from time       import time
+import time
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event, current_thread
 
@@ -86,8 +86,8 @@ class SerialTalks:
 			self.is_connected = True
 
 			# Wait until the Arduino is operational
-			startingtime = time()
-			while timeout is None or time() - startingtime < timeout:
+			startingtime = time.time()
+			while timeout is None or time.time() - startingtime < timeout:
 				if self.execute(CONNECT_OPCODE, timeout=0.1) is not None:
 					break
 			else:
