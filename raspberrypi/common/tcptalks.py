@@ -11,7 +11,6 @@ MASTER_BYTE = b'R'
 SLAVE_BYTE  = b'A'
 
 AUTHENTIFICATION_OPCODE = 0xAA
-DISCONNECT_OPCODE       = 0xFF
 
 
 # Exceptions
@@ -79,7 +78,6 @@ class TCPTalks:
 
 		# Instructions
 		self.instructions = dict()
-		self.bind(DISCONNECT_OPCODE, self.disconnect)
 
 		# Socket things
 		self.ip   = ip
@@ -132,13 +130,13 @@ class TCPTalks:
 				if not self.wait_for_authentification(1):
 					self.disconnect()
 			else: # Remote controller
-				if not self.authentificate():
+				if not self.authentificate(1):
 					self.disconnect()
 					raise AuthentificationError('authentification failed')
 
-	def authentificate(self):
+	def authentificate(self, timeout):
 		self.sendback(AUTHENTIFICATION_OPCODE, self.password)
-		self.is_authentificated = self.poll(AUTHENTIFICATION_OPCODE, None)
+		self.is_authentificated = self.poll(AUTHENTIFICATION_OPCODE, timeout)
 		return self.is_authentificated
 
 	def wait_for_authentification(self, timeout):
@@ -151,12 +149,6 @@ class TCPTalks:
 		if self.is_connected:
 			self.is_connected = False
 
-			# Send a disconnect notification to the other
-			try:
-				self.send(DISCONNECT_OPCODE)
-			except NotConnectedError:
-				pass
-
 			# Stop the listening thread
 			self.listener.stop.set()
 			if self.listener is not current_thread():
@@ -164,6 +156,7 @@ class TCPTalks:
 
 			# Close the socket
 			self.socket.close()
+			del self.socket
 
 	def bind(self, opcode, instruction):
 		if not opcode in self.instructions:
@@ -176,11 +169,8 @@ class TCPTalks:
 			raise NotConnectedError('not connected')
 		
 		sentbytes = 0
-		try:
-			while(sentbytes < len(rawbytes)):
-				sentbytes += self.socket.send(rawbytes[sentbytes:])
-		except BrokenPipeError:
-			self.disconnect()
+		while(sentbytes < len(rawbytes)):
+			sentbytes += self.socket.send(rawbytes[sentbytes:])
 		return sentbytes
 
 	def send(self, opcode, *args, **kwargs):
@@ -277,13 +267,13 @@ class TCPListener(Thread):
 			# Wait until new bytes arrive
 			try:
 				inc = self.parent.socket.recv(256)
-			except socket.timeout:
-				continue
-			except (OSError, ConnectionResetError) as e:
+			except (ConnectionResetError, AttributeError):
 				inc = None
+			except socket.timeout as e:
+				continue
 			
 			# Disconnect if the other is no longer connected
-			if inc is None:
+			if not inc: # May be None or b''
 				self.parent.disconnect()
 				break
 			
@@ -292,6 +282,12 @@ class TCPListener(Thread):
 			try:
 				message, buffer = _loads(buffer)
 			except (EOFError, pickle.UnpicklingError, AttributeError):
-				continue
-			self.parent.process(message)
-
+				continue # The message is not complete
+			
+			# Process the above message
+			try:
+				self.parent.process(message)
+			except BrokenPipeError:
+				self.disconnect()
+				break
+		
