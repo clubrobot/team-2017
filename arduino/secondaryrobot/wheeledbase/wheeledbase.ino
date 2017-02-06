@@ -25,7 +25,8 @@ DCMotor leftWheel;
 DCMotor rightWheel;
 
 DifferentialController positionController;
-VelocityController     velocityController;
+DifferentialController velocityController;
+//VelocityController     velocityController;
 
 PID linearVelocityController;
 PID angularVelocityController;
@@ -78,8 +79,8 @@ void setup()
 
 	// Engineering control
 	velocityController.setAxleTrack(WHEELS_AXLE_TRACK);
-	velocityController.setMaximumAccelerations(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
-	velocityController.setMaximumDeccelerations(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+//	velocityController.setMaximumAccelerations(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+//	velocityController.setMaximumDeccelerations(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
 	velocityController.setWheels(leftWheel, rightWheel);
 	velocityController.setControllers(linearVelocityController, angularVelocityController);
 	velocityController.disable();
