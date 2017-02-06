@@ -27,7 +27,7 @@ public:
 	void setWheels(AbstractMotor& leftWheel, AbstractMotor& rightWheel);
 	void setControllers(PID& linearController, PID& angularController);
 
-private:
+protected:
 
 	virtual void process(float timestep);
 	virtual void onProcessEnabling();
