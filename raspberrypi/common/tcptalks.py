@@ -274,13 +274,13 @@ class TCPListener(Thread):
 			# Wait until new bytes arrive
 			try:
 				inc = self.parent.socket.recv(256)
-			except ConnectionResetError:
-				inc = None
 			except socket.timeout:
 				continue
+			except (OSError, ConnectionResetError) as e:
+				inc = None
 			
 			# Disconnect if the other is no longer connected
-			if not inc:
+			if inc is None:
 				self.parent.disconnect()
 				break
 			

@@ -169,10 +169,15 @@ class SerialTalks:
 	def getlog(self, opcode, timeout=0):
 		log = str()
 		while True:
-			try:
-				log += self.poll(opcode, timeout).read(STRING)
-			except AttributeError:
-				return log
+			output = self.poll(opcode, 0)
+			if output is not None:
+				log += output.read(STRING)
+			else:
+				output = self.poll(opcode, timeout)
+				if output is not None:
+					log += output.read(STRING)
+				break
+		return log
 
 	def getout(self, timeout=0):
 		return self.getlog(STDOUT_OPCODE, timeout)

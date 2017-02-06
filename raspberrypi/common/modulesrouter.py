@@ -95,8 +95,6 @@ class Module:
 		if name in methods:
 			def temporary_method(*args, tcptimeout=1, **kwargs):
 				try:
-					if tcptimeout < kwargs['timeout']:
-						tcptimeout = kwargs['timeout'] + 1
 					kwargs['serialtimeout'] = kwargs['timeout']
 					del kwargs['timeout']
 				except KeyError: pass
