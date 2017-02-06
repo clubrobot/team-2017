@@ -4,7 +4,7 @@
 #include "PeriodicProcess.h"
 #include "PID.h"
 
-#define OUTPUT_CONTROL_VARIABLES 0 // Debug
+#define OUTPUT_CONTROL_VARIABLES 1 // Debug
 
 
 class AbstractMotor
