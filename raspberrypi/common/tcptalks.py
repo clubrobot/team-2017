@@ -220,11 +220,15 @@ class TCPTalks:
 			except KeyError:
 				raise KeyError('opcode {} is not bound to any instruction'.format(opcode)) from None
 			
-			# Execute the instruction and send back its output
-			return self.sendback(opcode, instruction(*args, **kwargs))
+			# Execute the instruction
+			output = instruction(*args, **kwargs)
+			
 		except Exception:
 			etype, value, tb = sys.exc_info()
-			return self.sendback(opcode, etype, value, traceback.extract_tb(tb))
+			output = (etype, value, traceback.extract_tb(tb))
+		
+		# Send back the output
+		self.sendback(opcode, output)
 
 	def poll(self, opcode, timeout=0):	
 		queue = self.get_queue(opcode)
@@ -297,5 +301,5 @@ class TCPListener(Thread):
 			try:
 				self.parent.process(message)
 			except NotConnectedError:
-				self.disconnect()
+				self.parent.disconnect()
 				break
