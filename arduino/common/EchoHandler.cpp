@@ -1,5 +1,5 @@
 #include "EchoHandler.h"
-#include <arduino.h>
+#include <Arduino.h>
 
 EchoHandler handler2(2);
 EchoHandler handler3(3);

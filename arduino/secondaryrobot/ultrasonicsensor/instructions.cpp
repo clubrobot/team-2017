@@ -8,8 +8,8 @@ extern UltrasonicSensor SensorAv;
 
 void GET_MESURE(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
-    output.write<int>(SensorAr.getDistance());
-    output.write<int>(CapteurAv.getDistance());
+    output.write<int>(SensorAr.getMesure());
+    output.write<int>(SensorAv.getMesure());
 }
 
 
