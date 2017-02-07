@@ -3,6 +3,7 @@
 
 import sys
 import serial
+from serial.serialutil import SerialException
 import time
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event, current_thread
@@ -71,49 +72,50 @@ class SerialTalks:
 		self.disconnect()
 
 	def connect(self, timeout=2):
-		if not self.is_connected:
-			try:
-				self.stream = serial.Serial(self.port, baudrate=BAUDRATE, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE)
-			except serial.serialutil.SerialException as e:
-				raise ConnectionFailedError(str(e))
-
-			self.stream.timeout	= 1
+		if self.is_connected:
+			raise AlreadyConnectedError('{} is already connected'.format(self.port))
 		
-			# Create a listening thread that will wait for inputs
-			self.listener = SerialListener(self)
-			self.listener.start()
-
-			self.is_connected = True
-
-			# Wait until the Arduino is operational
-			startingtime = time.time()
-			while timeout is None or time.time() - startingtime < timeout:
-				if self.execute(CONNECT_OPCODE, timeout=0.1) is not None:
-					break
-			else:
+		# Connect to the serial port
+		try:
+			self.stream = serial.Serial(self.port, baudrate=BAUDRATE, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE)
+			self.stream.timeout	= 1
+		except SerialException as e:
+			raise ConnectionFailedError(str(e)) from None
+		
+		# Create a listening thread that will wait for inputs
+		self.listener = SerialListener(self)
+		self.listener.start()
+		
+		# Wait until the Arduino is operational
+		startingtime = time.time()
+		while not self.is_connected:
+			if self.execute(CONNECT_OPCODE, timeout=0.1) is not None:
+				self.is_connected = True
+			elif timeout is not None and time.time() - startingtime > timeout:
 				self.disconnect()
 				raise MuteError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port))
-		else:
-			raise AlreadyConnectedError('{} is already connected'.format(self.port))
+			
 
 	def disconnect(self):
-		if self.is_connected:
-			self.is_connected = False
-
-			# Stop the listening thread
+		# Stop the listening thread
+		if hasattr(self, 'listener') and self.listener.is_alive():
 			self.listener.stop.set()
 			if self.listener is not current_thread():
 				self.listener.join()
 
-			# Close the socket
+		# Close the socket
+		if hasattr(self, 'stream') and self.stream.is_open:
 			self.stream.close()
+		
+		# Unset the connected flag
+		self.is_connected = False
 
 	def rawsend(self, rawbytes):
-		if not self.is_connected:
-			raise NotConnectedError('\'{}\' is not connected.'.format(self.port))
-		
-		sentbytes = self.stream.write(rawbytes)
-		return sentbytes
+		try:		
+			sentbytes = self.stream.write(rawbytes)
+			return sentbytes
+		except SerialException:
+			raise NotConnectedError('\'{}\' is not connected.'.format(self.port)) from None
 	
 	def send(self, opcode, *args):
 		content = bytes([opcode]) + bytes().join(args)
@@ -134,8 +136,9 @@ class SerialTalks:
 	def process(self, message):
 		opcode = message[0]
 		args   = message[1:]
-		queue = self.get_queue(opcode)
-		queue.put(args)
+		if self.is_connected or opcode == CONNECT_OPCODE:
+			queue = self.get_queue(opcode)
+			queue.put(args)
 
 	def poll(self, opcode, timeout=0):
 		queue = self.get_queue(opcode)
