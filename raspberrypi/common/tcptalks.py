@@ -174,8 +174,8 @@ class TCPTalks:
 			while(sentbytes < len(rawbytes)):
 				sentbytes += self.socket.send(rawbytes[sentbytes:])
 			return sentbytes
-		except BrokenPipeError:
-			raise NotConnectedError('not connected')
+		except AttributeError:
+			raise NotConnectedError('not connected') from None
 
 	def send(self, opcode, *args, **kwargs):
 		content = (opcode, args, kwargs)
