@@ -1,5 +1,5 @@
 # Board properties
-BOARD_UUID = modulescollector
+BOARD_UUID = actuators
 BOARD_TAG  = nano
 BOARD_SUB  = atmega328
 
@@ -8,6 +8,8 @@ COMMON = ../../common
 LOCAL_INO_SRCS = actuators.ino
 LOCAL_CPP_SRCS = \
 	$(COMMON)/SerialTalks.cpp \
+	$(COMMON)/DCMotor.cpp \
+	./instructions.cpp \
 
 # Sketch libraries
 ARDUINO_LIBS = EEPROM Servo
