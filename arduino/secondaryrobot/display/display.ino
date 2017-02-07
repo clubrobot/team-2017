@@ -1,19 +1,25 @@
 #include <Arduino.h>
 
-#include <FrequencyTimer2.h>
-#include <string.h>
+//#include <FrequencyTimer2.h>
 #include "pinmap.h"
+#include "IPDisplay.h"
+#include "pin.h"
 
-//                    DISP1 , DISP2 , DISP3
-const byte DISP_PIN[] {  2  ,   3   ,   4   };
+
 #define DISP_NUMBER 3
 
-#define DATA  5
-#define CLOCK 6
-#define LATCH 7
 
 #define MAXVAL 25
-byte value[MAXVAL];
+
+// Prototypes
+void clearValue() ;
+void clearDisplay();
+void display();
+
+
+// Variables
+
+byte value[MAXVAL] ;
 byte toSend[4][3] =  {{79, 230, 98}, {112, 245, 0}, {0, 0, 0}, {0, 0, 0}};
 
 byte disp_number = 0;  // Number of the effective 7 seg display
@@ -29,23 +35,23 @@ void setup() {
 
   // sets the pins as output
 
-  pinMode(DATA, OUTPUT);
-  pinMode(CLOCK, OUTPUT);
-  pinMode(LATCH, OUTPUT);
+  pinMode(DATA_IPDISPLAY, OUTPUT);
+  pinMode(CLOCK_IPDISPLAY, OUTPUT);
+  pinMode(LATCH_IPDISPLAY, OUTPUT);
   for (int i = 0; i < DISP_NUMBER; i++) {
     pinMode(DISP_PIN[i], OUTPUT);
     digitalWrite(DISP_PIN[i], LOW);
   }
 
 
-
+/*
   // Turn off toggling of pin 11
   FrequencyTimer2::disable();
   // Set refresh rate (interrupt timeout period)
   FrequencyTimer2::setPeriod(2000);
   // Set interrupt routine to be called
   FrequencyTimer2::setOnOverflow(display);
-
+*/
 
 
 
@@ -102,7 +108,6 @@ void loop() {
       }
     }
   }
-  //delay(100);  // delay pour éviter l'interruption dans la lecture des donnees
 }
 
 
@@ -113,11 +118,11 @@ void display() {
   if (disp_number >= 3)
     disp_number = 0;
 
-  digitalWrite(LATCH, LOW);
+  digitalWrite(LATCH_IPDISPLAY, LOW);
   for (int i = 3; i >= 0; i--) {
-    shiftOut(DATA, CLOCK, MSBFIRST, toSend[i][disp_number]);
+    shiftOut(DATA_IPDISPLAY, CLOCK_IPDISPLAY, MSBFIRST, toSend[i][disp_number]);
   }
-  digitalWrite(LATCH, HIGH);
+  digitalWrite(LATCH_IPDISPLAY, HIGH);
   digitalWrite(DISP_PIN[disp_number], HIGH); // Turn on the next 7 seg display
 }
 
