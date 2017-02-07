@@ -3,8 +3,9 @@
 
 #include <Arduino.h>
 
-#define TRIGGPIN 7
-#define ECHOPIN1  5
-#define ECHOPIN2  6
+#define TRIGGPINAv 7
+#define TRIGGPINAr 8
+#define ECHOPINAv  2
+#define ECHOPINAr  3
 
 #endif // __PIN_H__
