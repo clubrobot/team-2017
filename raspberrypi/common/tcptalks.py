@@ -3,6 +3,8 @@
 
 import socket
 import pickle
+import sys
+import traceback
 from time      import time
 from queue     import Queue, Empty
 from threading import Thread, RLock, Event, current_thread
@@ -218,8 +220,9 @@ class TCPTalks:
 			
 			# Execute the instruction and send back its output
 			return self.sendback(opcode, instruction(*args, **kwargs))
-		except Exception as e:
-			return self.sendback(opcode, e)
+		except Exception:
+			etype, value, tb = sys.exc_info()
+			return self.sendback(opcode, etype, value, traceback.extract_tb(tb))
 
 	def poll(self, opcode, timeout=0):	
 		queue = self.get_queue(opcode)
@@ -241,9 +244,13 @@ class TCPTalks:
 		self.flush(opcode)
 		self.send(opcode, *args, **kwargs)
 		output = self.poll(opcode, timeout=timeout)
-		if isinstance(output, Exception):
-			raise output
-		else:
+		try:
+			etype, value, tb = output
+			sys.stderr.write('Distant traceback (most recent call last):\n')
+			sys.stderr.write(''.join(traceback.format_list(tb)))
+			sys.stderr.write('{}: {}\n'.format(etype.__name__, str(value)))
+			raise value
+		except (TypeError, ValueError):
 			return output
 
 	def sleep_until_disconnected(self):
