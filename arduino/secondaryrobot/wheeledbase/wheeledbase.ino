@@ -7,6 +7,8 @@
 
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
+#include "../../common/DifferentialController.h"
+#include "../../common/VelocityController.h"
 #include "../../common/PID.h"
 #include "../../common/Codewheel.h"
 #include "../../common/Odometry.h"
@@ -24,6 +26,7 @@ DCMotor rightWheel;
 
 DifferentialController positionController;
 DifferentialController velocityController;
+//VelocityController     velocityController;
 
 PID linearVelocityController;
 PID angularVelocityController;
@@ -52,7 +55,8 @@ void setup()
 	talks.begin(Serial);
 	talks.bind(SET_OPENLOOP_VELOCITIES_OPCODE, SET_OPENLOOP_VELOCITIES);
 	talks.bind(SET_VELOCITIES_OPCODE, SET_VELOCITIES);
-	talks.bind(GOTO_OPCODE, GOTO);
+	talks.bind(START_TRAJECTORY_OPCODE, START_TRAJECTORY);
+	talks.bind(TRAJECTORY_ENDED_OPCODE, TRAJECTORY_ENDED);
 	talks.bind(SET_POSITION_OPCODE, SET_POSITION);
 	talks.bind(GET_POSITION_OPCODE, GET_POSITION);
 	talks.bind(GET_VELOCITIES_OPCODE, GET_VELOCITIES);
@@ -75,6 +79,8 @@ void setup()
 
 	// Engineering control
 	velocityController.setAxleTrack(WHEELS_AXLE_TRACK);
+//	velocityController.setMaximumAccelerations(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+//	velocityController.setMaximumDeccelerations(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
 	velocityController.setWheels(leftWheel, rightWheel);
 	velocityController.setControllers(linearVelocityController, angularVelocityController);
 	velocityController.disable();
@@ -88,6 +94,10 @@ void setup()
 
 	linearVelocityController .loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
 	angularVelocityController.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+	const float maxLinearVelocity  = (leftWheel.getMaximumVelocity() + rightWheel.getMaximumVelocity()) / 2;
+	const float maxAngularVelocity = (leftWheel.getMaximumVelocity() + rightWheel.getMaximumVelocity()) / WHEELS_AXLE_TRACK;
+	linearVelocityController .setOutputLimits(-maxLinearVelocity,  maxLinearVelocity);
+	angularVelocityController.setOutputLimits(-maxAngularVelocity, maxAngularVelocity);
 	
 #if CONTROL_IN_POSITION
 	linearPositionController .loadTunings(LINEAR_POSITION_PID_ADDRESS);
@@ -122,6 +132,7 @@ void setup()
 
 	// Trajectories
 	trajectory.setThresholdRadius(WHEELS_AXLE_TRACK);
+	trajectory.setThresholdPositions(MIN_LINEAR_POSITION, MIN_ANGULAR_POSITION);
 	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
 	trajectory.disable();
 

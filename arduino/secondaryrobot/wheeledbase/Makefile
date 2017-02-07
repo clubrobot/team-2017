@@ -11,6 +11,7 @@ LOCAL_CPP_SRCS = \
 	$(COMMON)/SerialTalks.cpp \
 	$(COMMON)/DCMotor.cpp \
 	$(COMMON)/DifferentialController.cpp \
+	$(COMMON)/VelocityController.cpp \
 	$(COMMON)/PID.cpp \
 	$(COMMON)/Codewheel.cpp \
 	$(COMMON)/Odometry.cpp \

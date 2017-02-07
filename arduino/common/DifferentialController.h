@@ -4,7 +4,7 @@
 #include "PeriodicProcess.h"
 #include "PID.h"
 
-#define OUTPUT_CONTROL_VARIABLES 0 // Debug
+#define OUTPUT_CONTROL_VARIABLES 1 // Debug
 
 
 class AbstractMotor
@@ -27,7 +27,7 @@ public:
 	void setWheels(AbstractMotor& leftWheel, AbstractMotor& rightWheel);
 	void setControllers(PID& linearController, PID& angularController);
 
-private:
+protected:
 
 	virtual void process(float timestep);
 	virtual void onProcessEnabling();

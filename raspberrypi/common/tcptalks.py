@@ -3,6 +3,8 @@
 
 import socket
 import pickle
+import sys
+import traceback
 from time      import time
 from queue     import Queue, Empty
 from threading import Thread, RLock, Event, current_thread
@@ -11,7 +13,6 @@ MASTER_BYTE = b'R'
 SLAVE_BYTE  = b'A'
 
 AUTHENTIFICATION_OPCODE = 0xAA
-DISCONNECT_OPCODE       = 0xFF
 
 
 # Exceptions
@@ -79,7 +80,6 @@ class TCPTalks:
 
 		# Instructions
 		self.instructions = dict()
-		self.bind(DISCONNECT_OPCODE, self.disconnect)
 
 		# Socket things
 		self.ip   = ip
@@ -132,13 +132,13 @@ class TCPTalks:
 				if not self.wait_for_authentification(1):
 					self.disconnect()
 			else: # Remote controller
-				if not self.authentificate():
+				if not self.authentificate(1):
 					self.disconnect()
 					raise AuthentificationError('authentification failed')
 
-	def authentificate(self):
+	def authentificate(self, timeout):
 		self.sendback(AUTHENTIFICATION_OPCODE, self.password)
-		self.is_authentificated = self.poll(AUTHENTIFICATION_OPCODE, None)
+		self.is_authentificated = self.poll(AUTHENTIFICATION_OPCODE, timeout)
 		return self.is_authentificated
 
 	def wait_for_authentification(self, timeout):
@@ -151,12 +151,6 @@ class TCPTalks:
 		if self.is_connected:
 			self.is_connected = False
 
-			# Send a disconnect notification to the other
-			try:
-				self.send(DISCONNECT_OPCODE)
-			except NotConnectedError:
-				pass
-
 			# Stop the listening thread
 			self.listener.stop.set()
 			if self.listener is not current_thread():
@@ -164,6 +158,7 @@ class TCPTalks:
 
 			# Close the socket
 			self.socket.close()
+			del self.socket
 
 	def bind(self, opcode, instruction):
 		if not opcode in self.instructions:
@@ -225,8 +220,9 @@ class TCPTalks:
 			
 			# Execute the instruction and send back its output
 			return self.sendback(opcode, instruction(*args, **kwargs))
-		except Exception as e:
-			return self.sendback(opcode, e)
+		except Exception:
+			etype, value, tb = sys.exc_info()
+			return self.sendback(opcode, etype, value, traceback.extract_tb(tb))
 
 	def poll(self, opcode, timeout=0):	
 		queue = self.get_queue(opcode)
@@ -248,9 +244,13 @@ class TCPTalks:
 		self.flush(opcode)
 		self.send(opcode, *args, **kwargs)
 		output = self.poll(opcode, timeout=timeout)
-		if isinstance(output, Exception):
-			raise output
-		else:
+		try:
+			etype, value, tb = output
+			sys.stderr.write('Distant traceback (most recent call last):\n')
+			sys.stderr.write(''.join(traceback.format_list(tb)))
+			sys.stderr.write('{}: {}\n'.format(etype.__name__, str(value)))
+			raise value
+		except (TypeError, ValueError):
 			return output
 
 	def sleep_until_disconnected(self):
@@ -274,13 +274,13 @@ class TCPListener(Thread):
 			# Wait until new bytes arrive
 			try:
 				inc = self.parent.socket.recv(256)
-			except ConnectionResetError:
+			except (ConnectionResetError, AttributeError):
 				inc = None
-			except socket.timeout:
+			except socket.timeout as e:
 				continue
 			
 			# Disconnect if the other is no longer connected
-			if not inc:
+			if not inc: # May be None or b''
 				self.parent.disconnect()
 				break
 			
@@ -289,6 +289,12 @@ class TCPListener(Thread):
 			try:
 				message, buffer = _loads(buffer)
 			except (EOFError, pickle.UnpicklingError, AttributeError):
-				continue
-			self.parent.process(message)
-
+				continue # The message is not complete
+			
+			# Process the above message
+			try:
+				self.parent.process(message)
+			except BrokenPipeError:
+				self.disconnect()
+				break
+		

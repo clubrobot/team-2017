@@ -67,7 +67,7 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 	velocityController.setSetpoints(linearVelocity, angularVelocity);
 }
 
-void GOTO(SerialTalks& talks, Deserializer& input, Serializer& output)
+void START_TRAJECTORY(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	float x     = input.read<float>();
 	float y     = input.read<float>();
@@ -82,6 +82,11 @@ void GOTO(SerialTalks& talks, Deserializer& input, Serializer& output)
 	trajectory.reset();
 	trajectory.addWaypoint(Position(x, y, theta));
 	trajectory.enable();
+}
+
+void TRAJECTORY_ENDED(SerialTalks& talks, Deserializer& input, Serializer& output)
+{
+	output.write<byte>(trajectory.hasReachedItsTarget());
 }
 
 void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)

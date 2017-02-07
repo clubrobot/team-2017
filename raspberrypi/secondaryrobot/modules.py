@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 #-*- coding: utf-8 -*-
 
-from math import pi
+import time
+import math
 
-from common.serialtalks   import *
+from common.serialtalks   import BYTE, INT, FLOAT
 from common.modulesrouter import Module
 
 # Wheeled base instructions
 
-SET_MOTORS_VELOCITIES_OPCODE    = 0x04
+SET_OPENLOOP_VELOCITIES_OPCODE  = 0x04
 
 SET_VELOCITIES_OPCODE   = 0x06
 
-GOTO_OPCODE             = 0x07
+START_TRAJECTORY_OPCODE = 0x07
+TRAJECTORY_ENDED_OPCODE = 0x08
 
 SET_POSITION_OPCODE     = 0x0A
 GET_POSITION_OPCODE     = 0x0B
@@ -38,17 +40,30 @@ class WheeledBase(Module):
 	def __init__(self, parent, uuid='wheeledbase'):
 		Module.__init__(self, parent, uuid)
 
-	def set_motors_velocities(self, left, right):
-		self.send(SET_MOTORS_VELOCITIES_OPCODE, FLOAT(left), FLOAT(right))
+	def set_openloop_velocities(self, left, right):
+		self.send(SET_OPENLOOP_VELOCITIES_OPCODE, FLOAT(left), FLOAT(right))
 
-	def goto(self, x, y, theta):
-		self.send(GOTO_OPCODE, FLOAT(x), FLOAT(y), FLOAT(theta))
+	def start_trajectory(self, x, y, theta):
+		self.send(START_TRAJECTORY_OPCODE, FLOAT(x), FLOAT(y), FLOAT(theta))
+	
+	def trajectory_ended(self, **kwargs):
+		output = self.execute(TRAJECTORY_ENDED_OPCODE, **kwargs)
+		trajectory_ended = output.read(BYTE)
+		return bool(trajectory_ended)
+
+	def goto(self, x, y, theta=None, **kwargs):
+		if theta is None:
+			current_x, current_y, current_theta = self.get_position(**kwargs)
+			theta = math.atan2(y - current_y, x - current_x)
+		self.start_trajectory(x, y, theta)
+		while not self.trajectory_ended(**kwargs):
+			time.sleep(0.1)
 
 	def set_velocities(self, linear_velocity, angular_velocity):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
 	def stop(self):
-		self.set_motors_velocities(0, 0)
+		self.set_openloop_velocities(0, 0)
 
 	def set_position(self, x, y, theta):
 		self.send(SET_POSITION_OPCODE, FLOAT(x), FLOAT(y), FLOAT(theta))
