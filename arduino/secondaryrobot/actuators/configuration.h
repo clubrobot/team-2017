@@ -1,0 +1,17 @@
+#ifndef CONFIGURATION_H
+#define CONFIGURATION_H
+
+
+// global motors configuration
+#define MOTORS_SUPPLY_VOLTAGE 10
+
+#define RADIUS_MOTOR1 100
+#define VELOCITY_CONSTANT_MOTOR1 1
+#define REDUCTION_RATIO_MOTOR1 1
+
+#define RADIUX_MOTOR2 100
+#define VELOCITY_CONSTANT_MOTOR2 1
+#define REDUCTION_RATIO_MOTOR2 1
+
+
+#endif

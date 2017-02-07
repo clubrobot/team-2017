@@ -25,17 +25,27 @@ pin	A5	A4	A3	A2
 
 // DC motors driver
 
-#define LEFT_MOTOR_EN    6
-#define LEFT_MOTOR_PWM   3
-#define LEFT_MOTOR_DIR   5
-#define RIGHT_MOTOR_EN   9
-#define RIGHT_MOTOR_PWM 11
-#define RIGHT_MOTOR_DIR 10
+#define MOTOR1_EN    9
+#define MOTOR1_PWM   11
+#define MOTOR1_DIR   10
+#define MOTOR2_EN   6
+#define MOTOR2_PWM 3
+#define MOTOR2_DIR 5
 #define DRIVER_RESET    12
 
+// Switchs
+
+#define SWITCH1 2
+#define SWITCH2 4
+#define SWITCH3 7
+#define SWITCH4 8
+#define SWITCH5 13
 
 // Servos
 
 #define DISPENSER_SERVO_PIN A4
+#define SERVO2 A5
+#define SERVO3 A3
+#define SERVO4 A2
 
 #endif // __PIN_H__
