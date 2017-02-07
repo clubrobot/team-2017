@@ -103,7 +103,7 @@ class SerialTalks:
 			if self.listener is not current_thread():
 				self.listener.join()
 
-		# Close the socket
+		# Close the serial port
 		if hasattr(self, 'stream') and self.stream.is_open:
 			self.stream.close()
 		
@@ -212,14 +212,28 @@ class SerialListener(Thread):
 			# Finite state machine
 			if state == 'waiting' and inc == SLAVE_BYTE:
 				state = 'starting'
+				continue
 			
 			elif state == 'starting' and inc:
 				msglen = inc[0]
 				state  = 'receiving'
+				continue
 
 			elif state == 'receiving':
 				buffer += inc
-				if (len(buffer) >= msglen):
-					self.parent.process(buffer)
-					buffer = bytes()
-					state  = 'waiting'
+				if (len(buffer) < msglen):
+					continue
+			
+			# Junk byte
+			else: continue
+			
+			# Process the above message
+			try:
+				self.parent.process(buffer)
+			except NotConnectedError:
+				self.disconnect()
+				break
+			
+			# Reset the finite state machine
+			state  = 'waiting'
+			buffer = bytes()
