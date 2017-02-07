@@ -1,6 +1,7 @@
-#include <arduino.h>
+
 #ifndef __ECHOHANDLER_H__
 #define __ECHOHANDLER_H__
+#include <Arduino.h>
 
 class EchoHandler {
 

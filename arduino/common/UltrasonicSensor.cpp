@@ -1,5 +1,5 @@
 #include "UltrasonicSensor.h"
-#include <arduino.h>
+#include <Arduino.h>
 #define TEMPORISATION 50000
 
 void UltrasonicSensor::trig() {
