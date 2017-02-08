@@ -1,5 +1,5 @@
-#ifndef __talksRUCTIONS_H__
-#define __talksRUCTIONS_H__
+#ifndef __INSTRUCTIONS_H__
+#define __INSTRUCTIONS_H__
 
 #include "../../common/SerialTalks.h"
 
@@ -49,4 +49,4 @@ void SET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output
 
 void GET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-#endif // __talksRUCTIONS_H__
+#endif // __INSTRUCTIONS_H__
