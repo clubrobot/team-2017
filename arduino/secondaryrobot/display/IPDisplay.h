@@ -1,18 +1,28 @@
+#include <Arduino.h>
 #include "../../common/PeriodicProcess.h"
-
 
 #ifndef IPDISPLAY_H
 #define IPDISPLAY_H
 
-class Ipdisplay : public PeriodicProcess {
+#define DISP_NUMBER 3
 
-public:
+class Ipdisplay : public PeriodicProcess
+{
 
+  public:
+    void attach(byte dataPin, byte clockPin, byte latchPin);
+    void clearDisplay();
+    void computeValues(byte value[], byte shift);
 
-private:
+  private:
+    byte m_toSend[4][3];
+    byte m_DATA;
+    byte m_CLOCK;
+    byte m_LATCH;
+    byte m_disp_number; // Number of the effective 7 seg display
+
     virtual void process(float timestep);
-
-
+    void display();
 };
 
 #endif
