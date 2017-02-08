@@ -148,17 +148,19 @@ class TCPTalks:
 		return self.is_authentificated
 
 	def disconnect(self):
-		if self.is_connected:
-			self.is_connected = False
-
-			# Stop the listening thread
+		# Stop the listening thread
+		if hasattr(self, 'listener') and self.listener.is_alive():
 			self.listener.stop.set()
 			if self.listener is not current_thread():
-				self.listener.join(timeout=1)
+				self.listener.join()
 
-			# Close the socket
+		# Close the socket
+		if hasattr(self, 'socket'):
 			self.socket.close()
 			del self.socket
+
+		# Unset the connected flag
+		self.is_connected = False
 
 	def bind(self, opcode, instruction):
 		if not opcode in self.instructions:
@@ -167,13 +169,13 @@ class TCPTalks:
 			raise KeyError('opcode {} is already bound to another instruction'.format(opcode))
 
 	def rawsend(self, rawbytes):
-		if not self.is_connected:
-			raise NotConnectedError('not connected')
-		
-		sentbytes = 0
-		while(sentbytes < len(rawbytes)):
-			sentbytes += self.socket.send(rawbytes[sentbytes:])
-		return sentbytes
+		try:
+			sentbytes = 0
+			while(sentbytes < len(rawbytes)):
+				sentbytes += self.socket.send(rawbytes[sentbytes:])
+			return sentbytes
+		except AttributeError:
+			raise NotConnectedError('not connected') from None
 
 	def send(self, opcode, *args, **kwargs):
 		content = (opcode, args, kwargs)
@@ -218,11 +220,15 @@ class TCPTalks:
 			except KeyError:
 				raise KeyError('opcode {} is not bound to any instruction'.format(opcode)) from None
 			
-			# Execute the instruction and send back its output
-			return self.sendback(opcode, instruction(*args, **kwargs))
+			# Execute the instruction
+			output = instruction(*args, **kwargs)
+			
 		except Exception:
 			etype, value, tb = sys.exc_info()
-			return self.sendback(opcode, etype, value, traceback.extract_tb(tb))
+			output = (etype, value, traceback.extract_tb(tb))
+		
+		# Send back the output
+		self.sendback(opcode, output)
 
 	def poll(self, opcode, timeout=0):	
 		queue = self.get_queue(opcode)
@@ -276,7 +282,7 @@ class TCPListener(Thread):
 				inc = self.parent.socket.recv(256)
 			except (ConnectionResetError, AttributeError):
 				inc = None
-			except socket.timeout as e:
+			except socket.timeout:
 				continue
 			
 			# Disconnect if the other is no longer connected
@@ -294,7 +300,6 @@ class TCPListener(Thread):
 			# Process the above message
 			try:
 				self.parent.process(message)
-			except BrokenPipeError:
-				self.disconnect()
+			except NotConnectedError:
+				self.parent.disconnect()
 				break
-		

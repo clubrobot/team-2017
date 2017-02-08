@@ -3,21 +3,13 @@
 
 
 // Global variables
-extern UltrasonicSensor Capteur1;
-extern UltrasonicSensor Capteur2;
+extern UltrasonicSensor SensorAr;
+extern UltrasonicSensor SensorAv;
 
 void GET_MESURE(SerialTalks& inst, Deserializer& input, Serializer& output)
 {
-    output.write<int>(Capteur1.getDistance());
-    output.write<int>(Capteur2.getDistance());
+    output.write<int>(SensorAr.getMesure());
+    output.write<int>(SensorAv.getMesure());
 }
 
-void MESURE(SerialTalks& inst, Deserializer& input, Serializer& output)
-{
-    Capteur1.update();
-    if(Capteur1.getState() == PRET){
-        Capteur1.impulsion_US(TRIGGPIN);
-        Capteur1.setcurrentState(EMISSION);
-    }
-}
 
