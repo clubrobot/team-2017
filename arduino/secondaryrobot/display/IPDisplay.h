@@ -1,10 +1,9 @@
 #include <Arduino.h>
 #include "../../common/PeriodicProcess.h"
+#include "configuration.h"
 
 #ifndef IPDISPLAY_H
 #define IPDISPLAY_H
-
-#define DISP_NUMBER 3
 
 class Ipdisplay : public PeriodicProcess
 {

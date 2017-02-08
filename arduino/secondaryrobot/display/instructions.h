@@ -2,8 +2,7 @@
 #define INSTRUCTIONS_H
 
 #include "../../common/SerialTalks.h"
-
-#define MAXVAL 25
+#include "configuration.h"
 
 // Opcodes declaration
 

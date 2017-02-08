@@ -13,8 +13,8 @@ void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &out
 void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
 {
 
-    byte value[MAXVAL];
-    for (int i = 0; i < MAXVAL; i++)
+    byte value[IP_DISPLAY_BUFFER_SIZE];
+    for (int i = 0; i < IP_DISPLAY_BUFFER_SIZE; i++)
     {
         value[i] = -1;
     }
@@ -34,7 +34,7 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
         cpt = 0;
         int nbDigits = 0;
         int shift = 0;
-        for (int i = 0; i < MAXVAL; i++)
+        for (int i = 0; i < IP_DISPLAY_BUFFER_SIZE; i++)
         {
             if (value[cpt] >= 0 && value[cpt] < ('9' - '0'))
             {

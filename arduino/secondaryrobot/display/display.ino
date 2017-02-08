@@ -3,8 +3,7 @@
 #include "IPDisplay.h"
 #include "pin.h"
 #include "instructions.h"
-
-#define IP_DISPLAY_TIMESTEP 1e-3 //s
+#include "configuration.h"
 
 // Variables
 
