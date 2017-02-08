@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include "../../common/SerialTalks.h"
 #include "IPDisplay.h"
-#include "pin.h"
 #include "instructions.h"
 #include "configuration.h"
 

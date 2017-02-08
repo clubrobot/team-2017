@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "IPDisplay.h"
-#include "pin.h"
+#include "configuration.h"
 
 void Ipdisplay::attach(byte dataPin, byte clockPin, byte latchPin)
 {
