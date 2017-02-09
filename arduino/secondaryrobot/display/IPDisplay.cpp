@@ -72,7 +72,7 @@ void Ipdisplay::computeBuffer(char buffer[], byte shift)
 
 				cpt++;
 
-				if (buffer[cpt] == '.')
+				if (buffer[cpt] == '.' && buffer[cpt-1] != '.')
 				{
 					m_toSend[display][i] += DISP[display][7];
 					cpt++;

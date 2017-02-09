@@ -25,7 +25,7 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
         if (buffer[i] >= START_CHAR && buffer[i] <= END_CHAR)
         {
             nbDigits++;
-			if(buffer[i+1] == '.'){	// gère le cas de l'affichage d'un point après un digit
+			if(buffer[i+1] == '.' && buffer[i] != '.'){	// gère le cas de l'affichage d'un point après un digit
 				i++;
 			}
         }
