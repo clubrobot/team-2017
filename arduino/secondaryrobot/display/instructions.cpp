@@ -13,36 +13,24 @@ void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &out
 void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
 {
 
-    byte value[IP_DISPLAY_BUFFER_SIZE];
+    char buffer[IP_DISPLAY_BUFFER_SIZE];
     for (int i = 0; i < IP_DISPLAY_BUFFER_SIZE; i++)
     {
-        value[i] = -1;
+        buffer[i] = -1;
     }
+    input >> buffer;
 
-    if (Serial.available() > 0)
+    int cpt = 0;
+    int nbDigits = 0;
+    int shift = 0;
+    for (int i = 0; i < IP_DISPLAY_BUFFER_SIZE; i++)
     {
-        int cpt = 0;
-        Serial.println();
-        //Serial.print("nouveau message : ");
-        while (Serial.available() > 0)
+        if (buffer[cpt] >= '0' && buffer[cpt] <= '9')
         {
-            value[cpt] = Serial.read();
-            //Serial.println(value[cpt]);
-            value[cpt] -= '0';
-            cpt++;
+            nbDigits++;
         }
-        cpt = 0;
-        int nbDigits = 0;
-        int shift = 0;
-        for (int i = 0; i < IP_DISPLAY_BUFFER_SIZE; i++)
-        {
-            if (value[cpt] >= 0 && value[cpt] < ('9' - '0'))
-            {
-                nbDigits++;
-            }
-            cpt++;
-        }
-        shift = (12 - nbDigits) / 2;
-        ipdisplay.computeValues(value, shift);
+        cpt++;
     }
+    shift = (12 - nbDigits) / 2;
+    ipdisplay.computeBuffer(buffer, shift);
 }

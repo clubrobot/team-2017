@@ -11,7 +11,7 @@ class Ipdisplay : public PeriodicProcess
   public:
     void attach(byte dataPin, byte clockPin, byte latchPin);
     void clearDisplay();
-    void computeValues(byte value[], byte shift);
+    void computeBuffer(char buffer[], byte shift);
 
   private:
     byte m_toSend[4][3];

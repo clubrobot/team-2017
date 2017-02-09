@@ -49,7 +49,7 @@ void Ipdisplay::clearDisplay()
   }
 }
 
-void Ipdisplay::computeValues(byte value[], byte shift)
+void Ipdisplay::computeBuffer(char buffer[], byte shift)
 {
   int cpt = 0;
   for (int display = 0; display < 4; display++)
@@ -59,21 +59,18 @@ void Ipdisplay::computeValues(byte value[], byte shift)
       m_toSend[display][i] = 0;
       if ((display)*3 + i + 1 > shift)
       {
-
-        //Serial.println(value[cpt]);
-        if (value[cpt] >= 0 && value[cpt] < ('9' - '0'))
+        if (buffer[cpt] >= 0 && buffer[cpt] < ('9' - '0'))
         {
           for (int j = 0; j < 8; j++)
           {
-            m_toSend[display][i] += ((segToDisplay[value[cpt]] & (0x01 << j)) / (0x01 << j)) * DISP[display][7 - j];
+            m_toSend[display][i] += ((segToDisplay[buffer[cpt]] & (0x01 << j)) / (0x01 << j)) * DISP[display][7 - j];
           }
         }
-        //Serial.println(toSend[display][i]);
+
         cpt++;
 
-        if (value[cpt] == 254)
+        if (buffer[cpt] == 254)
         {
-          //Serial.println(value[cpt]);
           m_toSend[display][i] += DISP[display][7];
           cpt++;
         }

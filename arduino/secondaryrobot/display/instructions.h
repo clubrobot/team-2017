@@ -7,7 +7,7 @@
 // Opcodes declaration
 
 #define SET_MATRIX_MESSAGE_OPCODE 0x0D
-#define SET_IPDISPLAY_MESSAGE_OPCODE 0x0D
+#define SET_IPDISPLAY_MESSAGE_OPCODE 0x0E
 
 // Instructions prototypes
 
