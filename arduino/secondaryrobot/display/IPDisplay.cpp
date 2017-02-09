@@ -62,11 +62,11 @@ void Ipdisplay::computeBuffer(char buffer[], byte shift)
 			m_toSend[display][i] = 0;
 			if ((display)*3 + i + 1 > shift)
 			{
-				if ((buffer[cpt] >= '0') && (buffer[cpt] <= '9'))
+				if ((buffer[cpt] >= START_CHAR) && (buffer[cpt] <= END_CHAR))
 				{
 					for (int j = 0; j < 8; j++)
 					{
-						m_toSend[display][i] += ((segToDisplay[buffer[cpt]-'0'] & (0x01 << j)) / (0x01 << j)) * DISP[display][7 - j];
+						m_toSend[display][i] += ((segToDisplay[buffer[cpt]-START_CHAR] & (0x01 << j)) / (0x01 << j)) * DISP[display][7 - j];
 					}
 				}
 
@@ -80,9 +80,4 @@ void Ipdisplay::computeBuffer(char buffer[], byte shift)
 			}
 		}
 	}
-}
-
-char* Ipdisplay::getData()
-{
-	return &m_toSend[0][0];
 }
