@@ -7,7 +7,7 @@
 
 
 // Time constants
-#define IP_DISPLAY_TIMESTEP 1e-3    // Execution step time in s
+#define IP_DISPLAY_TIMESTEP 3e-3    // Execution step time in s
 
 // cIP_display constants
 #define IP_DISPLAY_BUFFER_SIZE 25   // Size of the data buffer receiver

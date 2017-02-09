@@ -12,9 +12,10 @@ class Ipdisplay : public PeriodicProcess
     void attach(byte dataPin, byte clockPin, byte latchPin);
     void clearDisplay();
     void computeBuffer(char buffer[], byte shift);
+	char* getData();
 
   private:
-    byte m_toSend[4][3];
+    char m_toSend[4][3];
     byte m_DATA;
     byte m_CLOCK;
     byte m_LATCH;
