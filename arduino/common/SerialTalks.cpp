@@ -12,6 +12,7 @@ SerialTalks talks;
 void SerialTalks::CONNECT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	talks.m_connected = true;
+	output << true;
 }
 
 void SerialTalks::GETUUID(SerialTalks& inst, Deserializer& input, Serializer& output)
@@ -31,10 +32,10 @@ void SerialTalks::SETUUID(SerialTalks& inst, Deserializer& input, Serializer& ou
 
 // SerialTalks::ostream
 
-void SerialTalks::ostream::begin(SerialTalks& parent, byte opcode)
+void SerialTalks::ostream::begin(SerialTalks& parent, long retcode)
 {
 	m_parent = &parent;
-	m_opcode = opcode;
+	m_retcode = retcode;
 }
 
 size_t SerialTalks::ostream::write(uint8_t c)
@@ -45,7 +46,7 @@ size_t SerialTalks::ostream::write(uint8_t c)
 
 size_t SerialTalks::ostream::write(const uint8_t *buffer, size_t size)
 {
-	return m_parent->send(m_opcode, buffer, size + 1);
+	return m_parent->sendback(m_retcode, buffer, size + 1);
 }
 
 
@@ -56,8 +57,8 @@ void SerialTalks::begin(Stream& stream)
 	// Initialize attributes
 	m_stream = &stream;
 	m_connected = false;
-	out.begin(*this, SERIALTALKS_STDOUT_OPCODE);
-	err.begin(*this, SERIALTALKS_STDERR_OPCODE);
+	out.begin(*this, SERIALTALKS_STDOUT_RETCODE);
+	err.begin(*this, SERIALTALKS_STDERR_RETCODE);
 
 	// Initialize UUID stuff
 #ifdef BOARD_UUID
@@ -77,14 +78,14 @@ void SerialTalks::begin(Stream& stream)
 	bind(SERIALTALKS_SETUUID_OPCODE, SerialTalks::SETUUID);
 }
 
-int SerialTalks::send(byte opcode, const byte* buffer, int size)
+int SerialTalks::sendback(long retcode, const byte* buffer, int size)
 {
 	int count = 0;
 	if (m_stream != 0 && isConnected())
 	{
 		count += m_stream->write(SERIALTALKS_SLAVE_BYTE);
-		count += m_stream->write(byte(size + 1));
-		count += m_stream->write(opcode);
+		count += m_stream->write(byte(sizeof(retcode) + size));
+		count += m_stream->write((byte*)(&retcode), sizeof(retcode));
 		count += m_stream->write(buffer, size);	
 	}
 	return count;
@@ -97,15 +98,17 @@ void SerialTalks::bind(byte opcode, Instruction instruction)
 		m_instructions[opcode] = instruction;
 }
 
-bool SerialTalks::execinstruction(byte opcode, byte* inputBuffer)
+bool SerialTalks::execinstruction(byte* inputBuffer)
 {
+	Deserializer input (inputBuffer);
+	Serializer   output(m_outputBuffer);
+	byte opcode = input.read<byte>();
+	long retcode = input.read<long>();
 	if (m_instructions[opcode] != 0)
 	{
-		Deserializer input (inputBuffer);
-		Serializer   output(m_outputBuffer);
-
 		m_instructions[opcode](*this, input, output);
-		send(opcode, m_outputBuffer, output.buffer - m_outputBuffer);
+		if (output.buffer > m_outputBuffer)
+			sendback(retcode, m_outputBuffer, output.buffer - m_outputBuffer);
 		return true;
 	}
 	return false;
@@ -143,8 +146,7 @@ bool SerialTalks::execute()
 			m_inputBuffer[m_bytesCounter++] = inc;
 			if (m_bytesCounter >= m_bytesNumber)
 			{
-				byte opcode = m_inputBuffer[0];
-				ret |= execinstruction(opcode, m_inputBuffer + 1);
+				ret |= execinstruction(m_inputBuffer);
 				m_state = SERIALTALKS_WAITING_STATE;
 			}
 		}

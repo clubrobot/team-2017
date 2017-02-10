@@ -4,6 +4,7 @@
 import sys
 import serial
 from serial.serialutil import SerialException
+import os
 import time
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event, current_thread
@@ -18,8 +19,8 @@ SLAVE_BYTE  = b'A'
 CONNECT_OPCODE = 0x00
 GETUUID_OPCODE = 0x01
 SETUUID_OPCODE = 0x02
-STDOUT_OPCODE  = 0xFF
-STDERR_OPCODE  = 0xFE
+STDOUT_RETCODE = 0xFFFFFFF
+STDERR_RETCODE = 0xFFFFFFE
 
 BYTEORDER = 'little'
 ENCODING  = 'utf-8'
@@ -91,6 +92,7 @@ class SerialTalks:
 		while not self.is_connected:
 			if self.execute(CONNECT_OPCODE, timeout=0.1) is not None:
 				self.is_connected = True
+				self.reset_queues()
 			elif timeout is not None and time.time() - startingtime > timeout:
 				self.disconnect()
 				raise MuteError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port))
@@ -118,45 +120,58 @@ class SerialTalks:
 			raise NotConnectedError('\'{}\' is not connected.'.format(self.port)) from None
 	
 	def send(self, opcode, *args):
-		content = bytes([opcode]) + bytes().join(args)
-		prefix  = MASTER_BYTE + bytes([len(content)])
-		sentbytes = self.rawsend(prefix + content)
-		return sentbytes
+		retcode = os.urandom(4)
+		content = BYTE(opcode) + retcode + bytes().join(args)
+		prefix  = MASTER_BYTE + BYTE(len(content))
+		self.rawsend(prefix + content)
+		return retcode
 
-	def get_queue(self, opcode):
+	def get_queue(self, retcode):
 		self.queues_lock.acquire()
 		try:
-			queue = self.queues_dict[opcode]
+			queue = self.queues_dict[retcode]
 		except KeyError:
-			queue = self.queues_dict[opcode] = Queue()
+			queue = self.queues_dict[retcode] = Queue()
 		finally:
 			self.queues_lock.release()
 		return queue
 
-	def process(self, message):
-		opcode = message[0]
-		args   = message[1:]
-		if self.is_connected or opcode == CONNECT_OPCODE:
-			queue = self.get_queue(opcode)
-			queue.put(args)
+	def delete_queue(self, retcode):
+		self.queues_lock.acquire()
+		try:
+			del self.queues_dict[retcode]
+		finally:
+			self.queues_lock.release()
 
-	def poll(self, opcode, timeout=0):
-		queue = self.get_queue(opcode)
+	def reset_queues(self):
+		self.queues_lock.acquire()
+		self.queues_dict = dict()
+		self.queues_lock.release()
+
+	def process(self, message):
+		retcode = LONG(message.read(LONG))
+		queue = self.get_queue(retcode)
+		queue.put(message)
+
+	def poll(self, retcode, timeout=0):
+		queue = self.get_queue(retcode)
 		block = (timeout is None or timeout > 0)
 		try:
-			rawbytes = queue.get(block, timeout)
-			return Deserializer(rawbytes)
+			output = queue.get(block, timeout)
 		except Empty:
 			return None
+		if queue.qsize() == 0:
+			self.delete_queue(retcode)
+		return output
 	
-	def flush(self, opcode):
-		while self.poll(opcode) is not None:
+	def flush(self, retcode):
+		while self.poll(retcode) is not None:
 			pass
 
 	def execute(self, opcode, *args, timeout=1):
-		self.flush(opcode)
-		self.send(opcode, *args)
-		output = self.poll(opcode, timeout)
+		retcode = self.send(opcode, *args)
+		self.flush(retcode)
+		output = self.poll(retcode, timeout)
 		return output
 
 	def getuuid(self, timeout=1):
@@ -169,24 +184,24 @@ class SerialTalks:
 	def setuuid(self, uuid):
 		return self.send(SETUUID_OPCODE, STRING(uuid))
 
-	def getlog(self, opcode, timeout=0):
+	def getlog(self, retcode, timeout=0):
 		log = str()
 		while True:
-			output = self.poll(opcode, 0)
+			output = self.poll(retcode, 0)
 			if output is not None:
 				log += output.read(STRING)
 			else:
-				output = self.poll(opcode, timeout)
+				output = self.poll(retcode, timeout)
 				if output is not None:
 					log += output.read(STRING)
 				break
 		return log
 
 	def getout(self, timeout=0):
-		return self.getlog(STDOUT_OPCODE, timeout)
+		return self.getlog(LONG(STDOUT_RETCODE), timeout)
 
 	def geterr(self, timeout=0):
-		return self.getlog(STDERR_OPCODE, timeout)
+		return self.getlog(LONG(STDERR_OPCODE), timeout)
 
 
 class SerialListener(Thread):
@@ -229,7 +244,7 @@ class SerialListener(Thread):
 			
 			# Process the above message
 			try:
-				self.parent.process(buffer)
+				self.parent.process(Deserializer(buffer))
 			except NotConnectedError:
 				self.disconnect()
 				break

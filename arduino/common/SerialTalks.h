@@ -36,8 +36,8 @@
 #define SERIALTALKS_CONNECT_OPCODE 0x0
 #define SERIALTALKS_GETUUID_OPCODE 0x1
 #define SERIALTALKS_SETUUID_OPCODE 0x2
-#define SERIALTALKS_STDOUT_OPCODE  0xFF
-#define SERIALTALKS_STDERR_OPCODE  0xFE
+#define SERIALTALKS_STDOUT_RETCODE 0xFFFFFFFF
+#define SERIALTALKS_STDERR_RETCODE 0xFFFFFFFE
 
 
 class SerialTalks
@@ -59,10 +59,10 @@ public: // Public API
 	
 	protected:
 
-		void begin(SerialTalks& parent, byte opcode);
+		void begin(SerialTalks& parent, long retcode);
 
 		SerialTalks* m_parent;
-		byte         m_opcode;
+		long         m_retcode;
 
 		friend class SerialTalks;
 	};
@@ -73,7 +73,7 @@ public: // Public API
 
 	void bind(byte opcode, Instruction instruction);
 
-	bool execinstruction(byte opcode, byte* inputBuffer);
+	bool execinstruction(byte* inputBuffer);
 	bool execute();
 
 	bool isConnected() const {return m_connected;}
@@ -92,7 +92,7 @@ public: // Public API
 
 protected: // Protected methods
 
-	int send(byte opcode, const byte* buffer, int size);
+	int sendback(long retcode, const byte* buffer, int size);
 
 	// Attributes
 
