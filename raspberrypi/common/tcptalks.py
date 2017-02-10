@@ -3,7 +3,7 @@
 
 import socket
 import pickle
-import sys
+import os, sys
 import traceback
 from time      import time
 from queue     import Queue, Empty
@@ -178,37 +178,38 @@ class TCPTalks:
 			raise NotConnectedError('not connected') from None
 
 	def send(self, opcode, *args, **kwargs):
-		content = (opcode, args, kwargs)
+		retcode = os.urandom(4)
+		content = (opcode, retcode, args, kwargs)
 		prefix  = (MASTER_BYTE,)
-		return self.rawsend(pickle.dumps(prefix + content))
+		self.rawsend(pickle.dumps(prefix + content))
+		return retcode
 
-	def sendback(self, opcode, *args):
-		content = (opcode, args)
+	def sendback(self, retcode, *args):
+		content = (retcode, args)
 		prefix  = (SLAVE_BYTE,)
-		return self.rawsend(pickle.dumps(prefix + content))
+		self.rawsend(pickle.dumps(prefix + content))
 
-	def get_queue(self, opcode):
+	def get_queue(self, retcode):
 		self.queues_lock.acquire()
 		try:
-			queue = self.queues_dict[opcode]
+			queue = self.queues_dict[retcode]
 		except KeyError:
-			queue = self.queues_dict[opcode] = Queue()
+			queue = self.queues_dict[retcode] = Queue()
 		finally:
 			self.queues_lock.release()
 		return queue
 
 	def process(self, message):
-		role   = message[0]
-		opcode = message[1]
-		args   = message[2]
+		role = message[0]
 		if (role == MASTER_BYTE):
-			kwargs = message[3]
-			self.execinstruction(opcode, *args, **kwargs)
+			opcode, retcode, args, kwargs = message[1:]
+			self.execinstruction(opcode, retcode, *args, **kwargs)
 		elif (role == SLAVE_BYTE):
-			queue = self.get_queue(opcode)
+			retcode, args = message[1:]
+			queue = self.get_queue(retcode)
 			queue.put(args)
 
-	def execinstruction(self, opcode, *args, **kwargs):
+	def execinstruction(self, opcode, retcode, *args, **kwargs):
 		try:
 			# Make sure that the authentification was well performed
 			if not self.is_authentificated:
@@ -228,10 +229,10 @@ class TCPTalks:
 			output = (etype, value, traceback.extract_tb(tb))
 		
 		# Send back the output
-		self.sendback(opcode, output)
+		self.sendback(retcode, output)
 
-	def poll(self, opcode, timeout=0):	
-		queue = self.get_queue(opcode)
+	def poll(self, retcode, timeout=0):	
+		queue = self.get_queue(retcode)
 		block = (timeout is None or timeout > 0)
 		try:
 			output = queue.get(block, timeout)
@@ -242,20 +243,22 @@ class TCPTalks:
 		else:
 			return output[0] # Return as a single variable
 	
-	def flush(self, opcode):
-		while self.poll(opcode) is not None:
+	def flush(self, retcode):
+		while self.poll(retcode) is not None:
 			pass
 	
 	def execute(self, opcode, *args, timeout=1, **kwargs):
 		self.flush(opcode)
-		self.send(opcode, *args, **kwargs)
-		output = self.poll(opcode, timeout=timeout)
+		retcode = self.send(opcode, *args, **kwargs)
+		output = self.poll(retcode, timeout=timeout)
 		try:
 			etype, value, tb = output
-			sys.stderr.write('Distant traceback (most recent call last):\n')
-			sys.stderr.write(''.join(traceback.format_list(tb)))
-			sys.stderr.write('{}: {}\n'.format(etype.__name__, str(value)))
-			raise value
+			output = ('{2}\n' +
+			'\nThe above exception was first raised by the distant TCPTalks instance:\n\n' +
+			'Distant traceback (most recent call last):\n' +
+			'{0}' +
+			'{1}: {2}''').format(''.join(traceback.format_list(tb)), etype.__name__, str(value))
+			raise etype(output)
 		except (TypeError, ValueError):
 			return output
 
