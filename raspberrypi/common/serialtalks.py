@@ -19,8 +19,8 @@ SLAVE_BYTE  = b'A'
 CONNECT_OPCODE = 0x00
 GETUUID_OPCODE = 0x01
 SETUUID_OPCODE = 0x02
-STDOUT_RETCODE = 0xFFFFFFF
-STDERR_RETCODE = 0xFFFFFFE
+STDOUT_RETCODE = 0xFFFFFFFF
+STDERR_RETCODE = 0xFFFFFFFE
 
 BYTEORDER = 'little'
 ENCODING  = 'utf-8'
@@ -198,10 +198,10 @@ class SerialTalks:
 		return log
 
 	def getout(self, timeout=0):
-		return self.getlog(LONG(STDOUT_RETCODE), timeout)
+		return self.getlog(ULONG(STDOUT_RETCODE), timeout)
 
 	def geterr(self, timeout=0):
-		return self.getlog(LONG(STDERR_OPCODE), timeout)
+		return self.getlog(ULONG(STDERR_RETCODE), timeout)
 
 
 class SerialListener(Thread):
