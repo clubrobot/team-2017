@@ -17,6 +17,11 @@ void VelocityController::setMaximumDeccelerations(float linearDecceleration, flo
 
 float VelocityController::generateRampSetpoint(float stepSetpoint, float input, float rampSetpoint, float acceleration, float decceleration, float timestep)
 {
+	// If we are above the desired setpoint (i.e. the ramp), we no longer try to follow it.
+	// Instead we generate a new ramp starting from our current position.
+	if ((input - rampSetpoint) * (stepSetpoint - rampSetpoint) > 0)
+		rampSetpoint = input;
+
 	// Do we have to accelerate or deccelerate to reach the desired setpoint?
 	if (input * (stepSetpoint - input) >= 0)
 		rampSetpoint += sign(stepSetpoint - input) * acceleration * timestep;
@@ -26,11 +31,6 @@ float VelocityController::generateRampSetpoint(float stepSetpoint, float input, 
 	// We clamp the ramp so that it never exceeds the real setpoint
 	if ((stepSetpoint - input) * (stepSetpoint - rampSetpoint) < 0)
 		rampSetpoint = stepSetpoint;
-
-	// If we are above the desired setpoint (i.e. the ramp), we no longer try to follow it.
-	// Instead we generate a new ramp starting from our current position.
-	if ((input - rampSetpoint) * (stepSetpoint - rampSetpoint) > 0)
-		rampSetpoint = input;
 
 	return rampSetpoint;
 }
