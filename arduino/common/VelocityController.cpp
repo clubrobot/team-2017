@@ -23,15 +23,15 @@ float VelocityController::generateRampSetpoint(float stepSetpoint, float input, 
 	else
 		rampSetpoint += sign(stepSetpoint - input) * decceleration * timestep;
 
+	// We clamp the ramp so that it never exceeds the real setpoint
+	if ((stepSetpoint - input) * (stepSetpoint - rampSetpoint) < 0)
+		rampSetpoint = stepSetpoint;
+
 	// If we are above the desired setpoint (i.e. the ramp), we no longer try to follow it.
 	// Instead we generate a new ramp starting from our current position.
 	if ((input - rampSetpoint) * (stepSetpoint - rampSetpoint) > 0)
 		rampSetpoint = input;
 
-	// We clamp the ramp so that it never exceeds the real setpoint
-	if ((stepSetpoint - input) * (stepSetpoint - rampSetpoint) < 0)
-		rampSetpoint = stepSetpoint;
-	
 	return rampSetpoint;
 }
 
