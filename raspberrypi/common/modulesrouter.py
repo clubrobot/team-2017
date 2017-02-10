@@ -93,7 +93,7 @@ class Module:
 			'getuuid', 'setuuid', 'getout', 'geterr')
 		attributes = ('port', 'is_connected')
 		if name in methods:
-			def temporary_method(*args, tcptimeout=1, **kwargs):
+			def temporary_method(*args, tcptimeout=60, **kwargs):
 				try:
 					kwargs['serialtimeout'] = kwargs['timeout']
 					del kwargs['timeout']
