@@ -199,6 +199,18 @@ class TCPTalks:
 			self.queues_lock.release()
 		return queue
 
+	def delete_queue(self, retcode):
+		self.queues_lock.acquire()
+		try:
+			del self.queues_dict[retcode]
+		finally:
+			self.queues_lock.release()
+
+	def reset_queues(self):
+		self.queues_lock.acquire()
+		self.queues_dict = dict()
+		self.queues_lock.release()
+
 	def process(self, message):
 		role = message[0]
 		if (role == MASTER_BYTE):
@@ -238,6 +250,8 @@ class TCPTalks:
 			output = queue.get(block, timeout)
 		except Empty:
 			return None
+		if queue.qsize() == 0:
+			self.delete_queue(retcode)
 		if len(output) > 1:
 			return output # Return as a tuple
 		else:
@@ -248,8 +262,8 @@ class TCPTalks:
 			pass
 	
 	def execute(self, opcode, *args, timeout=1, **kwargs):
-		self.flush(opcode)
 		retcode = self.send(opcode, *args, **kwargs)
+		self.flush(retcode)
 		output = self.poll(retcode, timeout=timeout)
 		try:
 			etype, value, tb = output
