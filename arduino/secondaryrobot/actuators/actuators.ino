@@ -29,6 +29,7 @@ void setup()
 	// Servos
 	pinMode(DISPENSER_SERVO_PIN, OUTPUT);
 	dispenser.attach(DISPENSER_SERVO_PIN);
+	dispenser.write(74); // stop the servo
 
 	// Switchs
 
