@@ -1,37 +1,51 @@
-#include <Arduino.h>
-#include <Servo.h>
+#include <arduino.h>
+#include <servo.h>
+#include "EndStop.h"
+#include "PIN.h"
+#include "instructions.h"
+#include "DCMotor.h"
 
-#include "../../common/SerialTalks.h"
 
-// PIN.h
-#define DISPENSER_SERVO 2
+DCMotorDriver MotorDriver
+DCMotor GripperMotor;
 
-// instructions.h
-#define DISPENSER_WRITE_OPCODE 0x0D
-
-// instructions.cpp
-extern Servo dispenser;
-
-void DISPENSER_WRITE(SerialTalks& talks, Deserializer& input, Serializer& output)
-{
-	dispenser.write(input.read<int>());
-}
-
-// modulescollector.ino
+Servo gripper;
 Servo dispenser;
 
-void setup()
-{
-	Serial.begin(SERIALTALKS_BAUDRATE);
-	talks.begin(Serial);
-	talks.bind(DISPENSER_WRITE_OPCODE, DISPENSER_WRITE);
+EndStop highStop;
+EndStop lowStop;
 
-	pinMode(DISPENSER_SERVO, OUTPUT);
-	dispenser.attach(DISPENSER_SERVO);
-	dispenser.write(74);
+
+void setup(){
+    Serial.begin(SERIALTALKS_BAUDRATE);
+    talks.begin(Serial);
+    talKs.bind(_WRITE_DISPENSER_OPCODE, WRITE_DISPENSER);
+    talks.bind(_WRITE_GRIP_OPCODE, WRITE_GRIP);
+    talks.bind(_IS_UP_OPCODE, IS_UP);
+    talks.bind(_IS_DOWN_OPCODE, IS_DOWN);
+    talks.bind(_SET_MOTOR_VELOCITY_OPCODE, SET_MOTOR_VELOCITY);    
+    
+    pinMode(SERVODISPENSER, OUTPUT);
+    pinMode(SERVOGRIP, OUTPUT);
+    gripper.attach(SERVOGRIP);
+    dispenser.attach(SERVODISPENSER);
+    highStop.attach(HIGHENDSTOP);
+    lowStop.attach(LOWENDSTOP);
+
+    Driver.attach(reset , gdk);
+    Driver.reset();
+    
+    GripperMotor.attach( EN, PWM, DIR);
+    GripperMotor.setConstants(300/6, 1);
+    GripperMotor.setSuppliedVoltage(11);
+    GripperMotor.setRadius(8);
 }
 
-void loop()
-{
-	talks.execute();
+void loop(){
+     talks.execute();
+     GripperMotor.update();
 }
+
+
+
+
