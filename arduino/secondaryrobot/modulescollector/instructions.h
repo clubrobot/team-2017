@@ -11,15 +11,15 @@
 #define _SET_MOTOR_VELOCITY_OPCODE  0x0C
 
 
-void WRITE_GRIP(SerialTalks& inst, Deserializer& input, Serializer& ouput);
+void WRITE_GRIP(SerialTalks& inst, Deserializer& input, Serializer& output);
 
-void WRITE_DISPENSER(SerialTalks& inst, Deserializer& input, Serializer& ouput);
+void WRITE_DISPENSER(SerialTalks& inst, Deserializer& input, Serializer& output);
 
-bool IS_UP(SerialTalks& inst, Deserializer& input, Serializer& ouput);
+void IS_UP(SerialTalks& inst, Deserializer& input, Serializer& output);
 
-bool IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& ouput);
+void IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& output);
 
-void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& ouput);
+void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output);
 
 
 

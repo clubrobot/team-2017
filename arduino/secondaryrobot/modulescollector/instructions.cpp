@@ -1,27 +1,28 @@
 #include "instructions.h"
-#include "EndStop.h"
+#include "../../common/EndStop.h"
+#include <Servo.h>
 
 extern Servo gripper;
-extern Servo Dispenser;
+extern Servo dispenser;
 extern EndStop highStop;
 extern EndStop lowStop;
 
-void WRITE_GRIP(SerialTalks& inst, Deserializer& input, Serializer& ouput){
+void WRITE_GRIP(SerialTalks& inst, Deserializer& input, Serializer& output){
     gripper.write(input.read<int>());
 }
 
-void WRITE_DISPENSER(SerialTalks& inst, Deserializer& input, Serializer& ouput){
+void WRITE_DISPENSER(SerialTalks& inst, Deserializer& input, Serializer& output){
     dispenser.write(input.read<int>());
 }
 
-bool IS_UP(SerialTalks& inst, Deserializer& input, Serializer& ouput){
-    output.write<int>(highEndStop.getState());
+void IS_UP(SerialTalks& inst, Deserializer& input, Serializer& output){
+    output.write<int>(highStop.getState());
 }
 
-bool IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& ouput){
-    output.write<int>(lowEndStop.getState());
+void IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& output){
+    output.write<int>(lowStop.getState());
 }
 
-void setMotorVelocity(SerialTalks& inst, Deserializer& input, Serializer& ouput){
+void setMotorVelocity(SerialTalks& inst, Deserializer& input, Serializer& output){
 
 }

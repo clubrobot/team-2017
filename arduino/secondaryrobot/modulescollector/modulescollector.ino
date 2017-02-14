@@ -1,12 +1,13 @@
-#include <arduino.h>
-#include <servo.h>
-#include "EndStop.h"
+#include <Arduino.h>
+#include <Servo.h>
+#include "../../common/EndStop.h"
 #include "PIN.h"
 #include "instructions.h"
-#include "DCMotor.h"
+#include "../../common/DCMotor.h"
+#include "../../common/SerialTalks.h"
 
 
-DCMotorDriver MotorDriver
+DCMotorsDriver MotorDriver;
 DCMotor GripperMotor;
 
 Servo gripper;
@@ -19,7 +20,7 @@ EndStop lowStop;
 void setup(){
     Serial.begin(SERIALTALKS_BAUDRATE);
     talks.begin(Serial);
-    talKs.bind(_WRITE_DISPENSER_OPCODE, WRITE_DISPENSER);
+    talks.bind(_WRITE_DISPENSER_OPCODE, WRITE_DISPENSER);
     talks.bind(_WRITE_GRIP_OPCODE, WRITE_GRIP);
     talks.bind(_IS_UP_OPCODE, IS_UP);
     talks.bind(_IS_DOWN_OPCODE, IS_DOWN);
@@ -32,10 +33,10 @@ void setup(){
     highStop.attach(HIGHENDSTOP);
     lowStop.attach(LOWENDSTOP);
 
-    Driver.attach(reset , gdk);
-    Driver.reset();
+//    Driver.attach(reset , gdk);
+//    Driver.reset();
     
-    GripperMotor.attach( EN, PWM, DIR);
+//    GripperMotor.attach( EN, PWM, DIR);
     GripperMotor.setConstants(300/6, 1);
     GripperMotor.setSuppliedVoltage(11);
     GripperMotor.setRadius(8);
@@ -43,7 +44,6 @@ void setup(){
 
 void loop(){
      talks.execute();
-     GripperMotor.update();
 }
 
 

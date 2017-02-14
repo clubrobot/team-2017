@@ -10,6 +10,7 @@ LOCAL_CPP_SRCS = \
     instructions.cpp \
     $(COMMON)/SerialTalks.cpp \
     $(COMMON)/EndStop.cpp \
+    $(COMMON)/DCMotor.cpp
 
 
 #sketch libraries

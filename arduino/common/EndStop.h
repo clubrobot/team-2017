@@ -2,7 +2,7 @@
 #define __ENDSTOP_H__
 
 
-class Endstop {
+class EndStop {
 
     private :
     
