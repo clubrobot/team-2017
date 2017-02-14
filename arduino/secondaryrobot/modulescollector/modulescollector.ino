@@ -7,8 +7,8 @@
 #include "../../common/SerialTalks.h"
 
 
-DCMotorsDriver MotorDriver;
-DCMotor GripperMotor;
+DCMotorsDriver motorDriver;
+DCMotor gripperMotor;
 
 Servo gripper;
 Servo dispenser;
@@ -33,13 +33,13 @@ void setup(){
     highStop.attach(HIGHENDSTOP);
     lowStop.attach(LOWENDSTOP);
 
-//    Driver.attach(reset , gdk);
-//    Driver.reset();
+//    motorDriver.attach(reset , gdk);
+//    motorDriver.reset();
     
-//    GripperMotor.attach( EN, PWM, DIR);
-    GripperMotor.setConstants(300/6, 1);
-    GripperMotor.setSuppliedVoltage(11);
-    GripperMotor.setRadius(8);
+//    gripperMotor.attach( EN, PWM, DIR);
+    gripperMotor.setConstants(300/6, 1);
+    gripperMotor.setSuppliedVoltage(11);
+    gripperMotor.setRadius(8);
 }
 
 void loop(){
