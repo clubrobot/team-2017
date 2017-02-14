@@ -23,6 +23,6 @@ void IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& output){
     output.write<int>(lowStop.getState());
 }
 
-void setMotorVelocity(SerialTalks& inst, Deserializer& input, Serializer& output){
+void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output){
 
 }

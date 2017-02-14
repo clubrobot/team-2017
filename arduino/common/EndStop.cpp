@@ -1,5 +1,5 @@
 #include "EndStop.h"
-#include <arduino.h>
+#include <Arduino.h>
 
 
 void EndStop::attach(int pin){

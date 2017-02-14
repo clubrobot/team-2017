@@ -4,7 +4,7 @@ BOARD_TAG = nano
 BOARD_SUB = atmega328
 
 #Sketch sources
-COMMON = ../../COMMON
+COMMON = ../../common
 LOCAL_INO_SRCS = modulescollector.ino 
 LOCAL_CPP_SRCS = \
     instructions.cpp \
