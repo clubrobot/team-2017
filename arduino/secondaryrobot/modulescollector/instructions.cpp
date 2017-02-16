@@ -1,11 +1,13 @@
 #include "instructions.h"
 #include "../../common/EndStop.h"
+#include "../../common/DCMotor.h"
 #include <Servo.h>
 
 extern Servo gripper;
 extern Servo dispenser;
 extern EndStop highStop;
 extern EndStop lowStop;
+extern DCMotor gripperMotor;
 
 void WRITE_GRIP(SerialTalks& inst, Deserializer& input, Serializer& output){
     gripper.write(input.read<int>());
@@ -24,5 +26,5 @@ void IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& output){
 }
 
 void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output){
-    motor1.setVelocity(intput.read<float>());
+    gripperMotor.setVelocity(input.read<float>());
 }

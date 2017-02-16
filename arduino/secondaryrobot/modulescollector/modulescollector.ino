@@ -28,18 +28,21 @@ void setup(){
     
     pinMode(SERVO1, OUTPUT);
     pinMode(SERVO2, OUTPUT);
-    gripper.attach(SERVO1);
-    dispenser.attach(SERVO2);
+    dispenser.attach(SERVO1);
+    gripper.attach(SERVO2);
     highStop.attach(SWITCH1);
     lowStop.attach(SWITCH2);
 
     motorDriver.attach(DRIVER_RESET , A7);
     motorDriver.reset();
     
-    gripperMotor.attach(MOTOR1_EN, MOTOR1_PWM, MOTOR1_DIR);
+    gripperMotor.attach(MOTOR2_EN, MOTOR2_PWM, MOTOR2_DIR);
     gripperMotor.setConstants(300/6, 1);
     gripperMotor.setSuppliedVoltage(11);
     gripperMotor.setRadius(8);
+
+    // Miscellanous
+	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
 }
 
 void loop(){
