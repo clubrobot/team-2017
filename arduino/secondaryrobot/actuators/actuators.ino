@@ -11,7 +11,6 @@
 Servo dispenser;
 DCMotorsDriver driver;
 DCMotor motor1;
-DCMotor motor2;
 
 void setup()
 {

@@ -24,5 +24,5 @@ void IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& output){
 }
 
 void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output){
-
+    motor1.setVelocity(intput.read<float>());
 }
