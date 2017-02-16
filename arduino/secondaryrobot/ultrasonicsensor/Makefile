@@ -1,4 +1,4 @@
-BOARD_UUID = alfred
+BOARD_UUID = Sensor
 BOARD_TAG  = nano
 BOARD_SUB  = atmega328
 
