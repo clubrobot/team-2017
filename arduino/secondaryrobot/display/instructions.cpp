@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "instructions.h"
 #include "IPDisplay.h"
+#include <EEPROM.h>
 
 // Global variables
 extern Ipdisplay ipdisplay;
@@ -8,6 +9,10 @@ extern Ipdisplay ipdisplay;
 // Instructions
 void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
 {
+	// parametres a recuperer : 
+	// numero de la matrice
+	// type d'affichage (continu, défilement)
+	// chaine de caractère a afficher
 }
 
 void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
@@ -35,3 +40,13 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
 	output << shift;
     ipdisplay.computeBuffer(buffer, shift);
 }
+
+
+#ifdef INIT_EEPROM
+	void INIT_EEPROM_DATA(SerialTalks &talks, Deserializer &input, Serializer &output)
+	{
+		for(int i = 0;i<EEPROM_IPDISPLAY_LENGTH;i++){
+			EEPROM.write(EEPROM_IPDISPLAY_START_ADDRESS+i,segToDisplay[i]);
+		}
+	}
+#endif

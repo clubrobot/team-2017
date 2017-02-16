@@ -1,6 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
+#include "../../common/SerialTalks.h"
 
 //************
 // Constants *
@@ -88,6 +89,25 @@ const byte DISP[4][8] = {{128, 1, 8, 32, 64, 2, 4, 16},
 #define DATA_MATRIX3
 #define CLOCK_MATRIX3
 #define LATCH_MATRIX3
+
+//***********************
+// EEPROM configuration *
+//************************
+
+#define INIT_EEPROM				// disable to save ROM space
+
+
+#define EEPROM_START_ADDRESS SERIALTALKS_UUID_ADDRESS+SERIALTALKS_UUID_LENGTH
+#define EEPROM_IPDISPLAY_START_ADDRESS EEPROM_START_ADDRESS
+#define EEPROM_IPDISPLAY_LENGTH END_CHAR-START_CHAR+1
+#define EEPROM_LEDMATRIX_START_ADDRESS EEPROM_IPDISPLAY_START_ADDRESS+EEPROM_IPDISPLAY_LENGTH
+#define EEPROM_LEDMATRIX_LENGTH		//TODO
+
+
+
+
+
+
 
 
 #endif
