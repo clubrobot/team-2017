@@ -9,8 +9,7 @@ LOCAL_CPP_SRCS = \
 	instructions.cpp \
 	$(COMMON)/SerialTalks.cpp \
 	$(COMMON)/Clock.cpp \
-	$(COMMON)/UltrasonicSensor.cpp \
-	$(COMMON)/EchoHandler.cpp \
+	$(COMMON)/UltrasonicSensor.cpp 
 
 
 
