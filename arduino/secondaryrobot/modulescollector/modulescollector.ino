@@ -38,8 +38,8 @@ void setup(){
     
     gripperMotor.attach(MOTOR2_EN, MOTOR2_PWM, MOTOR2_DIR);
     gripperMotor.setConstants(300/6, 1);
-    gripperMotor.setSuppliedVoltage(11);
-    gripperMotor.setRadius(8);
+    gripperMotor.setSuppliedVoltage(11.1);
+    gripperMotor.setRadius(7.5);
 
     // Miscellanous
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz

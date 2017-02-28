@@ -26,5 +26,9 @@ void IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& output){
 }
 
 void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output){
-    gripperMotor.setVelocity(input.read<float>());
+    float vel = input.read<float>();
+    if(vel <= 400){
+        gripperMotor.setVelocity(vel);
+        talks.out << vel << "\n";
+    }
 }

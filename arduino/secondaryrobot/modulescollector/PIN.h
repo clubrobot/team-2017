@@ -25,12 +25,12 @@ pin	A5	A4	A3	A2
 
 // DC motors driver
 
-#define MOTOR1_EN       9
-#define MOTOR1_PWM      11
-#define MOTOR1_DIR      10
 #define MOTOR2_EN       6
 #define MOTOR2_PWM      3
 #define MOTOR2_DIR      5
+#define MOTOR1_EN       9
+#define MOTOR1_PWM      11
+#define MOTOR1_DIR      10
 #define DRIVER_RESET    12
 
 // Switchs
