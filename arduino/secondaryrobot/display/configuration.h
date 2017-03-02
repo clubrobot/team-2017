@@ -24,7 +24,7 @@
 //****************************
 
 // common pin DISP1 , DISP2 , DISP3
-const byte DISP_PIN[] = {2, 3, 4};
+const byte DISP_PIN[] = {4, 3, 2};
 
 // shift register pins
 #define DATA_IPDISPLAY 5
@@ -58,10 +58,10 @@ const byte segToDisplay[] = {0b00000000, 0b01100001, 0b01000100, 0b00000000, 0b0
 
 //Weight of each segment
 //                         a , b , c , d , e , f , g , dp
-const byte DISP[4][8] = {{128, 1, 8, 32, 64, 2, 4, 16},
-                         {128, 1, 4, 16, 32, 64, 2, 8},
-                         {128, 1, 8, 32, 64, 2, 4, 16},
-                         {128, 1, 4, 16, 32, 64, 2, 8}};
+const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
+                         {1, 128, 32, 8, 4, 2, 64, 16},
+                         {1, 128, 16, 4, 2, 64, 32, 8},		//{128, 1, 8, 32, 64, 2, 4, 16},
+                         {1, 128, 32, 8, 4, 2, 64, 16}};
 
 //******************************
 // LED Matrix 1 pin definition *
