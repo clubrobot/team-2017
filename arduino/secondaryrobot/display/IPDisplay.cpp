@@ -2,6 +2,7 @@
 #include "IPDisplay.h"
 #include "configuration.h"
 #include "../../common/SerialTalks.h"
+#include <EEPROM.h>
 
 extern SerialTalks talks;
 
@@ -66,7 +67,7 @@ void Ipdisplay::computeBuffer(char buffer[], byte shift)
 				{
 					for (int j = 0; j < 8; j++)
 					{
-						m_toSend[display][i] += ((segToDisplay[buffer[cpt]-START_CHAR] & (0x01 << j)) / (0x01 << j)) * DISP[display][7 - j];
+						m_toSend[display][i] += (((EEPROM.read(EEPROM_IPDISPLAY_START_ADDRESS+buffer[cpt]-START_CHAR)) & (0x01 << j)) / (0x01 << j)) * DISP[display][7 - j];
 					}
 				}
 

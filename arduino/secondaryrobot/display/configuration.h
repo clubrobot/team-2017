@@ -3,6 +3,14 @@
 
 #include "../../common/SerialTalks.h"
 
+//************************
+// initialisation EEPROM *
+//************************
+
+#define INIT_EEPROM				// disable to save ROM space
+
+
+
 //************
 // Constants *
 //************
@@ -35,6 +43,7 @@ const byte DISP_PIN[] = {2, 3, 4};
 //a,b,c,d,e,f,g,dp  
 #define START_CHAR ' '
 #define END_CHAR '~'
+#ifdef INIT_EEPROM
 //                            SPACE    ,     !     ,     "     ,     #     ,     $     ,     %     ,     &     ,     '     ,     (     ,     )
 const byte segToDisplay[] = {0b00000000, 0b01100001, 0b01000100, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b01000000, 0b10011100, 0b11110000,
 //                               *     ,     +     ,     ,     ,     -     ,     .     ,     /     ,     0     ,     1     ,     2     ,     3
@@ -55,6 +64,7 @@ const byte segToDisplay[] = {0b00000000, 0b01100001, 0b01000100, 0b00000000, 0b0
 						 	 0b11001110, 0b11100110, 0b00001010, 0b10110110, 0b00011110, 0b00111000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
 //                               z     ,     {     ,     |     ,     }     ,     ~     
 						 	 0b00000000, 0b00000000, 0b01100000, 0b00000000, 0b00000000};
+#endif
 
 //Weight of each segment
 //                         a , b , c , d , e , f , g , dp
@@ -93,8 +103,6 @@ const byte DISP[4][8] = {{128, 1, 8, 32, 64, 2, 4, 16},
 //***********************
 // EEPROM configuration *
 //************************
-
-#define INIT_EEPROM				// disable to save ROM space
 
 
 #define EEPROM_START_ADDRESS SERIALTALKS_UUID_ADDRESS+SERIALTALKS_UUID_LENGTH
