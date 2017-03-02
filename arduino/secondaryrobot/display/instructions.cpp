@@ -46,7 +46,7 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
 	void INIT_EEPROM_DATA(SerialTalks &talks, Deserializer &input, Serializer &output)
 	{
 		for(int i = 0;i<EEPROM_IPDISPLAY_LENGTH;i++){
-			EEPROM.write(EEPROM_IPDISPLAY_START_ADDRESS+i,segToDisplay[i]);
+			EEPROM.write(EEPROM_IPDISPLAY_START_ADDRESS+i,segToDisplay[i]);	//segToDisplay[i]
 		}
 	}
 #endif
