@@ -112,7 +112,7 @@ void TrajectoryPlanner::process(float timestep)
 	else
 	{
 		m_angularVelocitySetpoint = m_angularVelocityKp * inrange(theta, -M_PI, M_PI);
-		m_linearVelocitySetpoint  = m_linearVelocityKp * du;
+		m_linearVelocitySetpoint  = m_linearVelocityKp  * du;
 	}
 
 	// Clamp velocities setpoints to their maximum values
@@ -120,5 +120,9 @@ void TrajectoryPlanner::process(float timestep)
 	m_angularVelocitySetpoint = saturate(m_angularVelocitySetpoint, -m_maxAngularVelocity, m_maxAngularVelocity);
 
 	// Has the robot reached its target?
-	m_targetReached = d < m_thresholdLinearPosition && abs(gamma) < m_thresholdAngularPosition;
+	if (!m_underThresholdRadius)
+		m_targetReached = d < m_thresholdLinearPosition;
+	else
+		m_targetReached = abs(du) < m_thresholdLinearPosition;
+	m_targetReached &= abs(inrange(theta, -M_PI, M_PI)) < m_thresholdAngularPosition;
 }
