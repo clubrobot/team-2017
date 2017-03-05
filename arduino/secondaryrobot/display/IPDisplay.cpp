@@ -2,6 +2,7 @@
 #include "IPDisplay.h"
 #include "configuration.h"
 #include "../../common/SerialTalks.h"
+#include <EEPROM.h>
 
 extern SerialTalks talks;
 
@@ -33,10 +34,10 @@ void Ipdisplay::process(float timestep)
 		m_disp_number = 0;
 
 	digitalWrite(LATCH_IPDISPLAY, LOW);
-	for (int i = 3; i >= 0; i--)
-	{
-		shiftOut(DATA_IPDISPLAY, CLOCK_IPDISPLAY, MSBFIRST, m_toSend[i][m_disp_number]);
-	}
+	shiftOut(DATA_IPDISPLAY, CLOCK_IPDISPLAY, MSBFIRST, m_toSend[2][m_disp_number]);
+	shiftOut(DATA_IPDISPLAY, CLOCK_IPDISPLAY, MSBFIRST, m_toSend[3][m_disp_number]);
+	shiftOut(DATA_IPDISPLAY, CLOCK_IPDISPLAY, MSBFIRST, m_toSend[0][m_disp_number]);
+	shiftOut(DATA_IPDISPLAY, CLOCK_IPDISPLAY, MSBFIRST, m_toSend[1][m_disp_number]);
 	digitalWrite(LATCH_IPDISPLAY, HIGH);
 	digitalWrite(DISP_PIN[m_disp_number], HIGH); // Turn on the next 7 seg display
 }
@@ -66,7 +67,7 @@ void Ipdisplay::computeBuffer(char buffer[], byte shift)
 				{
 					for (int j = 0; j < 8; j++)
 					{
-						m_toSend[display][i] += ((segToDisplay[buffer[cpt]-START_CHAR] & (0x01 << j)) / (0x01 << j)) * DISP[display][7 - j];
+						m_toSend[display][i] += (((EEPROM.read(EEPROM_IPDISPLAY_START_ADDRESS+buffer[cpt]-START_CHAR)) & (0x01 << j)) / (0x01 << j)) * DISP[display][7 - j];
 					}
 				}
 

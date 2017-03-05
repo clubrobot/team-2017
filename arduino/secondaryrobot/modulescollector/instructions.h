@@ -22,7 +22,8 @@ void IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& output);
 void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output);
 
 
-
-
+// position ouverte gripper = 142
+// position fermée gripper = 4
+ 
 
 #endif

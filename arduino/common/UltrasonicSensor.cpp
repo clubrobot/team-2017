@@ -1,5 +1,5 @@
 #include "UltrasonicSensor.h"
-#include <arduino.h>
+#include <Arduino.h>
 #define TEMPORISATION 50000
 
 
@@ -134,3 +134,68 @@ void UltrasonicSensor::update() {
     filtrage();
     echohandler->setflag(false);
     m_dejaTest = false;
+  }
+
+  else if (((micros() - echohandler->getEndTime()) >= TEMPORISATION) && !m_dejaTest) {
+    m_dejaTest = true;
+    trighandler->Ready();
+  }
+}
+
+void UltrasonicSensor::filtrage() {
+  m_inf2 = (m_mesure < 26);
+  if (m_mesure > 50) {
+    m_inf2 = false;
+  }
+}
+
+
+unsigned int UltrasonicSensor::getMesure() {
+  if (m_inf2) {
+    return 25;
+  }
+  else {
+    return m_mesure;
+  }
+}
+
+
+void UltrasonicSensor::attach(int trig, int echo)
+{
+  if (echo == 2) {
+    echohandler = &echohandler2;
+  }
+  else if (echo == 3) {
+    echohandler = &echohandler3;
+  }
+  if (trig == 1) {
+    trighandler = &trighandler1;
+  }
+  if (trig == 2) {
+    trighandler = &trighandler2;
+  }
+  if (trig == 3) {
+    trighandler = &trighandler3;
+  }
+  if (trig == 4) {
+    trighandler = &trighandler4;
+  }
+  if (trig == 5) {
+    trighandler = &trighandler5;
+  }
+  if (trig == 6) {
+    trighandler = &trighandler8;
+  }
+  if (trig == 7) {
+    trighandler = &trighandler7;
+  }
+  if (trig == 8) {
+    trighandler = &trighandler8;
+  }
+  if (trig == 9) {
+    trighandler = &trighandler9;
+  }
+  m_a = 0;
+  echohandler->enabler();
+  trighandler->enabler();
+}

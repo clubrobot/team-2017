@@ -26,20 +26,23 @@ void setup(){
     talks.bind(_IS_DOWN_OPCODE, IS_DOWN);
     talks.bind(_SET_MOTOR_VELOCITY_OPCODE, SET_MOTOR_VELOCITY);    
     
-    pinMode(SERVODISPENSER, OUTPUT);
-    pinMode(SERVOGRIP, OUTPUT);
-    gripper.attach(SERVOGRIP);
-    dispenser.attach(SERVODISPENSER);
-    highStop.attach(HIGHENDSTOP);
-    lowStop.attach(LOWENDSTOP);
+    pinMode(SERVO1, OUTPUT);
+    pinMode(SERVO2, OUTPUT);
+    dispenser.attach(SERVO1);
+    gripper.attach(SERVO2);
+    highStop.attach(SWITCH1);
+    lowStop.attach(SWITCH2);
 
-//    motorDriver.attach(reset , gdk);
-//    motorDriver.reset();
+    motorDriver.attach(DRIVER_RESET , A7);
+    motorDriver.reset();
     
-//    gripperMotor.attach( EN, PWM, DIR);
+    gripperMotor.attach(MOTOR2_EN, MOTOR2_PWM, MOTOR2_DIR);
     gripperMotor.setConstants(300/6, 1);
-    gripperMotor.setSuppliedVoltage(11);
-    gripperMotor.setRadius(8);
+    gripperMotor.setSuppliedVoltage(11.1);
+    gripperMotor.setRadius(7.5);
+
+    // Miscellanous
+	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
 }
 
 void loop(){
