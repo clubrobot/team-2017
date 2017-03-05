@@ -33,7 +33,7 @@
 
 #define SERIALTALKS_DEFAULT_UUID_LENGTH 9
 
-#define SERIALTALKS_CONNECT_OPCODE 0x0
+#define SERIALTALKS_PING_OPCODE    0x0
 #define SERIALTALKS_GETUUID_OPCODE 0x1
 #define SERIALTALKS_SETUUID_OPCODE 0x2
 #define SERIALTALKS_STDOUT_RETCODE 0xFFFFFFFF
@@ -78,7 +78,7 @@ public: // Public API
 
 	bool isConnected() const {return m_connected;}
 
-	void waitUntilConnected();
+	bool waitUntilConnected(float timeout);
 
 	bool getUUID(char* uuid);
 	void setUUID(const char* uuid);
@@ -116,7 +116,7 @@ protected: // Protected methods
 
 private:
 
-	static void CONNECT(SerialTalks& talks, Deserializer& input, Serializer& output);
+	static void PING   (SerialTalks& talks, Deserializer& input, Serializer& output);
 	static void GETUUID(SerialTalks& talks, Deserializer& input, Serializer& output);
 	static void SETUUID(SerialTalks& talks, Deserializer& input, Serializer& output);
 };

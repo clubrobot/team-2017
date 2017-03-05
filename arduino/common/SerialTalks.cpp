@@ -1,4 +1,5 @@
 #include "SerialTalks.h"
+#include "Clock.h"
 #include <EEPROM.h>
 
 
@@ -9,9 +10,8 @@ SerialTalks talks;
 
 // Built-in instructions
 
-void SerialTalks::CONNECT(SerialTalks& talks, Deserializer& input, Serializer& output)
+void SerialTalks::PING(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	talks.m_connected = true;
 	output << true;
 }
 
@@ -73,7 +73,7 @@ void SerialTalks::begin(Stream& stream)
 #endif // BOARD_UUID
 
 	// Add UUID accessors
-	bind(SERIALTALKS_CONNECT_OPCODE, SerialTalks::CONNECT);
+	bind(SERIALTALKS_PING_OPCODE,    SerialTalks::PING);
 	bind(SERIALTALKS_GETUUID_OPCODE, SerialTalks::GETUUID);
 	bind(SERIALTALKS_SETUUID_OPCODE, SerialTalks::SETUUID);
 }
@@ -146,6 +146,7 @@ bool SerialTalks::execute()
 			m_inputBuffer[m_bytesCounter++] = inc;
 			if (m_bytesCounter >= m_bytesNumber)
 			{
+				m_connected = true;
 				ret |= execinstruction(m_inputBuffer);
 				m_state = SERIALTALKS_WAITING_STATE;
 			}
@@ -154,10 +155,13 @@ bool SerialTalks::execute()
 	return ret;
 }
 
-void SerialTalks::waitUntilConnected()
+bool SerialTalks::waitUntilConnected(float timeout)
 {
-	while (!isConnected())
+	Clock clock;
+	clock.restart();
+	while (!isConnected() || (timeout > 0 && clock.getElapsedTime() < timeout))
 		execute();
+	return isConnected();
 }
 
 bool SerialTalks::getUUID(char* uuid)
