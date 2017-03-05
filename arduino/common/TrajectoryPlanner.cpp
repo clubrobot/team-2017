@@ -4,14 +4,14 @@
 #include "SerialTalks.h"
 
 
-float TrajectoryPlanner::getLinearPositionSetpoint() const
+float TrajectoryPlanner::getLinearVelocitySetpoint() const
 {
-	return m_linearPositionSetpoint;
+	return m_linearVelocitySetpoint;
 }
 
-float TrajectoryPlanner::getAngularPositionSetpoint() const
+float TrajectoryPlanner::getAngularVelocitySetpoint() const
 {
-	return m_angularPositionSetpoint;
+	return m_angularVelocitySetpoint;
 }
 
 bool TrajectoryPlanner::hasReachedItsTarget() const
@@ -24,6 +24,7 @@ bool TrajectoryPlanner::addWaypoint(const Position& waypoint)
 	if (m_remainingWaypoints < TRAJECTORYPLANNER_MAX_WAYPOINTS)
 	{
 		m_waypoints[m_remainingWaypoints++] = waypoint;
+		m_underThresholdRadius = false;
 		return true;
 	}
 	return false;
@@ -32,12 +33,31 @@ bool TrajectoryPlanner::addWaypoint(const Position& waypoint)
 void TrajectoryPlanner::reset()
 {
 	m_remainingWaypoints = 0;
+	m_underThresholdRadius = false;
 	m_targetReached = false;
 }
 
 void TrajectoryPlanner::setCartesianPositionInput(const Position& position)
 {
 	m_cartesianPositionInput = position;
+}
+
+void TrajectoryPlanner::setLinearVelocityTunings (float Kp, float max)
+{
+	m_linearVelocityKp = Kp;
+	m_maxLinearVelocity = max;
+}
+
+void TrajectoryPlanner::setAngularVelocityTunings(float Kp, float max)
+{
+	m_angularVelocityKp = Kp;
+	m_maxAngularVelocity = max;
+}
+
+void TrajectoryPlanner::setBezierCurveParameters(float alpha, float beta)
+{
+	m_alpha = alpha;
+	m_beta  = beta;
 }
 
 void TrajectoryPlanner::setThresholdRadius(float radius)
@@ -65,36 +85,40 @@ void TrajectoryPlanner::process(float timestep)
 	const float theta = target.theta - current.theta;
 
 	// Compute the oriented distance between the robot and its target
-	float linearDelta  = sqrt(du * du + dv * dv);
-	float angularDelta = atan2(dv, du);
+	float d  = sqrt(du * du + dv * dv);
+	float gamma = atan2(dv, du);
 
 	// Are we under the threshold radius?
-	bool underThresholdRadius = linearDelta < m_thresholdRadius * 2 * abs(sin(angularDelta - theta));
-
-	// Compute the needed orientation to reach the target position with the right orientation
-	m_angularPositionSetpoint = (!underThresholdRadius) ?
-		theta + 2 * (angularDelta - theta) :
-		theta;
-	m_angularPositionSetpoint = inrange(m_angularPositionSetpoint, -M_PI, M_PI);
-
-	// Let the robot turn on the spot if it is not well oriented
-	bool turnOnTheSpot = !underThresholdRadius && cos(m_angularPositionSetpoint) < 0;
-
-	// Compute the circular arc distance to be traveled in order to reach the destination
-	// The robot may move backward depending on which circular arc it is located
-	if (!underThresholdRadius && !turnOnTheSpot)
+	m_underThresholdRadius |= d < m_thresholdRadius * 2 * abs(sin(gamma - theta));
+	if (!m_underThresholdRadius) // If not, we try to reach the target following a Bezier curve 
 	{
-		float circularArcAngle = inrange(2 * (angularDelta - theta), -M_PI, M_PI);
-		if (circularArcAngle > 1e-6)
-			m_linearPositionSetpoint = linearDelta * circularArcAngle / (2 * sin(angularDelta - theta));
+		// Compute the Bézier curve's radius of curvature:
+		// 	radius = N / D
+		const float N = 1.5 * (d * m_alpha) * (d * m_alpha);
+		const float D = d * sin(gamma) - sign(du) * (d * m_beta) * sin(theta);
+
+		// Compute maximal setpoint velocities
+		m_linearVelocitySetpoint  = m_linearVelocityKp * d * sign(du);
+		m_angularVelocitySetpoint = m_maxAngularVelocity * sign(du * D);
+
+		// The robot must follow the previously computed radius
+		// Thus it must adjust one of its velocities with respect to the following formula:
+		// 	radius = linear velocity / angular velocity
+		if (abs(m_angularVelocitySetpoint * N) >= abs(m_linearVelocitySetpoint * D))
+			m_angularVelocitySetpoint = m_linearVelocitySetpoint  * D / N; // The robot goes full speed
 		else
-			m_linearPositionSetpoint = du;
+			m_linearVelocitySetpoint  = m_angularVelocitySetpoint * N / D; // The robot deccelerate
 	}
-	else if (turnOnTheSpot)
-		m_linearPositionSetpoint = 0;
 	else
-		m_linearPositionSetpoint = du;
+	{
+		m_angularVelocitySetpoint = m_angularVelocityKp * inrange(theta, -M_PI, M_PI);
+		m_linearVelocitySetpoint  = m_linearVelocityKp * du;
+	}
+
+	// Clamp velocities setpoints to their maximum values
+	m_linearVelocitySetpoint  = saturate(m_linearVelocitySetpoint,  -m_maxLinearVelocity,  m_maxLinearVelocity);
+	m_angularVelocitySetpoint = saturate(m_angularVelocitySetpoint, -m_maxAngularVelocity, m_maxAngularVelocity);
 
 	// Has the robot reached its target?
-	m_targetReached = abs(m_linearPositionSetpoint) < m_thresholdLinearPosition && abs(m_angularPositionSetpoint) < m_thresholdAngularPosition;
+	m_targetReached = d < m_thresholdLinearPosition && abs(gamma) < m_thresholdAngularPosition;
 }

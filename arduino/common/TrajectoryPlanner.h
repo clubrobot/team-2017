@@ -13,8 +13,8 @@ class TrajectoryPlanner : public PeriodicProcess
 {
 public:
 
-	float getLinearPositionSetpoint() const;
-	float getAngularPositionSetpoint() const;
+	float getLinearVelocitySetpoint() const;
+	float getAngularVelocitySetpoint() const;
 
 	bool hasReachedItsTarget() const;
 
@@ -23,6 +23,9 @@ public:
 	
 	void setCartesianPositionInput(const Position& position);
 
+	void setLinearVelocityTunings (float Kp, float max);
+	void setAngularVelocityTunings(float Kp, float max);
+	void setBezierCurveParameters(float alpha, float beta);
 	void setThresholdRadius(float radius);
 	void setThresholdPositions(float linearPosition, float angularPosition);
 	
@@ -31,14 +34,27 @@ private:
 	virtual void process(float timestep);
 
 	Position m_cartesianPositionInput;
-	float    m_linearPositionSetpoint;
-	float    m_angularPositionSetpoint;
+	float    m_linearVelocitySetpoint;
+	float    m_angularVelocitySetpoint;
 
 	Position m_waypoints[TRAJECTORYPLANNER_MAX_WAYPOINTS];
 	int      m_remainingWaypoints;
 
-	float m_thresholdRadius;
+	// Persistant trajectory data
+	bool m_underThresholdRadius;
 
+	// Linear and angular velocities tunings
+	float m_linearVelocityKp;
+	float m_angularVelocityKp;
+	float m_maxLinearVelocity;
+	float m_maxAngularVelocity;
+
+	// Bezier curve parameters
+	float m_alpha;
+	float m_beta;
+
+	// Thresholds
+	float m_thresholdRadius;
 	float m_thresholdLinearPosition;
 	float m_thresholdAngularPosition;
 	bool m_targetReached;
