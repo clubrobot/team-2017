@@ -110,7 +110,7 @@ void setup()
 	trajectory.setLinearVelocityTunings (linearPositionToVelocityController .getKp(), MAX_LINEAR_VELOCITY);
 	trajectory.setAngularVelocityTunings(angularPositionToVelocityController.getKp(), MAX_ANGULAR_VELOCITY);
 	trajectory.setBezierCurveParameters(0.3, 0.4);
-	trajectory.setThresholdRadius(10);
+	trajectory.setThresholdRadius(50);
 	trajectory.setThresholdPositions(MIN_LINEAR_POSITION, MIN_ANGULAR_POSITION);
 	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
 	trajectory.disable();
