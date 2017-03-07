@@ -41,7 +41,8 @@ private:
 	int      m_remainingWaypoints;
 
 	// Persistant trajectory data
-	bool m_underThresholdRadius;
+	bool m_turnOnTheSpot;
+	bool m_targetReached;
 
 	// Linear and angular velocities tunings
 	float m_linearVelocityKp;
@@ -49,15 +50,10 @@ private:
 	float m_maxLinearVelocity;
 	float m_maxAngularVelocity;
 
-	// Bezier curve parameters
-	float m_alpha;
-	float m_beta;
-
 	// Thresholds
 	float m_thresholdRadius;
 	float m_thresholdLinearPosition;
 	float m_thresholdAngularPosition;
-	bool m_targetReached;
 };
 
 #endif // __TRAJECTORYPLANNER_H__
