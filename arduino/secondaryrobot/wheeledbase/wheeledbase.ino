@@ -23,7 +23,6 @@ DCMotor leftWheel;
 DCMotor rightWheel;
 
 DifferentialController positionController;
-//DifferentialController velocityController;
 VelocityController     velocityController;
 
 PID linearVelocityController;
@@ -44,6 +43,7 @@ void setup()
 	Serial.begin(SERIALTALKS_BAUDRATE);
 	talks.begin(Serial);
 	talks.bind(SET_OPENLOOP_VELOCITIES_OPCODE, SET_OPENLOOP_VELOCITIES);
+	talks.bind(GET_CODEWHEELS_COUNTERS_OPCODE, GET_CODEWHEELS_COUNTERS);
 	talks.bind(SET_VELOCITIES_OPCODE, SET_VELOCITIES);
 	talks.bind(START_TRAJECTORY_OPCODE, START_TRAJECTORY);
 	talks.bind(TRAJECTORY_ENDED_OPCODE, TRAJECTORY_ENDED);
@@ -83,16 +83,14 @@ void setup()
 	angularVelocityController.setOutputLimits(-maxAngularVelocity, maxAngularVelocity);
 
 	// Odometry
-	leftCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
+	leftCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_Y_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
 	leftCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
-	leftCodewheel.setAxis(Y);
 	leftCodewheel.setCountsPerRevolution(-CODEWHEELS_COUNTS_PER_REVOLUTION); // negative -> backward
 	leftCodewheel.setRadius(LEFT_CODEWHEEL_RADIUS);
 	leftCodewheel.reset();
 
-	rightCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_X);
+	rightCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_X_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_X);
 	rightCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
-	rightCodewheel.setAxis(X);
 	rightCodewheel.setCountsPerRevolution(CODEWHEELS_COUNTS_PER_REVOLUTION); // positive -> forward
 	rightCodewheel.setRadius(RIGHT_CODEWHEEL_RADIUS);
 	rightCodewheel.reset();
@@ -103,13 +101,8 @@ void setup()
 	odometry.enable();
 
 	// Trajectories
-	PID linearPositionToVelocityController;
-	PID angularPositionToVelocityController;
-	linearPositionToVelocityController .loadTunings(LINEAR_POSITION_TO_VELOCITY_PID_ADDRESS);
-	angularPositionToVelocityController.loadTunings(ANGULAR_POSITION_TO_VELOCITY_PID_ADDRESS);
-	trajectory.setLinearVelocityTunings (linearPositionToVelocityController .getKp(), MAX_LINEAR_VELOCITY);
-	trajectory.setAngularVelocityTunings(angularPositionToVelocityController.getKp(), MAX_ANGULAR_VELOCITY);
-	trajectory.setBezierCurveParameters(0.3, 0.4);
+	trajectory.setLinearVelocityTunings (3, MAX_LINEAR_VELOCITY);
+	trajectory.setAngularVelocityTunings(4, MAX_ANGULAR_VELOCITY);
 	trajectory.setThresholdRadius(50);
 	trajectory.setThresholdPositions(MIN_LINEAR_POSITION, MIN_ANGULAR_POSITION);
 	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
