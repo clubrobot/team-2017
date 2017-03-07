@@ -30,8 +30,8 @@ void setup(){
     pinMode(SERVO2, OUTPUT);
     dispenser.attach(SERVO1);
     gripper.attach(SERVO2);
-    highStop.attach(SWITCH1);
-    lowStop.attach(SWITCH2);
+    highStop.attach(SWITCH4);
+    lowStop.attach(SWITCH3);
 
     motorDriver.attach(DRIVER_RESET , A7);
     motorDriver.reset();
@@ -47,6 +47,12 @@ void setup(){
 
 void loop(){
      talks.execute();
+     if(highStop.getState() && gripperMotor.getVelocity()<0){
+        gripperMotor.setVelocity(0);
+     }
+     else if(lowStop.getState() && gripperMotor.getVelocity()>0){
+        gripperMotor.setVelocity(0);
+     }
 }
 
 

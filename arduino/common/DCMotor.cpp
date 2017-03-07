@@ -15,6 +15,10 @@ float DCMotor::getMaximumVelocity() const
 	return abs(m_suppliedVoltage * (2 * M_PI * m_radius) / (60 * m_reductionRatio / m_velocityConstant));
 }
 
+float DCMotor::getVelocity(){
+	return m_velocity;
+}
+
 void DCMotor::attach(int EN, int PWM, int DIR)
 {
 	m_EN  = EN;

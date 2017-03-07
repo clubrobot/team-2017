@@ -15,6 +15,7 @@ public:
 	void setVelocity(float velocity);
 
 	float getMaximumVelocity() const;
+	float getVelocity();
 
 	void enable();
 	void disable();
@@ -26,6 +27,8 @@ public:
 	void setSuppliedVoltage(float suppliedVoltage);
 
 	void update();
+
+	
 	
 protected:
 

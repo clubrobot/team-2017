@@ -8,12 +8,11 @@ void EndStop::attach(int pin){
 }
 
 bool EndStop::getState(){
- 
  return (digitalRead(m_pin) == LOW);
 }
 
 void EndStop::detach(){
      pinMode(m_pin, INPUT);
-    m_pin = 0;
+     m_pin = 0;
     
 }
