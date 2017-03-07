@@ -4,7 +4,6 @@
 #include "DCMotor.h"
 #include "SerialTalks.h"
 
-
 #define FORWARD  0
 #define BACKWARD 1
 
@@ -23,12 +22,12 @@ void DCMotor::update()
 {
 	if (m_velocity != 0)
 	{
-		int PWM = m_velocity * m_constant * 255;
-		if (PWM < 0) PWM *= -1;
+		int PWM = m_velocity / (2 * M_PI * m_wheelRadius) * m_constant * 255;
+		if (PWM <   0) PWM *= -1;
 		if (PWM > 255) PWM = 255;
 		digitalWrite(m_EN, HIGH);
 		analogWrite(m_PWM, PWM);
-		digitalWrite(m_DIR, (m_velocity * m_constant > 0) ? FORWARD : BACKWARD);
+		digitalWrite(m_DIR, (m_velocity * m_constant * m_radius > 0) ? FORWARD : BACKWARD);
 	}
 	else
 	{
@@ -36,14 +35,16 @@ void DCMotor::update()
 	}
 }
 
-void DCMotor::loadConstant(int address)
+void DCMotor::load(int address)
 {
-	EEPROM.get(address, m_constant); address += sizeof(m_constant);
+	EEPROM.get(address, m_wheelRadius); address += sizeof(m_wheelRadius);
+	EEPROM.get(address, m_constant);    address += sizeof(m_constant);
 }
 
-void DCMotor::saveConstant(int address) const
+void DCMotor::save(int address) const
 {
-	EEPROM.put(address, m_constant); address += sizeof(m_constant);
+	EEPROM.put(address, m_wheelRadius); address += sizeof(m_wheelRadius);
+	EEPROM.put(address, m_constant);    address += sizeof(m_constant);
 }
 
 void DCMotorsDriver::attach(int RESET, int FAULT)
