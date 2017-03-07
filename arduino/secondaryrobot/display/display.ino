@@ -15,6 +15,9 @@ void setup()
 
 	talks.bind(SET_MATRIX_MESSAGE_OPCODE, SET_MATRIX_MESSAGE);
 	talks.bind(SET_IPDISPLAY_MESSAGE_OPCODE, SET_IPDISPLAY_MESSAGE);
+	#ifdef INIT_EEPROM
+		talks.bind(INIT_EEPROM_DATA_OPCODE, INIT_EEPROM_DATA);
+	#endif
 
 	// Variables initialisation
 

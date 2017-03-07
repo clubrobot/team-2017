@@ -4,21 +4,19 @@
 #include "NonCopyable.h"
 #include "Odometry.h"
 
-#define X 0
-#define Y 1
-
 
 class Codewheel : private NonCopyable, public AbstractCodewheel
 {
 public:
 
+	long getCounter();
+
 	float getTraveledDistance();
 	float restart();
 
-	void attachCounter(int XY, int SEL1, int SEL2, int OE, int RST);
+	void attachCounter(int XY, int axis, int SEL1, int SEL2, int OE, int RST);
 	void attachRegister(int DATA, int LATCH, int CLOCK);
 
-	void setAxis(int axis);
 	void setRadius(float radius);
 	void setCountsPerRevolution(long counts);
 

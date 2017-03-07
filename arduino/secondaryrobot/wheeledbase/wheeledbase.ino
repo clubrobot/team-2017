@@ -15,8 +15,6 @@
 #include "../../common/TrajectoryPlanner.h"
 #include "../../common/mathutils.h"
 
-#define CONTROL_IN_POSITION 0
-
 // Load the different modules
 
 DCMotorsDriver driver;
@@ -25,19 +23,10 @@ DCMotor leftWheel;
 DCMotor rightWheel;
 
 DifferentialController positionController;
-//DifferentialController velocityController;
 VelocityController     velocityController;
 
 PID linearVelocityController;
 PID angularVelocityController;
-
-#if CONTROL_IN_POSITION
-PID linearPositionController;
-PID angularPositionController;
-#else
-PID linearPositionToVelocityController;
-PID angularPositionToVelocityController;
-#endif
 
 Codewheel leftCodewheel;
 Codewheel rightCodewheel;
@@ -54,6 +43,7 @@ void setup()
 	Serial.begin(SERIALTALKS_BAUDRATE);
 	talks.begin(Serial);
 	talks.bind(SET_OPENLOOP_VELOCITIES_OPCODE, SET_OPENLOOP_VELOCITIES);
+	talks.bind(GET_CODEWHEELS_COUNTERS_OPCODE, GET_CODEWHEELS_COUNTERS);
 	talks.bind(SET_VELOCITIES_OPCODE, SET_VELOCITIES);
 	talks.bind(START_TRAJECTORY_OPCODE, START_TRAJECTORY);
 	talks.bind(TRAJECTORY_ENDED_OPCODE, TRAJECTORY_ENDED);
@@ -85,42 +75,22 @@ void setup()
 	velocityController.setControllers(linearVelocityController, angularVelocityController);
 	velocityController.disable();
 
-#if CONTROL_IN_POSITION
-	positionController.setAxleTrack(WHEELS_AXLE_TRACK);
-	positionController.setWheels(leftWheel, rightWheel);
-	positionController.setControllers(linearPositionController, angularPositionController);
-	positionController.disable();
-#endif
-
 	linearVelocityController .loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
 	angularVelocityController.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
 	const float maxLinearVelocity  = (leftWheel.getMaximumVelocity() + rightWheel.getMaximumVelocity()) / 2;
 	const float maxAngularVelocity = (leftWheel.getMaximumVelocity() + rightWheel.getMaximumVelocity()) / WHEELS_AXLE_TRACK;
 	linearVelocityController .setOutputLimits(-maxLinearVelocity,  maxLinearVelocity);
 	angularVelocityController.setOutputLimits(-maxAngularVelocity, maxAngularVelocity);
-	
-#if CONTROL_IN_POSITION
-	linearPositionController .loadTunings(LINEAR_POSITION_PID_ADDRESS);
-	angularPositionController.loadTunings(ANGULAR_POSITION_PID_ADDRESS);
-	//TODO: set outputs limits
-#else
-	linearPositionToVelocityController .loadTunings(LINEAR_POSITION_TO_VELOCITY_PID_ADDRESS);
-	angularPositionToVelocityController.loadTunings(ANGULAR_POSITION_TO_VELOCITY_PID_ADDRESS);
-	linearPositionToVelocityController .setOutputLimits(-MAX_LINEAR_VELOCITY,  +MAX_LINEAR_VELOCITY);
-	angularPositionToVelocityController.setOutputLimits(-MAX_ANGULAR_VELOCITY, +MAX_ANGULAR_VELOCITY);
-#endif
 
 	// Odometry
-	leftCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
+	leftCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_Y_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
 	leftCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
-	leftCodewheel.setAxis(Y);
 	leftCodewheel.setCountsPerRevolution(-CODEWHEELS_COUNTS_PER_REVOLUTION); // negative -> backward
 	leftCodewheel.setRadius(LEFT_CODEWHEEL_RADIUS);
 	leftCodewheel.reset();
 
-	rightCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_X);
+	rightCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_X_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_X);
 	rightCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
-	rightCodewheel.setAxis(X);
 	rightCodewheel.setCountsPerRevolution(CODEWHEELS_COUNTS_PER_REVOLUTION); // positive -> forward
 	rightCodewheel.setRadius(RIGHT_CODEWHEEL_RADIUS);
 	rightCodewheel.reset();
@@ -131,7 +101,9 @@ void setup()
 	odometry.enable();
 
 	// Trajectories
-	trajectory.setThresholdRadius(WHEELS_AXLE_TRACK);
+	trajectory.setLinearVelocityTunings (3, MAX_LINEAR_VELOCITY);
+	trajectory.setAngularVelocityTunings(4, MAX_ANGULAR_VELOCITY);
+	trajectory.setThresholdRadius(50);
 	trajectory.setThresholdPositions(MIN_LINEAR_POSITION, MIN_ANGULAR_POSITION);
 	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
 	trajectory.disable();
@@ -156,21 +128,11 @@ void loop()
 	// Compute trajectory
 	if (trajectory.update())
 	{
-		float linearPositionSetpoint  = trajectory.getLinearPositionSetpoint();
-		float angularPositionSetpoint = trajectory.getAngularPositionSetpoint();
-#if CONTROL_IN_POSITION
-		positionController.setSetpoints(linearPositionSetpoint, angularPositionSetpoint);
-		positionController.setInputs(0, 0);
-#else
-		float linearVelocitySetpoint  = linearPositionToVelocityController .compute(linearPositionSetpoint,  0, trajectory.getTimestep());
-		float angularVelocitySetpoint = angularPositionToVelocityController.compute(angularPositionSetpoint, 0, trajectory.getTimestep());
+		float linearVelocitySetpoint  = trajectory.getLinearVelocitySetpoint();
+		float angularVelocitySetpoint = trajectory.getAngularVelocitySetpoint();
 		velocityController.setSetpoints(linearVelocitySetpoint, angularVelocitySetpoint);
-#endif
 	}
 
 	// Integrate engineering control
 	velocityController.update();
-#if CONTROL_IN_POSITION
-	positionController.update();
-#endif
 }
