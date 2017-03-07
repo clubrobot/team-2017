@@ -26,4 +26,7 @@
 #define SHIFT_REG_LATCH      4
 #define SHIFT_REG_CLOCK      2
 
+#define QUAD_COUNTER_X_AXIS  0 // Not pin
+#define QUAD_COUNTER_Y_AXIS  1 // Not pin
+
 #endif // __PIN_H__
