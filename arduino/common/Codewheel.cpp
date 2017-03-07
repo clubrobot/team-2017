@@ -71,7 +71,7 @@ void Codewheel::update()
 	m_currentCounter = 0;
 	for (int i = 0; i < 4; i++)
 	{
-		// Select one byte out of four of the quad counter
+		// Select one byte of the 32 bits quad counter
 		// Its value will be stored in the shift register
 		byte SEL1 = i & 0x01;
 		byte SEL2 = (~i >> 1) & 0x01;
@@ -82,6 +82,7 @@ void Codewheel::update()
 		m_currentCounter <<= 8;
 
 		// Read the value stored in the shift register
+		digitalWrite(m_REGISTER_CLOCK, HIGH);
 		digitalWrite(m_REGISTER_LATCH, HIGH);
 		m_currentCounter += shiftIn(m_REGISTER_DATA, m_REGISTER_CLOCK, MSBFIRST);
 		digitalWrite(m_REGISTER_LATCH, LOW);
