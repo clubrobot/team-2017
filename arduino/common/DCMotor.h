@@ -4,44 +4,38 @@
 #include "NonCopyable.h"
 #include "DifferentialController.h"
 
-#define FORWARD  0
-#define BACKWARD 1
-
 
 class DCMotor : private NonCopyable, public AbstractMotor
 {
 public:
 
-	void setVelocity(float velocity);
-
-	float getMaximumVelocity() const;
-
-	void enable();
-	void disable();
+	DCMotor() : m_enabled(false), m_velocity(0), m_constant(1){}
 
 	void attach(int EN, int PWM, int DIR);
 
-	void setRadius(float radius);
-	void setConstants(float velocityConstant, int reductionRatio);
-	void setSuppliedVoltage(float suppliedVoltage);
+	void setVelocity(float velocity){m_velocity = velocity; update();}
+	void setConstant(float constant){m_constant = constant; update();}
+	void enable (){m_enabled = true;  update()}
+	void disable(){m_enabled = false; update()}
+
+	float getVelocity() const {return m_velocity;}
+	float getConstant() const {return m_constant;}
+	bool  isEnabled  () const {return m_enabled;}
 
 	void update();
+
+	void loadConstant(int address);
+	void saveConstant(int address) const;
 	
 protected:
 
-	int getPWM() const;
-
 	bool  m_enabled;
 	float m_velocity; // in mm/s (millimeters per second)
+	float m_constant; // = (60 * reduction_ratio / velocity_constant_in_RPM) / (2 * pi * wheel_radius_in_mm) / supplied_voltage_in_V
 
 	int	m_EN;
 	int	m_PWM;
 	int	m_DIR;
-
-	float m_radius; // in mm (millimeters)
-	float m_velocityConstant; // in RPM/V (revolution per minute per volt)
-	int	  m_reductionRatio;
-	float m_suppliedVoltage; // in V (volt)
 };
 
 class DCMotorsDriver
@@ -51,6 +45,7 @@ public:
 	void attach(int RESET, int FAULT);
 
 	void reset();
+
 	bool isFaulty();
 
 private:

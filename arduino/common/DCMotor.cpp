@@ -1,19 +1,13 @@
+#include <Arduino.h>
+#include <EEPROM.h>
+
 #include "DCMotor.h"
 #include "SerialTalks.h"
 
-#include <Arduino.h>
 
+#define FORWARD  0
+#define BACKWARD 1
 
-void DCMotor::setVelocity(float velocity)
-{
-	m_velocity = velocity;
-	update();
-}
-
-float DCMotor::getMaximumVelocity() const
-{
-	return abs(m_suppliedVoltage * (2 * M_PI * m_radius) / (60 * m_reductionRatio / m_velocityConstant));
-}
 
 void DCMotor::attach(int EN, int PWM, int DIR)
 {
@@ -25,29 +19,16 @@ void DCMotor::attach(int EN, int PWM, int DIR)
 	pinMode(m_DIR, OUTPUT);
 }
 
-void DCMotor::setRadius(float radius)
-{
-	m_radius = radius;
-}
-
-void DCMotor::setConstants(float velocityConstant, int reductionRatio)
-{
-	m_velocityConstant = velocityConstant;
-	m_reductionRatio = reductionRatio;
-}
-
-void DCMotor::setSuppliedVoltage(float suppliedVoltage)
-{
-	m_suppliedVoltage = suppliedVoltage;
-}
-
 void DCMotor::update()
 {
 	if (m_velocity != 0)
 	{
+		int PWM = m_velocity * m_constant * 255;
+		if (PWM < 0) PWM *= -1;
+		if (PWM > 255) PWM = 255;
 		digitalWrite(m_EN, HIGH);
-		analogWrite(m_PWM, getPWM());
-		digitalWrite(m_DIR, (m_velocity * m_velocityConstant > 0) ? FORWARD : BACKWARD);
+		analogWrite(m_PWM, PWM);
+		digitalWrite(m_DIR, (m_velocity * m_constant > 0) ? FORWARD : BACKWARD);
 	}
 	else
 	{
@@ -55,13 +36,14 @@ void DCMotor::update()
 	}
 }
 
-int DCMotor::getPWM() const
+void DCMotor::loadConstant(int address)
 {
-	int PWM = m_velocity * (60 * m_reductionRatio / m_velocityConstant) / (2 * M_PI * m_radius) * (255 / m_suppliedVoltage);
-	if (PWM > 255 || PWM < -255)
-		return 255;
-	else
-		return abs(PWM);
+	EEPROM.get(address, m_constant); address += sizeof(m_constant);
+}
+
+void DCMotor::saveConstant(int address) const
+{
+	EEPROM.put(address, m_constant); address += sizeof(m_constant);
 }
 
 void DCMotorsDriver::attach(int RESET, int FAULT)
