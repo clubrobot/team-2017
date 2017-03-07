@@ -44,11 +44,11 @@ void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer
 
 void GET_CODEWHEELS_COUNTERS(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	float leftCounter  = leftCodewheel. getCounter();
-	float rightCounter = rightCodewheel.getCounter();
+	long leftCounter  = leftCodewheel. getCounter();
+	long rightCounter = rightCodewheel.getCounter();
 
-	output.write<float>(leftCounter);
-	output.write<float>(rightCounter);
+	output.write<long>(leftCounter);
+	output.write<long>(rightCounter);
 }
 
 void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
