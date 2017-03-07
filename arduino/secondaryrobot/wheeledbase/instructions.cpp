@@ -42,6 +42,15 @@ void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer
 	rightWheel.setVelocity(rightVelocity);
 }
 
+void GET_CODEWHEELS_COUNTERS(SerialTalks& talks, Deserializer& input, Serializer& output)
+{
+	float leftCounter  = leftCodewheel. getCounter();
+	float rightCounter = rightCodewheel.getCounter();
+
+	output.write<float>(leftCounter);
+	output.write<float>(rightCounter);
+}
+
 void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	float linearVelocity  = input.read<float>();
@@ -104,19 +113,8 @@ void SET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output
 	float Ki = input.read<float>();
 	float Kd = input.read<float>();
 	
-	PID linearPositionToVelocityController;
-	PID angularPositionToVelocityController;
-
 	switch (id)
 	{
-	case LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER:
-		linearPositionToVelocityController.setTunings(Kp, Ki, Kd);
-		linearPositionToVelocityController.saveTunings(LINEAR_POSITION_TO_VELOCITY_PID_ADDRESS);
-		break;
-	case ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER:
-		angularPositionToVelocityController.setTunings(Kp, Ki, Kd);
-		angularPositionToVelocityController.saveTunings(ANGULAR_POSITION_TO_VELOCITY_PID_ADDRESS);
-		break;
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
 		linearVelocityController.setTunings(Kp, Ki, Kd);
 		linearVelocityController.saveTunings(LINEAR_VELOCITY_PID_ADDRESS);
@@ -135,23 +133,8 @@ void GET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output
 	byte id = input.read<byte>();
 	float Kp, Ki, Kd;
 
-	PID linearPositionToVelocityController;
-	PID angularPositionToVelocityController;
-	linearPositionToVelocityController .loadTunings(LINEAR_POSITION_TO_VELOCITY_PID_ADDRESS);
-	angularPositionToVelocityController.loadTunings(ANGULAR_POSITION_TO_VELOCITY_PID_ADDRESS);
-
 	switch (id)
 	{
-	case LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER:
-		Kp = linearPositionToVelocityController.getKp();
-		Ki = linearPositionToVelocityController.getKi();
-		Kd = linearPositionToVelocityController.getKd();
-		break;
-	case ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER:
-		Kp = angularPositionToVelocityController.getKp();
-		Ki = angularPositionToVelocityController.getKi();
-		Kd = angularPositionToVelocityController.getKd();
-		break;
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
 		Kp = linearVelocityController.getKp();
 		Ki = linearVelocityController.getKi();

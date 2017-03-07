@@ -7,6 +7,8 @@
 
 #define SET_OPENLOOP_VELOCITIES_OPCODE   0x04
 
+#define GET_CODEWHEELS_COUNTERS_OPCODE   0x0D
+
 #define SET_VELOCITIES_OPCODE    0x06
 
 #define START_TRAJECTORY_OPCODE  0x07
@@ -23,15 +25,13 @@
 
 #define LINEAR_VELOCITY_PID_IDENTIFIER  0x02
 #define ANGULAR_VELOCITY_PID_IDENTIFIER 0x03
-#define LINEAR_POSITION_PID_IDENTIFIER  0x04
-#define ANGULAR_POSITION_PID_IDENTIFIER 0x05
-#define LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER  0x06
-#define ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER 0x07
 
 
 // Instructions prototypes
 
 void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output);
+
+void GET_CODEWHEELS_COUNTERS(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output);
 
