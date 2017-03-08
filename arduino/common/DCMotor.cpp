@@ -27,12 +27,17 @@ void DCMotor::update()
 		if (PWM > 255) PWM = 255;
 		digitalWrite(m_EN, HIGH);
 		analogWrite(m_PWM, PWM);
-		digitalWrite(m_DIR, (m_velocity * m_constant * m_radius > 0) ? FORWARD : BACKWARD);
+		digitalWrite(m_DIR, (m_velocity * m_constant * m_wheelRadius > 0) ? FORWARD : BACKWARD);
 	}
 	else
 	{
 		digitalWrite(m_EN, LOW);
 	}
+}
+
+float DCMotor::getMaxVelocity() const
+{
+	return abs(2 * M_PI * m_wheelRadius * m_constant);
 }
 
 void DCMotor::load(int address)

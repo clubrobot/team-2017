@@ -11,7 +11,7 @@ class Codewheel : private NonCopyable, public AbstractCodewheel
 {
 public:
 
-	Codewheel() : 
+	Codewheel() : m_currentCounter(0), m_startCounter(0), m_wheelRadius(1 / (2 * M_PI)), m_countsPerRev(1000){}
 
 	void attachCounter(int XY, int AXIS, int SEL1, int SEL2, int OE, int RST);
 	void attachRegister(int DATA, int LATCH, int CLOCK);

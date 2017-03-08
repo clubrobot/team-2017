@@ -20,13 +20,15 @@ public:
 	void setConstant   (float constant)   {m_constant    = constant;    update();}
 	void setWheelRadius(float wheelRadius){m_wheelRadius = wheelRadius; update();}
 
-	void enable (){m_enabled = true;  update()}
-	void disable(){m_enabled = false; update()}
+	void enable (){m_enabled = true;  update();}
+	void disable(){m_enabled = false; update();}
 
 	float getVelocity   () const {return m_velocity;}
 	float getConstant   () const {return m_constant;}
 	float getWheelRadius() const {return m_wheelRadius;}
 	bool  isEnabled     () const {return m_enabled;}
+
+	float getMaxVelocity() const;
 
 	void load(int address);
 	void save(int address) const;
@@ -37,7 +39,7 @@ protected:
 
 	bool  m_enabled;
 	float m_velocity; // in mm/s (millimeters per second)
-	float m_radius;   // in mm
+	float m_wheelRadius; // in mm
 	float m_constant; // (60 * reduction_ratio / velocity_constant_in_RPM) / supplied_voltage_in_V
 
 	int	m_EN;
