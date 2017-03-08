@@ -28,12 +28,12 @@ public:
 	float getWheelRadius() const {return m_wheelRadius;}
 	bool  isEnabled     () const {return m_enabled;}
 
-	void update();
-
 	void load(int address);
 	void save(int address) const;
 	
 protected:
+
+	void update();
 
 	bool  m_enabled;
 	float m_velocity; // in mm/s (millimeters per second)
