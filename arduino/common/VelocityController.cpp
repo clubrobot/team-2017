@@ -55,3 +55,10 @@ void VelocityController::process(float timestep)
 	m_linearSetpoint  = savedLinearSetpoint;
 	m_angularSetpoint = savedAngularSetpoint;
 }
+
+void VelocityController::onProcessEnabling()
+{
+	DifferentialController::onProcessEnabling();
+	m_transitionalLinearVelocitySetpoint  = 0;
+	m_transitionalAngularVelocitySetpoint = 0;
+}

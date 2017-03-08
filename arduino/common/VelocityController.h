@@ -19,6 +19,8 @@ protected:
 
 	virtual void process(float timestep);
 
+	virtual void onProcessEnabling();
+
 	float m_transitionalLinearVelocitySetpoint;
 	float m_transitionalAngularVelocitySetpoint;
 
