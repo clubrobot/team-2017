@@ -57,15 +57,12 @@ void setup()
 	driver.attach(DRIVER_RESET, DRIVER_FAULT);
 	driver.reset();
 
-	leftWheel.attach(LEFT_MOTOR_EN, LEFT_MOTOR_PWM, LEFT_MOTOR_DIR);
-	leftWheel.setConstants(DCMOTORS_VELOCITY_CONSTANT, DCMOTORS_REDUCTION_RATIO);
-	leftWheel.setSuppliedVoltage(DCMOTORS_SUPPLIED_VOLTAGE);
-	leftWheel.setRadius(LEFT_WHEEL_RADIUS);
-
+	leftWheel. attach(LEFT_MOTOR_EN,  LEFT_MOTOR_PWM,  LEFT_MOTOR_DIR);
 	rightWheel.attach(RIGHT_MOTOR_EN, RIGHT_MOTOR_PWM, RIGHT_MOTOR_DIR);
-	rightWheel.setConstants(-DCMOTORS_VELOCITY_CONSTANT, DCMOTORS_REDUCTION_RATIO);
-	rightWheel.setSuppliedVoltage(DCMOTORS_SUPPLIED_VOLTAGE);
-	rightWheel.setRadius(RIGHT_WHEEL_RADIUS);
+	leftWheel. setWheelRadius(LEFT_WHEEL_RADIUS);
+	rightWheel.setWheelRadius(RIGHT_WHEEL_RADIUS);
+	leftWheel. setConstant(+(60.0 * DCMOTORS_REDUCTION_RATIO / DCMOTORS_VELOCITY_CONSTANT) / DCMOTORS_SUPPLIED_VOLTAGE);
+	rightWheel.setConstant(-(60.0 * DCMOTORS_REDUCTION_RATIO / DCMOTORS_VELOCITY_CONSTANT) / DCMOTORS_SUPPLIED_VOLTAGE);
 
 	// Engineering control
 	velocityController.setAxleTrack(WHEELS_AXLE_TRACK);
@@ -77,22 +74,23 @@ void setup()
 
 	linearVelocityController .loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
 	angularVelocityController.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
-	const float maxLinearVelocity  = (leftWheel.getMaximumVelocity() + rightWheel.getMaximumVelocity()) / 2;
-	const float maxAngularVelocity = (leftWheel.getMaximumVelocity() + rightWheel.getMaximumVelocity()) / WHEELS_AXLE_TRACK;
-	linearVelocityController .setOutputLimits(-maxLinearVelocity,  maxLinearVelocity);
-	angularVelocityController.setOutputLimits(-maxAngularVelocity, maxAngularVelocity);
+	const float maxLinearVelocity  = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / 2;
+	const float maxAngularVelocity = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / WHEELS_AXLE_TRACK;
+	talks.waitUntilConnected();
+	talks.out << leftWheel.getMaxVelocity()  << "\t" << rightWheel.getMaxVelocity() << "\n";
+//	linearVelocityController .setOutputLimits(-maxLinearVelocity,  maxLinearVelocity);
+//	angularVelocityController.setOutputLimits(-maxAngularVelocity, maxAngularVelocity);
 
 	// Odometry
-	leftCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_Y_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
-	leftCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
-	leftCodewheel.setCountsPerRevolution(-CODEWHEELS_COUNTS_PER_REVOLUTION); // negative -> backward
-	leftCodewheel.setRadius(LEFT_CODEWHEEL_RADIUS);
-	leftCodewheel.reset();
-
+	leftCodewheel. attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_Y_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
 	rightCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_X_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_X);
+	leftCodewheel. attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
 	rightCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
-	rightCodewheel.setCountsPerRevolution(CODEWHEELS_COUNTS_PER_REVOLUTION); // positive -> forward
-	rightCodewheel.setRadius(RIGHT_CODEWHEEL_RADIUS);
+	leftCodewheel. setWheelRadius(LEFT_CODEWHEEL_RADIUS);
+	rightCodewheel.setWheelRadius(RIGHT_CODEWHEEL_RADIUS);
+	leftCodewheel. setCountsPerRev(-CODEWHEELS_COUNTS_PER_REVOLUTION); // negative -> backward
+	rightCodewheel.setCountsPerRev(+CODEWHEELS_COUNTS_PER_REVOLUTION); // positive -> forward
+	leftCodewheel. reset();
 	rightCodewheel.reset();
 
 	odometry.setWheels(leftCodewheel, rightCodewheel);
