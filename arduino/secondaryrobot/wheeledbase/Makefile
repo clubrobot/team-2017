@@ -10,13 +10,13 @@ LOCAL_CPP_SRCS = \
 	instructions.cpp \
 	$(COMMON)/SerialTalks.cpp \
 	$(COMMON)/DCMotor.cpp \
+	$(COMMON)/Codewheel.cpp \
+	$(COMMON)/PeriodicProcess.cpp \
+	$(COMMON)/Odometry.cpp \
+	$(COMMON)/PID.cpp \
 	$(COMMON)/DifferentialController.cpp \
 	$(COMMON)/VelocityController.cpp \
-	$(COMMON)/PID.cpp \
-	$(COMMON)/Codewheel.cpp \
-	$(COMMON)/Odometry.cpp \
 	$(COMMON)/TrajectoryPlanner.cpp \
-	$(COMMON)/hardware.cpp \
 	$(COMMON)/mathutils.cpp
 
 # Sketch libraries

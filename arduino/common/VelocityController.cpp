@@ -1,21 +1,12 @@
+#include <Arduino.h>
+#include <EEPROM.h>
+
 #include "VelocityController.h"
-#include "mathutils.h"
 #include "SerialTalks.h"
+#include "mathutils.h"
 
 
-void VelocityController::setMaximumAccelerations(float linearAcceleration, float angularAcceleration)
-{
-	m_maxLinearAcceleration  = linearAcceleration;
-	m_maxAngularAcceleration = angularAcceleration;
-}
-
-void VelocityController::setMaximumDeccelerations(float linearDecceleration, float angularDecceleration)
-{
-	m_maxLinearDecceleration  = linearDecceleration;
-	m_maxAngularDecceleration = angularDecceleration;
-}
-
-float VelocityController::generateRampSetpoint(float stepSetpoint, float input, float rampSetpoint, float acceleration, float decceleration, float timestep)
+float VelocityController::genRampSetpoint(float stepSetpoint, float input, float rampSetpoint, float maxAcc, float maxDec, float timestep)
 {
 	// If we are above the desired setpoint (i.e. the ramp), we no longer try to follow it.
 	// Instead we generate a new ramp starting from our current position.
@@ -24,12 +15,12 @@ float VelocityController::generateRampSetpoint(float stepSetpoint, float input, 
 
 	// Do we have to accelerate or deccelerate to reach the desired setpoint?
 	if (input * (stepSetpoint - input) >= 0)
-		rampSetpoint += sign(stepSetpoint - input) * acceleration * timestep;
+		rampSetpoint += sign(stepSetpoint - input) * maxAcc * timestep;
 	else
-		rampSetpoint += sign(stepSetpoint - input) * decceleration * timestep;
+		rampSetpoint += sign(stepSetpoint - input) * maxDec * timestep;
 
 	// We clamp the ramp so that it never exceeds the real setpoint
-	if ((stepSetpoint - input) * (stepSetpoint - rampSetpoint) < 0)
+	if ((stepSetpoint - input) * (stepSetpoint - rampSetpoint) < 0) // TODO: test if this condition runs well when rampSetpoint is set to INFINITY
 		rampSetpoint = stepSetpoint;
 
 	return rampSetpoint;
@@ -38,27 +29,45 @@ float VelocityController::generateRampSetpoint(float stepSetpoint, float input, 
 void VelocityController::process(float timestep)
 {
 	// Save setpoints
-	const float savedLinearSetpoint  = m_linearSetpoint;
-	const float savedAngularSetpoint = m_angularSetpoint;
+	const float stepLinVelSetpoint = m_linSetpoint;
+	const float stepAngVelSetpoint = m_angSetpoint;
 
 	// Compute new setpoints
-	m_transitionalLinearVelocitySetpoint  = generateRampSetpoint(m_linearSetpoint,  m_linearInput,  m_transitionalLinearVelocitySetpoint,  m_maxLinearAcceleration,  m_maxLinearDecceleration,  timestep);
-	m_transitionalAngularVelocitySetpoint = generateRampSetpoint(m_angularSetpoint, m_angularInput, m_transitionalAngularVelocitySetpoint, m_maxAngularAcceleration, m_maxAngularDecceleration, timestep);
-//	m_transitionalAngularVelocitySetpoint = m_angularSetpoint;
+	m_rampLinVelSetpoint = genRampSetpoint(m_linSetpoint, m_linInput, m_rampLinVelSetpoint, m_maxLinAcc, m_maxLinDec, timestep);
+	m_rampAngVelSetpoint = genRampSetpoint(m_angSetpoint, m_angInput, m_rampAngVelSetpoint, m_maxAngAcc, m_maxAngDec, timestep);
+//	m_rampAngVelSetpoint = m_angSetpoint;
 
 	// Do the engineering control
-	m_linearSetpoint  = m_transitionalLinearVelocitySetpoint;
-	m_angularSetpoint = m_transitionalAngularVelocitySetpoint;
+	m_linSetpoint = m_rampLinVelSetpoint;
+	m_angSetpoint = m_rampAngVelSetpoint;
 	DifferentialController::process(timestep);
 
 	// Restore setpoints
-	m_linearSetpoint  = savedLinearSetpoint;
-	m_angularSetpoint = savedAngularSetpoint;
+	m_linSetpoint = stepLinVelSetpoint;
+	m_angSetpoint = stepAngVelSetpoint;
 }
 
 void VelocityController::onProcessEnabling()
 {
 	DifferentialController::onProcessEnabling();
-	m_transitionalLinearVelocitySetpoint  = 0;
-	m_transitionalAngularVelocitySetpoint = 0;
+	m_rampLinVelSetpoint = 0;
+	m_rampAngVelSetpoint = 0;
+}
+
+void VelocityController::load(int address)
+{
+	EEPROM.get(address, m_axleTrack); address += sizeof(m_axleTrack);
+	EEPROM.get(address, m_maxLinAcc); address += sizeof(m_maxLinAcc);
+	EEPROM.get(address, m_maxLinDec); address += sizeof(m_maxLinDec);
+	EEPROM.get(address, m_maxAngAcc); address += sizeof(m_maxAngAcc);
+	EEPROM.get(address, m_maxAngDec); address += sizeof(m_maxAngDec);
+}
+
+void VelocityController::save(int address) const
+{
+	EEPROM.put(address, m_axleTrack); address += sizeof(m_axleTrack);
+	EEPROM.put(address, m_maxLinAcc); address += sizeof(m_maxLinAcc);
+	EEPROM.put(address, m_maxLinDec); address += sizeof(m_maxLinDec);
+	EEPROM.put(address, m_maxAngAcc); address += sizeof(m_maxAngAcc);
+	EEPROM.put(address, m_maxAngDec); address += sizeof(m_maxAngDec);
 }

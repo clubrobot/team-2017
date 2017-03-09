@@ -22,11 +22,10 @@ DCMotorsDriver driver;
 DCMotor leftWheel;
 DCMotor rightWheel;
 
-DifferentialController positionController;
-VelocityController     velocityController;
+VelocityController velocityControl;
 
-PID linearVelocityController;
-PID angularVelocityController;
+PID linVelPID;
+PID angVelPID;
 
 Codewheel leftCodewheel;
 Codewheel rightCodewheel;
@@ -65,21 +64,19 @@ void setup()
 	rightWheel.setConstant(-(60.0 * DCMOTORS_REDUCTION_RATIO / DCMOTORS_VELOCITY_CONSTANT) / DCMOTORS_SUPPLIED_VOLTAGE);
 
 	// Engineering control
-	velocityController.setAxleTrack(WHEELS_AXLE_TRACK);
-	velocityController.setMaximumAccelerations (MAX_LINEAR_ACCELERATION,  MAX_ANGULAR_ACCELERATION);
-	velocityController.setMaximumDeccelerations(MAX_LINEAR_DECCELERATION, MAX_ANGULAR_DECCELERATION);
-	velocityController.setWheels(leftWheel, rightWheel);
-	velocityController.setControllers(linearVelocityController, angularVelocityController);
-	velocityController.disable();
+	velocityControl.setAxleTrack(WHEELS_AXLE_TRACK);
+	velocityControl.setMaxAcc(MAX_LINEAR_ACCELERATION,  MAX_ANGULAR_ACCELERATION);
+	velocityControl.setMaxDec(MAX_LINEAR_DECCELERATION, MAX_ANGULAR_DECCELERATION);
+	velocityControl.setWheels(leftWheel, rightWheel);
+	velocityControl.setPID(linVelPID, angVelPID);
+	velocityControl.disable();
 
-	linearVelocityController .loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
-	angularVelocityController.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
-	const float maxLinearVelocity  = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / 2;
-	const float maxAngularVelocity = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / WHEELS_AXLE_TRACK;
-	talks.waitUntilConnected();
-	talks.out << leftWheel.getMaxVelocity()  << "\t" << rightWheel.getMaxVelocity() << "\n";
-//	linearVelocityController .setOutputLimits(-maxLinearVelocity,  maxLinearVelocity);
-//	angularVelocityController.setOutputLimits(-maxAngularVelocity, maxAngularVelocity);
+	const float maxLinVel = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / 2;
+	const float maxAngVel = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / WHEELS_AXLE_TRACK;
+	linVelPID.loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
+	angVelPID.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+	linVelPID.setOutputLimits(-maxLinVel, maxLinVel);
+	angVelPID.setOutputLimits(-maxAngVel, maxAngVel);
 
 	// Odometry
 	leftCodewheel. attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_Y_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
@@ -93,7 +90,7 @@ void setup()
 	leftCodewheel. reset();
 	rightCodewheel.reset();
 
-	odometry.setWheels(leftCodewheel, rightCodewheel);
+	odometry.setCodewheels(leftCodewheel, rightCodewheel);
 	odometry.setAxleTrack(CODEWHEELS_AXLE_TRACK);
 	odometry.setTimestep(ODOMETRY_TIMESTEP);
 	odometry.enable();
@@ -120,17 +117,17 @@ void loop()
 	if (odometry.update())
 	{
 		trajectory.setCartesianPositionInput(odometry.getPosition());
-		velocityController.setInputs(odometry.getLinearVelocity(), odometry.getAngularVelocity());
+		velocityControl.setInputs(odometry.getLinVel(), odometry.getAngVel());
 	}
 
 	// Compute trajectory
 	if (trajectory.update())
 	{
-		float linearVelocitySetpoint  = trajectory.getLinearVelocitySetpoint();
-		float angularVelocitySetpoint = trajectory.getAngularVelocitySetpoint();
-		velocityController.setSetpoints(linearVelocitySetpoint, angularVelocitySetpoint);
+		float linVelSetpoint = trajectory.getLinearVelocitySetpoint();
+		float angVelSetpoint = trajectory.getAngularVelocitySetpoint();
+		velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 	}
 
 	// Integrate engineering control
-	velocityController.update();
+	velocityControl.update();
 }

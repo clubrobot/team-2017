@@ -4,6 +4,7 @@
 
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
+#include "../../common/VelocityController.h"
 #include "../../common/PID.h"
 #include "../../common/Codewheel.h"
 #include "../../common/Odometry.h"
@@ -16,11 +17,10 @@ extern DCMotorsDriver driver;
 extern DCMotor leftWheel;
 extern DCMotor rightWheel;
 
-extern DifferentialController positionController;
-extern DifferentialController velocityController;
+extern VelocityController velocityControl;
 
-extern PID linearVelocityController;
-extern PID angularVelocityController;
+extern PID linVelPID;
+extern PID angVelPID;
 
 extern Codewheel leftCodewheel;
 extern Codewheel rightCodewheel;
@@ -33,31 +33,31 @@ extern TrajectoryPlanner trajectory;
 
 void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	float leftVelocity  = input.read<float>();
-	float rightVelocity = input.read<float>();
+	float leftWheelVel  = input.read<float>();
+	float rightWheelVel = input.read<float>();
 
-	velocityController.disable();
+	velocityControl.disable();
 	trajectory.disable();
-	leftWheel .setVelocity(leftVelocity);
-	rightWheel.setVelocity(rightVelocity);
+	leftWheel .setVelocity(leftWheelVel);
+	rightWheel.setVelocity(rightWheelVel);
 }
 
 void GET_CODEWHEELS_COUNTERS(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	long leftCounter  = leftCodewheel. getCounter();
-	long rightCounter = rightCodewheel.getCounter();
+	long leftCodewheelCounter  = leftCodewheel. getCounter();
+	long rightCodewheelCounter = rightCodewheel.getCounter();
 
-	output.write<long>(leftCounter);
-	output.write<long>(rightCounter);
+	output.write<long>(leftCodewheelCounter);
+	output.write<long>(rightCodewheelCounter);
 }
 
 void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	float linearVelocity  = input.read<float>();
-	float angularVelocity = input.read<float>();
+	float linVelSetpoint = input.read<float>();
+	float angVelSetpoint = input.read<float>();
 	trajectory.disable();
-	velocityController.enable();
-	velocityController.setSetpoints(linearVelocity, angularVelocity);
+	velocityControl.enable();
+	velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 }
 
 void START_TRAJECTORY(SerialTalks& talks, Deserializer& input, Serializer& output)
@@ -66,7 +66,7 @@ void START_TRAJECTORY(SerialTalks& talks, Deserializer& input, Serializer& outpu
 	float y     = input.read<float>();
 	float theta = input.read<float>();
 
-	velocityController.enable();
+	velocityControl.enable();
 	trajectory.reset();
 	trajectory.addWaypoint(Position(x, y, theta));
 	trajectory.enable();
@@ -83,27 +83,25 @@ void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
 	float y     = input.read<float>();
 	float theta = input.read<float>();
 
-	odometry.calibrateXAxis(x);
-	odometry.calibrateYAxis(y);
-	odometry.calibrateOrientation(theta);
+	odometry.setPosition(x, y, theta);
 }
 
 void GET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	const Position& position = odometry.getPosition();
+	const Position& pos = odometry.getPosition();
 	
-	output.write<float>(position.x);
-	output.write<float>(position.y);
-	output.write<float>(position.theta);
+	output.write<float>(pos.x);
+	output.write<float>(pos.y);
+	output.write<float>(pos.theta);
 }
 
 void GET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	const float linearVelocity  = odometry.getLinearVelocity ();
-	const float angularVelocity = odometry.getAngularVelocity();
+	const float linVel = odometry.getLinVel();
+	const float angVel = odometry.getAngVel();
 	
-	output.write<float>(linearVelocity);
-	output.write<float>(angularVelocity);
+	output.write<float>(linVel);
+	output.write<float>(angVel);
 }
 
 void SET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output)
@@ -116,15 +114,13 @@ void SET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output
 	switch (id)
 	{
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
-		linearVelocityController.setTunings(Kp, Ki, Kd);
-		linearVelocityController.saveTunings(LINEAR_VELOCITY_PID_ADDRESS);
+		linVelPID.setTunings(Kp, Ki, Kd);
+		linVelPID.saveTunings(LINEAR_VELOCITY_PID_ADDRESS);
 		break;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
-		angularVelocityController.setTunings(Kp, Ki, Kd);
-		angularVelocityController.saveTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+		angVelPID.setTunings(Kp, Ki, Kd);
+		angVelPID.saveTunings(ANGULAR_VELOCITY_PID_ADDRESS);
 		break;
-	default:
-		talks.err << "SET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
 	}
 }
 
@@ -136,18 +132,15 @@ void GET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output
 	switch (id)
 	{
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
-		Kp = linearVelocityController.getKp();
-		Ki = linearVelocityController.getKi();
-		Kd = linearVelocityController.getKd();
+		Kp = linVelPID.getKp();
+		Ki = linVelPID.getKi();
+		Kd = linVelPID.getKd();
 		break;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
-		Kp = angularVelocityController.getKp();
-		Ki = angularVelocityController.getKi();
-		Kd = angularVelocityController.getKd();
+		Kp = angVelPID.getKp();
+		Ki = angVelPID.getKi();
+		Kd = angVelPID.getKd();
 		break;
-	default:
-		talks.err << "GET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
-		return;
 	}
 
 	output.write<float>(Kp);
