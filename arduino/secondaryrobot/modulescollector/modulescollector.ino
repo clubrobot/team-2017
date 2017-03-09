@@ -6,6 +6,8 @@
 #include "../../common/DCMotor.h"
 #include "../../common/SerialTalks.h"
 
+#define BRAKEVELOCITY 75
+
 
 DCMotorsDriver motorDriver;
 DCMotor gripperMotor;
@@ -43,15 +45,17 @@ void setup(){
 
     // Miscellanous
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
+    gripper.detach();   //Empeche les deux servos de forcer pour garder leur position au démarrage de l'arduino
+    dispenser.detach();
 }
 
 void loop(){
-     talks.execute();
-     if(highStop.getState() && gripperMotor.getVelocity()<0){
-        gripperMotor.setVelocity(0);
+     talks.execute();   
+     if(highStop.getState() && gripperMotor.getVelocity()<BRAKEVELOCITY*(-1)){
+        gripperMotor.setVelocity(BRAKEVELOCITY*(-1));
      }
-     else if(lowStop.getState() && gripperMotor.getVelocity()>0){
-        gripperMotor.setVelocity(0);
+     else if(lowStop.getState() && gripperMotor.getVelocity()>BRAKEVELOCITY){
+        gripperMotor.setVelocity(BRAKEVELOCITY);
      }
 }
 
