@@ -115,11 +115,11 @@ void SET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output
 	{
 	case LINEAR_VELOCITY_PID_IDENTIFIER:
 		linVelPID.setTunings(Kp, Ki, Kd);
-		linVelPID.saveTunings(LINEAR_VELOCITY_PID_ADDRESS);
+		linVelPID.save(LINEAR_VELOCITY_PID_ADDRESS);
 		break;
 	case ANGULAR_VELOCITY_PID_IDENTIFIER:
 		angVelPID.setTunings(Kp, Ki, Kd);
-		angVelPID.saveTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+		angVelPID.save(ANGULAR_VELOCITY_PID_ADDRESS);
 		break;
 	}
 }

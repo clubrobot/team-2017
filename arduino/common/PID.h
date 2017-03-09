@@ -10,30 +10,30 @@ public:
 
 	PID() : m_minOutput(-INFINITY), m_maxOutput(INFINITY){}
 
-	void setTunings(float Kp, float Ki, float Kd);
-	void setOutputLimits(float minOutput, float maxOutput);
-
 	float compute(float setpoint, float input, float timestep);
+	
 	void reset();
+
+	void setTunings(float Kp, float Ki, float Kd){m_Kp = Kp, m_Ki = Ki, m_Kd = Kd;}
+	void setOutputLimits(float minOutput, float maxOutput){m_minOutput = minOutput; m_maxOutput = maxOutput;}
 
 	float getKp() const {return m_Kp;}
 	float getKi() const {return m_Ki;}
 	float getKd() const {return m_Kd;}
 
-	void loadTunings(int address);
-	void saveTunings(int address) const;
+	void load(int address);
+	void save(int address) const;
 
 private:
+
+	float m_errorIntegral;
+	float m_previousError;
 
 	float m_Kp;
 	float m_Ki;
 	float m_Kd;
-
 	float m_minOutput;
 	float m_maxOutput;
-
-	float m_errorIntegral;
-	float m_previousError;
 };
 
 #endif // __PID_H__

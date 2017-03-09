@@ -73,8 +73,8 @@ void setup()
 
 	const float maxLinVel = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / 2;
 	const float maxAngVel = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / WHEELS_AXLE_TRACK;
-	linVelPID.loadTunings(LINEAR_VELOCITY_PID_ADDRESS);
-	angVelPID.loadTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+	linVelPID.load(LINEAR_VELOCITY_PID_ADDRESS);
+	angVelPID.load(ANGULAR_VELOCITY_PID_ADDRESS);
 	linVelPID.setOutputLimits(-maxLinVel, maxLinVel);
 	angVelPID.setOutputLimits(-maxAngVel, maxAngVel);
 
