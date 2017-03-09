@@ -4,8 +4,8 @@
 import sys
 import serial
 from serial.serialutil import SerialException
-import os
 import time
+import random
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event, current_thread
 
@@ -113,15 +113,16 @@ class SerialTalks:
 		self.is_connected = False
 
 	def rawsend(self, rawbytes):
-		try:		
-			sentbytes = self.stream.write(rawbytes)
-			return sentbytes
-		except SerialException:
-			raise NotConnectedError('\'{}\' is not connected.'.format(self.port)) from None
+		try:
+			if self.is_connected:
+				sentbytes = self.stream.write(rawbytes)
+				return sentbytes
+		except SerialException: pass
+		raise NotConnectedError('\'{}\' is not connected.'.format(self.port)) from None
 	
 	def send(self, opcode, *args):
-		retcode = os.urandom(4)
-		content = BYTE(opcode) + retcode + bytes().join(args)
+		retcode = random.random(0, 0xFFFFFFFF)
+		content = BYTE(opcode) + ULONG(retcode) + bytes().join(args)
 		prefix  = MASTER_BYTE + BYTE(len(content))
 		self.rawsend(prefix + content)
 		return retcode
@@ -149,7 +150,7 @@ class SerialTalks:
 		self.queues_lock.release()
 
 	def process(self, message):
-		retcode = LONG(message.read(LONG))
+		retcode = message.read(ULONG)
 		queue = self.get_queue(retcode)
 		queue.put(message)
 
@@ -198,10 +199,10 @@ class SerialTalks:
 		return log
 
 	def getout(self, timeout=0):
-		return self.getlog(ULONG(STDOUT_RETCODE), timeout)
+		return self.getlog(STDOUT_RETCODE, timeout)
 
 	def geterr(self, timeout=0):
-		return self.getlog(ULONG(STDERR_RETCODE), timeout)
+		return self.getlog(STDERR_RETCODE, timeout)
 
 
 class SerialListener(Thread):
