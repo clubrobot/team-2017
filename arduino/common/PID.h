@@ -20,6 +20,8 @@ public:
 	float getKp() const {return m_Kp;}
 	float getKi() const {return m_Ki;}
 	float getKd() const {return m_Kd;}
+	float getMinOutput() const {return m_minOutput;}
+	float getMaxOutput() const {return m_maxOutput;}
 
 	void load(int address);
 	void save(int address) const;
