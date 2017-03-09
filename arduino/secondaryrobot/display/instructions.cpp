@@ -17,7 +17,7 @@ void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &out
 
 void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
 {
-
+	
     char buffer[IP_DISPLAY_BUFFER_SIZE] = "";
     input >> buffer;
 	output << buffer;

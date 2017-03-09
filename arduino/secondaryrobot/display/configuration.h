@@ -7,7 +7,7 @@
 // initialisation EEPROM *
 //************************
 
-#define INIT_EEPROM				// disable to save ROM space
+//#define INIT_EEPROM				// disable to save ROM space
 
 
 

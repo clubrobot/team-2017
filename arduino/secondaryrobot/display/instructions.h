@@ -10,7 +10,7 @@
 #define SET_IPDISPLAY_MESSAGE_OPCODE 0x0E
 
 #ifdef INIT_EEPROM
-	#define INIT_EEPROM_DATA_OPCODE 0xFF				
+	#define INIT_EEPROM_DATA_OPCODE 0x0A				
 #endif
 
 // Instructions prototypes
