@@ -49,49 +49,42 @@ void setup()
 	talks.bind(SET_POSITION_OPCODE, SET_POSITION);
 	talks.bind(GET_POSITION_OPCODE, GET_POSITION);
 	talks.bind(GET_VELOCITIES_OPCODE, GET_VELOCITIES);
-	talks.bind(SET_PID_TUNINGS_OPCODE, SET_PID_TUNINGS);
-	talks.bind(GET_PID_TUNINGS_OPCODE, GET_PID_TUNINGS);
+	talks.bind(SET_PARAMETER_VALUE_OPCODE, SET_PARAMETER_VALUE);
+	talks.bind(GET_PARAMETER_VALUE_OPCODE, GET_PARAMETER_VALUE);
 
 	// DC motors wheels
 	driver.attach(DRIVER_RESET, DRIVER_FAULT);
 	driver.reset();
 
-	leftWheel. attach(LEFT_MOTOR_EN,  LEFT_MOTOR_PWM,  LEFT_MOTOR_DIR);
+	leftWheel .attach(LEFT_MOTOR_EN,  LEFT_MOTOR_PWM,  LEFT_MOTOR_DIR);
 	rightWheel.attach(RIGHT_MOTOR_EN, RIGHT_MOTOR_PWM, RIGHT_MOTOR_DIR);
-	leftWheel. setWheelRadius(LEFT_WHEEL_RADIUS);
-	rightWheel.setWheelRadius(RIGHT_WHEEL_RADIUS);
-	leftWheel. setConstant(+(60.0 * DCMOTORS_REDUCTION_RATIO / DCMOTORS_VELOCITY_CONSTANT) / DCMOTORS_SUPPLIED_VOLTAGE);
-	rightWheel.setConstant(-(60.0 * DCMOTORS_REDUCTION_RATIO / DCMOTORS_VELOCITY_CONSTANT) / DCMOTORS_SUPPLIED_VOLTAGE);
+	leftWheel .load(LEFTWHEEL_ADDRESS);
+	rightWheel.load(RIGHTWHEEL_ADDRESS);
 
 	// Engineering control
-	velocityControl.setAxleTrack(WHEELS_AXLE_TRACK);
-	velocityControl.setMaxAcc(MAX_LINEAR_ACCELERATION,  MAX_ANGULAR_ACCELERATION);
-	velocityControl.setMaxDec(MAX_LINEAR_DECCELERATION, MAX_ANGULAR_DECCELERATION);
+	velocityControl.load(VELOCITYCONTROL_ADDRESS);
 	velocityControl.setWheels(leftWheel, rightWheel);
 	velocityControl.setPID(linVelPID, angVelPID);
 	velocityControl.disable();
 
 	const float maxLinVel = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / 2;
 	const float maxAngVel = (leftWheel.getMaxVelocity() + rightWheel.getMaxVelocity()) / WHEELS_AXLE_TRACK;
-	linVelPID.load(LINEAR_VELOCITY_PID_ADDRESS);
-	angVelPID.load(ANGULAR_VELOCITY_PID_ADDRESS);
+	linVelPID.load(LINVELPID_ADDRESS);
+	angVelPID.load(ANGVELPID_ADDRESS);
 	linVelPID.setOutputLimits(-maxLinVel, maxLinVel);
 	angVelPID.setOutputLimits(-maxAngVel, maxAngVel);
 
 	// Odometry
-	leftCodewheel. attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_Y_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
+	leftCodewheel .attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_Y_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
 	rightCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_X_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_X);
-	leftCodewheel. attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
+	leftCodewheel .attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
 	rightCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
-	leftCodewheel. setWheelRadius(LEFT_CODEWHEEL_RADIUS);
-	rightCodewheel.setWheelRadius(RIGHT_CODEWHEEL_RADIUS);
-	leftCodewheel. setCountsPerRev(-CODEWHEELS_COUNTS_PER_REVOLUTION); // negative -> backward
-	rightCodewheel.setCountsPerRev(+CODEWHEELS_COUNTS_PER_REVOLUTION); // positive -> forward
-	leftCodewheel. reset();
+	leftCodewheel .load(LEFTCODEWHEEL_ADDRESS);
+	rightCodewheel.load(RIGHTCODEWHEEL_ADDRESS);
+	leftCodewheel .reset();
 	rightCodewheel.reset();
 
 	odometry.setCodewheels(leftCodewheel, rightCodewheel);
-	odometry.setAxleTrack(CODEWHEELS_AXLE_TRACK);
 	odometry.setTimestep(ODOMETRY_TIMESTEP);
 	odometry.enable();
 
