@@ -2,6 +2,7 @@
 #include "../../common/EndStop.h"
 #include "../../common/DCMotor.h"
 #include <Servo.h>
+#include "PIN.h"
 
 extern Servo gripper;
 extern Servo dispenser;
@@ -10,11 +11,29 @@ extern EndStop lowStop;
 extern DCMotor gripperMotor;
 
 void WRITE_GRIP(SerialTalks& inst, Deserializer& input, Serializer& output){
-    gripper.write(input.read<int>());
+    int val = input.read<int>();
+    if(val>=0){
+        if(!gripper.attached()){
+            gripper.attach(SERVO2);
+        }
+        gripper.write(val);
+    }
+    else if(val <0){
+        gripper.detach(); 
+    }
 }
 
 void WRITE_DISPENSER(SerialTalks& inst, Deserializer& input, Serializer& output){
-    dispenser.write(input.read<int>());
+    int val = input.read<int>();
+    if(val>=0){
+        if(!dispenser.attached()){
+            dispenser.attach(SERVO1);
+        }
+        dispenser.write(val);
+    }
+    else if(val <0){
+        dispenser.detach(); 
+    }
 }
 
 void IS_UP(SerialTalks& inst, Deserializer& input, Serializer& output){
@@ -29,6 +48,5 @@ void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& outp
     float vel = input.read<float>();
     if(vel <= 400){
         gripperMotor.setVelocity(vel);
-        talks.out << vel << "\n";
     }
 }
