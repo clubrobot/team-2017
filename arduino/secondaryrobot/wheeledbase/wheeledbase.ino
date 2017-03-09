@@ -22,15 +22,15 @@ DCMotorsDriver driver;
 DCMotor leftWheel;
 DCMotor rightWheel;
 
-VelocityController velocityControl;
-
-PID linVelPID;
-PID angVelPID;
-
 Codewheel leftCodewheel;
 Codewheel rightCodewheel;
 
 Odometry odometry;
+
+VelocityController velocityControl;
+
+PID linVelPID;
+PID angVelPID;
 
 TrajectoryPlanner trajectory;
 
@@ -61,6 +61,22 @@ void setup()
 	leftWheel .load(LEFTWHEEL_ADDRESS);
 	rightWheel.load(RIGHTWHEEL_ADDRESS);
 
+	// Codewheels
+	leftCodewheel .attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_Y_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
+	rightCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_X_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_X);
+	leftCodewheel .attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
+	rightCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
+	leftCodewheel .load(LEFTCODEWHEEL_ADDRESS);
+	rightCodewheel.load(RIGHTCODEWHEEL_ADDRESS);
+	leftCodewheel .reset();
+	rightCodewheel.reset();
+
+	// Odometry
+	odometry.load(ODOMETRY_ADDRESS);
+	odometry.setCodewheels(leftCodewheel, rightCodewheel);
+	odometry.setTimestep(ODOMETRY_TIMESTEP);
+	odometry.enable();
+
 	// Engineering control
 	velocityControl.load(VELOCITYCONTROL_ADDRESS);
 	velocityControl.setWheels(leftWheel, rightWheel);
@@ -73,20 +89,6 @@ void setup()
 	angVelPID.load(ANGVELPID_ADDRESS);
 	linVelPID.setOutputLimits(-maxLinVel, maxLinVel);
 	angVelPID.setOutputLimits(-maxAngVel, maxAngVel);
-
-	// Odometry
-	leftCodewheel .attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_Y_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_Y);
-	rightCodewheel.attachCounter(QUAD_COUNTER_XY, QUAD_COUNTER_X_AXIS, QUAD_COUNTER_SEL1, QUAD_COUNTER_SEL2, QUAD_COUNTER_OE, QUAD_COUNTER_RST_X);
-	leftCodewheel .attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
-	rightCodewheel.attachRegister(SHIFT_REG_DATA, SHIFT_REG_LATCH, SHIFT_REG_CLOCK);
-	leftCodewheel .load(LEFTCODEWHEEL_ADDRESS);
-	rightCodewheel.load(RIGHTCODEWHEEL_ADDRESS);
-	leftCodewheel .reset();
-	rightCodewheel.reset();
-
-	odometry.setCodewheels(leftCodewheel, rightCodewheel);
-	odometry.setTimestep(ODOMETRY_TIMESTEP);
-	odometry.enable();
 
 	// Trajectories
 	trajectory.setLinearVelocityTunings (3, MAX_LINEAR_VELOCITY);
