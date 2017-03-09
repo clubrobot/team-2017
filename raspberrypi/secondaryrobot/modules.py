@@ -4,7 +4,7 @@
 import time
 import math
 
-from common.serialtalks   import BYTE, INT, FLOAT
+from common.serialtalks   import BYTE, INT, LONG, FLOAT
 from common.modulesrouter import Module
 
 # Wheeled base instructions
