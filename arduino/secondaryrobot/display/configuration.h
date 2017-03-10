@@ -8,6 +8,7 @@
 //************************
 
 #define INIT_EEPROM				// disable to save ROM space
+#define INIT_EEPROM_LED_MATRIX			// disable to save ROM space
 
 
 
@@ -94,11 +95,17 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
 #define CLOCK_MATRIX3
 #define LATCH_MATRIX3
 
-// generap configuration
-#ifdef INIT_EEPROM
+// generapl configuration
 
-#define START_CHAR 0x1D	// Ascii for group separator
-#define END_CHAR '~'
+// Weight of each dot
+const unsigned int rows[] = {4, 16384, 8, 32768, 128, 1, 512, 16}; //Row1,Row2,...,Row8
+const unsigned int cols[] = {256, 2048, 64, 2, 32, 4096, 8192, 1024}; //Col1,Col2,...,Col8
+
+// Alphabet
+#ifdef INIT_EEPROM_LED_MATRIX
+
+#define START_CHAR_LED_MATRIX 0x1D	// Ascii for group separator
+#define END_CHAR_LED_MATRIX '~'
 
 //TODO : compléter table Ascii
 
@@ -158,7 +165,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
   }
 
 
-#define A { \
+#define LETTER_A { \
     0b00011000,  \
     0b00100100, \
     0b01000010, \
@@ -169,7 +176,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000010, \
   }
 
-#define B { \
+#define LETTER_B { \
     0b01111100,  \
     0b01000010, \
     0b01000010, \
@@ -180,7 +187,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01111100, \
   }
 
-#define C { \
+#define LETTER_C { \
     0b00011110,  \
     0b00100000, \
     0b01000000, \
@@ -191,7 +198,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00011110, \
   }
 
-#define D { \
+#define LETTER_D { \
     0b01111000,  \
     0b01000100, \
     0b01000010, \
@@ -202,7 +209,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01111000, \
   }
 
-#define E  { \
+#define LETTER_E  { \
     0b01111110,  \
     0b01000000, \
     0b01000000, \
@@ -213,7 +220,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01111110, \
   }
 
-#define F { \
+#define LETTER_F { \
     0b01111110,  \
     0b01000000, \
     0b01000000, \
@@ -224,7 +231,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000000, \
   }
 
-#define G { \
+#define LETTER_G { \
     0b00011110,  \
     0b00100000, \
     0b01000000, \
@@ -235,7 +242,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00011100, \
   }
 
-#define H { \
+#define LETTER_H { \
     0b01000010,  \
     0b01000010, \
     0b01000010, \
@@ -246,7 +253,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000010, \
   }
 
-#define I { \
+#define LETTER_I { \
     0b00111110,  \
     0b00001000, \
     0b00001000, \
@@ -257,7 +264,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00111110,  \
   }
 
-#define J { \
+#define LETTER_J { \
     0b01111110,  \
     0b00001000, \
     0b00001000, \
@@ -268,7 +275,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00110000, \
   }
 
-#define K { \
+#define LETTER_K { \
     0b01000100,  \
     0b01001000, \
     0b01010000, \
@@ -279,7 +286,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000100, \
   }
 
-#define L { \
+#define LETTER_L { \
     0b01000000,  \
     0b01000000, \
     0b01000000, \
@@ -290,7 +297,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01111110, \
   }
 
-#define M { \
+#define LETTER_M { \
     0b01000010,  \
     0b01100110, \
     0b01011010, \
@@ -301,7 +308,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000010, \
   }
 
-#define N { \
+#define LETTER_N { \
     0b01000010,  \
     0b01100010, \
     0b01010010, \
@@ -312,7 +319,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000000, \
   }
 
-#define O { \
+#define LETTER_O { \
     0b00011000,  \
     0b00100100, \
     0b01000010, \
@@ -323,7 +330,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00011000, \
   }
 
-#define P { \
+#define LETTER_P { \
     0b01111100,  \
     0b01000010, \
     0b01000010, \
@@ -334,7 +341,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000000, \
   }
 
-#define Q { \
+#define LETTER_Q { \
     0b00011000,  \
     0b00100100, \
     0b01000010, \
@@ -345,7 +352,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00011010, \
   }
 
-#define R { \
+#define LETTER_R { \
     0b01111100,  \
     0b01000010, \
     0b01000010, \
@@ -356,7 +363,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000100, \
   }
 
-#define S { \
+#define LETTER_S { \
     0b00111110,  \
     0b01000000, \
     0b01000000, \
@@ -367,7 +374,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00111100, \
   }
 
-#define T { \
+#define LETTER_T { \
     0b00111110,  \
     0b00001000, \
     0b00001000, \
@@ -378,7 +385,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00001000, \
   }
 
-#define U { \
+#define LETTER_U { \
     0b01000010,  \
     0b01000010, \
     0b01000010, \
@@ -389,7 +396,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00111100, \
   }
 
-#define V { \
+#define LETTER_V { \
     0b01000010,  \
     0b01000010, \
     0b01000010, \
@@ -400,7 +407,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00011000, \
   }
 
-#define W { \
+#define LETTER_W { \
     0b01000010,  \
     0b01000010, \
     0b01000010, \
@@ -411,7 +418,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000010, \
   }
 
-#define X { \
+#define LETTER_X { \
     0b01000010,  \
     0b01000010, \
     0b00100100, \
@@ -422,7 +429,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000010, \
   }
 
-#define Y { \
+#define LETTER_Y { \
     0b01000010,  \
     0b00100100, \
     0b00011000, \
@@ -433,7 +440,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b00011000, \
   }
 
-#define Z { \
+#define LETTER_Z { \
     0b01111110,  \
     0b00000010, \
     0b00000100, \
@@ -443,7 +450,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
     0b01000000, \
     0b01111110, \
   }
-#endif	// INIT_EEPROM
+#endif	// INIT_EEPROM_LED_MATRIX
 
 //***********************
 // EEPROM configuration *
