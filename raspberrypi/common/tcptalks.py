@@ -171,7 +171,7 @@ class TCPTalks:
 
 	def rawsend(self, rawbytes):
 		try:
-			if self.is_connected:
+			if hasattr(self, 'socket'):
 				sentbytes = 0
 				while(sentbytes < len(rawbytes)):
 					sentbytes += self.socket.send(rawbytes[sentbytes:])

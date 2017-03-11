@@ -16,7 +16,7 @@ BAUDRATE = 115200
 MASTER_BYTE = b'R'
 SLAVE_BYTE  = b'A'
 
-CONNECT_OPCODE = 0x00
+PING_OPCODE    = 0x00
 GETUUID_OPCODE = 0x01
 SETUUID_OPCODE = 0x02
 STDOUT_RETCODE = 0xFFFFFFFF
@@ -90,7 +90,10 @@ class SerialTalks:
 		# Wait until the Arduino is operational
 		startingtime = time.time()
 		while not self.is_connected:
-			if self.execute(CONNECT_OPCODE, timeout=0.1) is not None:
+			try:
+				output = self.execute(PING_OPCODE, timeout=0.1)
+			except NotConnectedError: pass
+			if output is not None:
 				self.is_connected = True
 				self.reset_queues()
 			elif timeout is not None and time.time() - startingtime > timeout:
@@ -114,14 +117,14 @@ class SerialTalks:
 
 	def rawsend(self, rawbytes):
 		try:
-			if self.is_connected:
+			if hasattr(self, 'stream') and self.stream.is_open:
 				sentbytes = self.stream.write(rawbytes)
 				return sentbytes
 		except SerialException: pass
 		raise NotConnectedError('\'{}\' is not connected.'.format(self.port)) from None
 	
 	def send(self, opcode, *args):
-		retcode = random.random(0, 0xFFFFFFFF)
+		retcode = random.randint(0, 0xFFFFFFFF)
 		content = BYTE(opcode) + ULONG(retcode) + bytes().join(args)
 		prefix  = MASTER_BYTE + BYTE(len(content))
 		self.rawsend(prefix + content)
