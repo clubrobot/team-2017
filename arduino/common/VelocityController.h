@@ -25,7 +25,7 @@ public:
 
 protected:
 
-	float genRampSetpoint(float stepSetpoint, float input, float rampSetpoint, float acc, float dec, float timestep);
+	float genRampSetpoint(float stepSetpoint, float input, float rampSetpoint, float maxAcc, float maxDec, float timestep);
 
 	virtual void process(float timestep);
 	virtual void onProcessEnabling();
