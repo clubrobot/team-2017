@@ -8,7 +8,7 @@ class PID
 {
 public:
 
-	PID() : m_minOutput(-INFINITY), m_maxOutput(INFINITY){}
+	PID() : m_Kp(1), m_Ki(0), m_Kd(0), m_minOutput(-INFINITY), m_maxOutput(INFINITY){}
 
 	float compute(float setpoint, float input, float timestep);
 	
