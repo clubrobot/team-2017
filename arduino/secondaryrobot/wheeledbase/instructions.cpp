@@ -62,13 +62,17 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 
 void START_TRAJECTORY(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	float x     = input.read<float>();
-	float y     = input.read<float>();
-	float theta = input.read<float>();
-
-	velocityControl.enable();
 	trajectory.reset();
-	trajectory.addWaypoint(Position(x, y, theta));
+	trajectory.addWaypoint(odometry.getPosition());
+	int numWaypoints = input.read<int>();
+	for (int i = 0; i < numWaypoints; i++)
+	{
+		float x     = input.read<float>();
+		float y     = input.read<float>();
+		float theta = input.read<float>(); // Useless for now
+		trajectory.addWaypoint(Position(x, y, theta));
+	}
+	velocityControl.enable();
 	trajectory.enable();
 }
 

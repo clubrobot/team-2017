@@ -66,9 +66,12 @@ class WheeledBase(Module):
 	def set_velocities(self, linear_velocity, angular_velocity):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
-	def start_trajectory(self, x, y, theta):
-		self.send(START_TRAJECTORY_OPCODE, FLOAT(x), FLOAT(y), FLOAT(theta))
-	
+	def start_trajectory(self, waypoints):
+		args = [INT(len(waypoints))]
+		for x, y, theta in waypoints:
+			args += [FLOAT(x), FLOAT(y), FLOAT(theta)]
+		self.send(START_TRAJECTORY_OPCODE, *args)
+
 	def trajectory_ended(self, **kwargs):
 		output = self.execute(TRAJECTORY_ENDED_OPCODE, **kwargs)
 		trajectory_ended = output.read(BYTE)
@@ -78,7 +81,7 @@ class WheeledBase(Module):
 		if theta is None:
 			current_x, current_y, current_theta = self.get_position(**kwargs)
 			theta = math.atan2(y - current_y, x - current_x)
-		self.start_trajectory(x, y, theta)
+		self.start_trajectory([(x, y, theta)])
 		while not self.trajectory_ended(**kwargs):
 			time.sleep(0.1)
 
