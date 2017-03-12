@@ -91,10 +91,9 @@ void setup()
 	angVelPID.setOutputLimits(-maxAngVel, maxAngVel);
 
 	// Trajectories
-	trajectory.setLinearVelocityTunings (3, MAX_LINEAR_VELOCITY);
-	trajectory.setAngularVelocityTunings(4, MAX_ANGULAR_VELOCITY);
-	trajectory.setThresholdRadius(50);
-	trajectory.setThresholdPositions(MIN_LINEAR_POSITION, MIN_ANGULAR_POSITION);
+	trajectory.setVelTunings(3, 4);
+	trajectory.setVelLimits(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+	trajectory.setLookAhead(200);
 	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
 	trajectory.disable();
 
@@ -111,15 +110,15 @@ void loop()
 	// Update odometry
 	if (odometry.update())
 	{
-		trajectory.setCartesianPositionInput(odometry.getPosition());
+		trajectory.setPosInput(odometry.getPosition());
 		velocityControl.setInputs(odometry.getLinVel(), odometry.getAngVel());
 	}
 
 	// Compute trajectory
 	if (trajectory.update())
 	{
-		float linVelSetpoint = trajectory.getLinearVelocitySetpoint();
-		float angVelSetpoint = trajectory.getAngularVelocitySetpoint();
+		float linVelSetpoint = trajectory.getLinVelSetpoint();
+		float angVelSetpoint = trajectory.getAngVelSetpoint();
 		velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 	}
 

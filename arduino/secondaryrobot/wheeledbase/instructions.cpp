@@ -74,7 +74,7 @@ void START_TRAJECTORY(SerialTalks& talks, Deserializer& input, Serializer& outpu
 
 void TRAJECTORY_ENDED(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	output.write<byte>(trajectory.hasReachedItsTarget());
+	output.write<byte>(false);
 }
 
 void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
@@ -212,6 +212,27 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		angVelPID.setOutputLimits(angVelPID.getMinOutput(), input.read<float>());
 		angVelPID.save(ANGVELPID_ADDRESS);
 		break;
+	
+	case TRAJECTORY_LINVELKP_ID:
+		trajectory.setVelTunings(input.read<float>(), trajectory.getAngVelKp());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
+	case TRAJECTORY_ANGVELKP_ID:
+		trajectory.setVelTunings(trajectory.getLinVelKp(), input.read<float>());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
+	case TRAJECTORY_LINVELMAX_ID:
+		trajectory.setVelLimits(input.read<float>(), trajectory.getAngVelMax());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
+	case TRAJECTORY_ANGVELMAX_ID:
+		trajectory.setVelLimits(trajectory.getLinVelMax(), input.read<float>());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
+	case TRAJECTORY_LOOKAHED_ID:
+		trajectory.setLookAhead(input.read<float>());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
 	}
 }
 
@@ -298,6 +319,22 @@ void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		break;
 	case ANGVELPID_MAXOUTPUT_ID:
 		output.write<float>(angVelPID.getMaxOutput());
+		break;
+
+	case TRAJECTORY_LINVELKP_ID:
+		output.write<float>(trajectory.getLinVelKp());
+		break;
+	case TRAJECTORY_ANGVELKP_ID:
+		output.write<float>(trajectory.getAngVelKp());
+		break;
+	case TRAJECTORY_LINVELMAX_ID:
+		output.write<float>(trajectory.getLinVelMax());
+		break;
+	case TRAJECTORY_ANGVELMAX_ID:
+		output.write<float>(trajectory.getAngVelMax());
+		break;
+	case TRAJECTORY_LOOKAHED_ID:
+		output.write<float>(trajectory.getLookAhead());
 		break;
 	}
 }

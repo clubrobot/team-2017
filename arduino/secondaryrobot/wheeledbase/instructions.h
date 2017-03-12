@@ -47,6 +47,11 @@
 #define ANGVELPID_KD_ID              0xB2
 #define ANGVELPID_MINOUTPUT_ID       0xB3
 #define ANGVELPID_MAXOUTPUT_ID       0xB4
+#define TRAJECTORY_LINVELKP_ID       0xD0
+#define TRAJECTORY_ANGVELKP_ID       0xD1
+#define TRAJECTORY_LINVELMAX_ID      0xD2
+#define TRAJECTORY_ANGVELMAX_ID      0xD3
+#define TRAJECTORY_LOOKAHED_ID       0xD4
 
 // Instructions prototypes
 
