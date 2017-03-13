@@ -21,7 +21,7 @@ void LedMatrix::process(float timestep)
 		_actualColumn = 0;
 	}
 	for (int row = 0; row < 8; row++) {
-		if (patternToDisplay[row]&(0x01<<(7-_actualColumn))) {
+		if (_patternToDisplay[row]&(0x01<<(7-_actualColumn))) {
 			_data|=rows[row];  // Turn on this led
 		}
 		else {
@@ -56,19 +56,18 @@ void LedMatrix::initMatrix() {
 void LedMatrix::clearPattern() {
   // Clear pattern to display array
   for (int i = 0; i < 8; i++) {
-    patternToDisplay[i] = 0;
+    _patternToDisplay[i] = 0;
   }
 }
 
+
+void LedMatrix::setPattern(int nbPattern) {
+  for (int i = 0; i < 8; i++) {
+    _patternToDisplay[i] = _patterns[nbPattern][i] ;
+  }
+}
 
 /*
-
-void setPattern(int pattern) {
-  for (int i = 0; i < 8; i++) {
-    leds[i] = patterns[pattern][i] ;
-  }
-}
-
 void slidePattern(int pattern, int del) {
   for (int l = 0; l < 8; l++) {
     for (int i = 0; i < 8; i++) {

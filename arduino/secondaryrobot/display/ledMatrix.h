@@ -12,6 +12,7 @@ class LedMatrix : public PeriodicProcess
 	void updateMatrix();												// Send data to the registers
 	void initMatrix();													// Init the matrix data + update data into registers
 	void clearPattern();												// Clear pattern to display array
+	void setPattern(int nbPattern);										// Set the pattern nbPattern into the pattern to display array
     //void computeBuffer(char buffer[], byte shift);
 
   private:
@@ -22,7 +23,8 @@ class LedMatrix : public PeriodicProcess
 	int _data;						// Data to send to the registers
 	int _maskColumns;				// Mask to identify Columns into _data
 	byte _actualColumn;				// Column to be updated
-	byte patternToDisplay[8];		// Pattern to display = {Row1,Row2,...,Row8}
+	byte _patternToDisplay[8];		// Pattern to display = {Row1,Row2,...,Row8}
+	byte _patterns[NB_PATTERNS_MAX][8];			// Array of all the message to display
 
     virtual void process(float timestep);
     void display();

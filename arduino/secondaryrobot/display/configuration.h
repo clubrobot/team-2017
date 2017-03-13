@@ -97,6 +97,8 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
 
 // generapl configuration
 
+#define NB_PATTERNS_MAX 20
+
 // Weight of each dot
 const unsigned int rows[] = {4, 16384, 8, 32768, 128, 1, 512, 16}; //Row1,Row2,...,Row8
 const unsigned int cols[] = {256, 2048, 64, 2, 32, 4096, 8192, 1024}; //Col1,Col2,...,Col8
