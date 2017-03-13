@@ -8,8 +8,9 @@ class LedMatrix : public PeriodicProcess
 {
 
   public:
-    void attach(byte dataPin, byte clockPin, byte latchPin);
-	void updateMatrix();
+    void attach(byte dataPin, byte clockPin, byte latchPin);			// Attach a matrix to its pin
+	void updateMatrix();												// Send data to the registers
+	void initMatrix();													// Init the matrix data + update data into registers
     //void computeBuffer(char buffer[], byte shift);
 
   private:

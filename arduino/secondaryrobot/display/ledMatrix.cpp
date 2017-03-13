@@ -29,17 +29,18 @@ void LedMatrix::updateMatrix(){
   digitalWrite(_LATCHPIN,HIGH);
 }
 
-/*
-int initMatrix(int dataPin, int clockPin, int latchPin) {
+
+void LedMatrix::initMatrix() {
   //col à 0 pour allumer row à 1 pour allumer
-  unsigned int data = 0;
+  _data = 0;
   for(int i = 0;i<8;i++){
-    data+=cols[i];
+    _data+=cols[i];
   }
-  updateMatrix(dataPin,clockPin,latchPin,data);
-  return data;
+  this->updateMatrix();
 }
 
+
+/*
 void display() {
   dataMatrix|=maskCols;  // Turn all column off
   col++;
