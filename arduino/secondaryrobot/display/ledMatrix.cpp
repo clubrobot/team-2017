@@ -53,31 +53,15 @@ void LedMatrix::initMatrix() {
 }
 
 
-/*
-void display() {
-  dataMatrix|=maskCols;  // Turn all column off
-  col++;
-  if (col == 8) {
-    col = 0;
-  }
-  for (int row = 0; row < 8; row++) {
-    if (leds[row]&(0x01<<(7-col))) {
-      dataMatrix|=rows[row];  // Turn on this led
-    }
-    else {
-       dataMatrix&=~(rows[row]); // Turn off this led
-    }
-  }
-  dataMatrix&= ~(cols[col]); // Turn whole column on at once (for equal lighting times)
-  updateMatrix(DATA,CLOCK,LATCH,dataMatrix);
-}
-/*
-void clearLeds() {
-  // Clear display array
+void LedMatrix::clearPattern() {
+  // Clear pattern to display array
   for (int i = 0; i < 8; i++) {
-    leds[i] = 0;
+    patternToDisplay[i] = 0;
   }
 }
+
+
+/*
 
 void setPattern(int pattern) {
   for (int i = 0; i < 8; i++) {

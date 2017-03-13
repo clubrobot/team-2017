@@ -11,13 +11,14 @@ class LedMatrix : public PeriodicProcess
     void attach(byte dataPin, byte clockPin, byte latchPin);			// Attach a matrix to its pin
 	void updateMatrix();												// Send data to the registers
 	void initMatrix();													// Init the matrix data + update data into registers
+	void clearPattern();												// Clear pattern to display array
     //void computeBuffer(char buffer[], byte shift);
 
   private:
 
-    byte _DATAPIN;
-    byte _CLOCKPIN;
-    byte _LATCHPIN;
+    byte _DATAPIN;					// Matrix register data pin
+    byte _CLOCKPIN;					// Matrix register clock pin
+    byte _LATCHPIN;					// Matrix register latch pin
 	int _data;						// Data to send to the registers
 	int _maskColumns;				// Mask to identify Columns into _data
 	byte _actualColumn;				// Column to be updated
