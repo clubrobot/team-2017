@@ -18,7 +18,10 @@ class LedMatrix : public PeriodicProcess
     byte _DATAPIN;
     byte _CLOCKPIN;
     byte _LATCHPIN;
-	int _data;			// Data to send to the registers
+	int _data;						// Data to send to the registers
+	int _maskColumns;				// Mask to identify Columns into _data
+	byte _actualColumn;				// Column to be updated
+	byte patternToDisplay[8];		// Pattern to display = {Row1,Row2,...,Row8}
 
     virtual void process(float timestep);
     void display();

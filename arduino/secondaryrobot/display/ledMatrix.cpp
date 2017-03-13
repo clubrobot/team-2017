@@ -15,8 +15,21 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin)
 
 void LedMatrix::process(float timestep)
 {
-
-	
+	_data|=_maskColumns;  // Turn all column off
+	_actualColumn++;
+	if (_actualColumn == 8) {
+		_actualColumn = 0;
+	}
+	for (int row = 0; row < 8; row++) {
+		if (patternToDisplay[row]&(0x01<<(7-_actualColumn))) {
+			_data|=rows[row];  // Turn on this led
+		}
+		else {
+			_data&=~(rows[row]); // Turn off this led
+		}
+	}
+	_data&= ~(cols[_actualColumn]); // Turn whole column on at once (for equal lighting times)
+	this -> updateMatrix();	
 }
 
 
@@ -58,7 +71,7 @@ void display() {
   dataMatrix&= ~(cols[col]); // Turn whole column on at once (for equal lighting times)
   updateMatrix(DATA,CLOCK,LATCH,dataMatrix);
 }
-
+/*
 void clearLeds() {
   // Clear display array
   for (int i = 0; i < 8; i++) {
