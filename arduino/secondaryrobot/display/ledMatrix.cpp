@@ -8,9 +8,9 @@
 
 void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin)
 {
-	_DATA = dataPin;
-	_CLOCK = clockPin;
-	_LATCH = latchPin;
+	_DATAPIN = dataPin;
+	_CLOCKPIN = clockPin;
+	_LATCHPIN = latchPin;
 }
 
 void LedMatrix::process(float timestep)
@@ -19,16 +19,17 @@ void LedMatrix::process(float timestep)
 	
 }
 
-/*
-void updateMatrix(const int dataPin,const int clockPin,const int latchPin, unsigned int data){
-  byte octet1 = data&0x00FF;
-  byte octet2 = (data&0xFF00)>>8;
-  digitalWrite(latchPin,LOW);
-  shiftOut(dataPin,clockPin,MSBFIRST,octet1);
-  shiftOut(dataPin,clockPin,MSBFIRST,octet2);
-  digitalWrite(latchPin,HIGH);
+
+void LedMatrix::updateMatrix(){
+  byte octet1 = _data&0x00FF;
+  byte octet2 = (_data&0xFF00)>>8;
+  digitalWrite(_LATCHPIN,LOW);
+  shiftOut(_DATAPIN,_CLOCKPIN,MSBFIRST,octet1);
+  shiftOut(_DATAPIN,_CLOCKPIN,MSBFIRST,octet2);
+  digitalWrite(_LATCHPIN,HIGH);
 }
 
+/*
 int initMatrix(int dataPin, int clockPin, int latchPin) {
   //col à 0 pour allumer row à 1 pour allumer
   unsigned int data = 0;

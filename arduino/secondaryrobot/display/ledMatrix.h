@@ -9,13 +9,15 @@ class LedMatrix : public PeriodicProcess
 
   public:
     void attach(byte dataPin, byte clockPin, byte latchPin);
+	void updateMatrix();
     //void computeBuffer(char buffer[], byte shift);
 
   private:
 
-    byte _DATA;
-    byte _CLOCK;
-    byte _LATCH;
+    byte _DATAPIN;
+    byte _CLOCKPIN;
+    byte _LATCHPIN;
+	int _data;			// Data to send to the registers
 
     virtual void process(float timestep);
     void display();

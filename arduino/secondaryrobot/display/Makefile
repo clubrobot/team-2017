@@ -10,7 +10,7 @@ LOCAL_CPP_SRCS = \
 	$(COMMON)/SerialTalks.cpp \
 	IPDisplay.cpp \
 	instructions.cpp \
-	LedMatrix.cpp \
+	ledMatrix.cpp \
 
 # Sketch libraries
 ARDUINO_LIBS = EEPROM Servo
