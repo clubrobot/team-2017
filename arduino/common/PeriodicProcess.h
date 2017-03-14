@@ -10,41 +10,16 @@ public:
 
 	virtual ~PeriodicProcess(){}
 
-	bool update()
-	{
-		if (m_enabled && m_clock.getElapsedTime() > m_timestep)
-		{
-			float timestep = m_clock.restart();
-			process(timestep);
-			return true;
-		}
-		return false;
-	}
+	void enable();
+	void disable();
+
+	void setTimestep(float timestep){m_timestep = timestep;} 
+
+	bool update();
 
 	bool isEnabled() const {return m_enabled;}
 
-	void enable()
-	{
-		if (!m_enabled)
-		{
-			m_enabled = true;
-			m_clock.restart();
-			onProcessEnabling();
-		}
-	}
-
-	void disable()
-	{
-		if (m_enabled)
-		{
-			m_enabled = false;
-			onProcessDisabling();
-		}
-	}
-
 	float getTimestep() const {return m_timestep;}
-
-	void setTimestep(float timestep){m_timestep = timestep;} 
 
 protected:
 
@@ -56,9 +31,9 @@ protected:
 private:
 
 	bool  m_enabled;
+	float m_timestep;
 
 	Clock m_clock;
-	float m_timestep;
 };
 
 #endif // __PERIODICPROCESS_H__

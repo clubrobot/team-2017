@@ -27,30 +27,33 @@ class Odometry : public PeriodicProcess
 {
 public:
 
-	const Position&	getPosition() const;
-	float getTraveledDistance() const;
-	float getLinearVelocity () const;
-	float getAngularVelocity() const;
+	void setPosition(float x, float y, float theta){m_pos.x = x; m_pos.y = y; m_pos.theta = theta;}
 
-	void calibrateXAxis(float x);
-	void calibrateYAxis(float y);
-	void calibrateOrientation(float theta);
+	void setAxleTrack(float axleTrack){m_axleTrack = axleTrack;}
+	
+	void setCodewheels(AbstractCodewheel& leftCodewheel, AbstractCodewheel& rightCodewheel){m_leftCodewheel = &leftCodewheel, m_rightCodewheel = &rightCodewheel;}
 
-	void setAxleTrack(float axleTrack);
-	void setWheels(AbstractCodewheel& leftWheel, AbstractCodewheel& rightWheel);
+	const Position&	getPosition() const {return m_pos;}
+
+	float getLinVel() const {return m_linVel;}
+	float getAngVel() const {return m_angVel;}
+
+	float getAxleTrack() const {return m_axleTrack;}
+
+	void load(int address);
+	void save(int address) const;
 
 protected:
 
 	virtual void process(float timestep);
 
-	Position m_position;
-	float m_traveledDistance;
-	float m_linearVelocity;
-	float m_angularVelocity;
-
+	Position m_pos;
+	float m_linVel;
+	float m_angVel;
 	float m_axleTrack;
-	AbstractCodewheel* m_leftWheel;
-	AbstractCodewheel* m_rightWheel;
+
+	AbstractCodewheel* m_leftCodewheel;
+	AbstractCodewheel* m_rightCodewheel;
 };
 
 #endif // __ODOMETRY_H__

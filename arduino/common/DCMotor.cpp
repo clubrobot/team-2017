@@ -1,19 +1,12 @@
+#include <Arduino.h>
+#include <EEPROM.h>
+
 #include "DCMotor.h"
 #include "SerialTalks.h"
 
-#include <Arduino.h>
+#define FORWARD  0
+#define BACKWARD 1
 
-
-void DCMotor::setVelocity(float velocity)
-{
-	m_velocity = velocity;
-	update();
-}
-
-float DCMotor::getMaximumVelocity() const
-{
-	return abs(m_suppliedVoltage * (2 * M_PI * m_radius) / (60 * m_reductionRatio / m_velocityConstant));
-}
 
 void DCMotor::attach(int EN, int PWM, int DIR)
 {
@@ -25,29 +18,16 @@ void DCMotor::attach(int EN, int PWM, int DIR)
 	pinMode(m_DIR, OUTPUT);
 }
 
-void DCMotor::setRadius(float radius)
-{
-	m_radius = radius;
-}
-
-void DCMotor::setConstants(float velocityConstant, int reductionRatio)
-{
-	m_velocityConstant = velocityConstant;
-	m_reductionRatio = reductionRatio;
-}
-
-void DCMotor::setSuppliedVoltage(float suppliedVoltage)
-{
-	m_suppliedVoltage = suppliedVoltage;
-}
-
 void DCMotor::update()
 {
 	if (m_velocity != 0)
 	{
+		int PWM = m_velocity / (2 * M_PI * m_wheelRadius) * m_constant * 255;
+		if (PWM <   0) PWM *= -1;
+		if (PWM > 255) PWM = 255;
 		digitalWrite(m_EN, HIGH);
-		analogWrite(m_PWM, getPWM());
-		digitalWrite(m_DIR, (m_velocity * m_velocityConstant > 0) ? FORWARD : BACKWARD);
+		analogWrite(m_PWM, PWM);
+		digitalWrite(m_DIR, (m_velocity * m_constant * m_wheelRadius > 0) ? FORWARD : BACKWARD);
 	}
 	else
 	{
@@ -55,13 +35,21 @@ void DCMotor::update()
 	}
 }
 
-int DCMotor::getPWM() const
+float DCMotor::getMaxVelocity() const
 {
-	int PWM = m_velocity * (60 * m_reductionRatio / m_velocityConstant) / (2 * M_PI * m_radius) * (255 / m_suppliedVoltage);
-	if (PWM > 255 || PWM < -255)
-		return 255;
-	else
-		return abs(PWM);
+	return abs((2 * M_PI * m_wheelRadius) / m_constant);
+}
+
+void DCMotor::load(int address)
+{
+	EEPROM.get(address, m_wheelRadius); address += sizeof(m_wheelRadius);
+	EEPROM.get(address, m_constant);    address += sizeof(m_constant);
+}
+
+void DCMotor::save(int address) const
+{
+	EEPROM.put(address, m_wheelRadius); address += sizeof(m_wheelRadius);
+	EEPROM.put(address, m_constant);    address += sizeof(m_constant);
 }
 
 void DCMotorsDriver::attach(int RESET, int FAULT)

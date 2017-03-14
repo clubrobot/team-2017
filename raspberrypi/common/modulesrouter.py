@@ -86,28 +86,30 @@ class Module:
 		self.uuid   = uuid
 		self.parent.execute(MODULE_CONNECT_OPCODE, uuid, timeout=timeout)
 
-	def __getattr__(self, name):
-		methods = (
-			'disconnect',
-			'send', 'poll', 'flush', 'execute',
-			'getuuid', 'setuuid', 'getout', 'geterr')
-		attributes = ('port', 'is_connected')
-		if name in methods:
-			def temporary_method(*args, tcptimeout=60, **kwargs):
-				try:
-					kwargs['serialtimeout'] = kwargs['timeout']
-					del kwargs['timeout']
-				except KeyError: pass
-				return self.parent.execute(MODULE_EXECUTE_OPCODE, self.uuid, name, *args, **kwargs, timeout=tcptimeout)
-			return temporary_method
-		elif name in attributes:
-			return self.parent.execute(MODULE_GETATTR_OPCODE, self.uuid, name)
-		else:
-			return object.__getattribute__(self, name)
-
-	def __setattr__(self, name, value):
-		attributes = ('port',)
-		if name in attributes:
-			return self.parent.execute(MODULE_SETATTR_OPCODE, self.uuid, name, value)
-		else:
-			return object.__setattr__(self, name, value)
+	def execmeth(self, methodname, *args, tcptimeout=60, **kwargs):
+		# Rename the SerialTalks 'timeout' argument so that it doesn't conflict with the TCPTalks one
+		try:
+			kwargs['serialtimeout'] = kwargs['timeout']
+			del kwargs['timeout']
+		except KeyError: pass
+		
+		# Remotely call the SerialTalks method
+		return self.parent.execute(MODULE_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
+	
+	def getattr(self, attrname):
+		return self.parent.execute(MODULE_GETATTR_OPCODE, self.uuid, name)
+	
+	def setattr(self, attrname, value):
+		return self.parent.execute(MODULE_SETATTR_OPCODE, self.uuid, name, value)
+	
+	# Shortcuts
+	def connect   (self, *args, **kwargs): return self.execmeth('connect',    *args, **kwargs)
+	def disconnect(self, *args, **kwargs): return self.execmeth('disconnect', *args, **kwargs)
+	def send      (self, *args, **kwargs): return self.execmeth('send',       *args, **kwargs)
+	def poll      (self, *args, **kwargs): return self.execmeth('poll',       *args, **kwargs)
+	def flush     (self, *args, **kwargs): return self.execmeth('flush',      *args, **kwargs)
+	def execute   (self, *args, **kwargs): return self.execmeth('execute',    *args, **kwargs)
+	def getuuid   (self, *args, **kwargs): return self.execmeth('getuuid',    *args, **kwargs)
+	def setuuid   (self, *args, **kwargs): return self.execmeth('setuuid',    *args, **kwargs)
+	def getout    (self, *args, **kwargs): return self.execmeth('getout',     *args, **kwargs)
+	def geterr    (self, *args, **kwargs): return self.execmeth('geterr',     *args, **kwargs)

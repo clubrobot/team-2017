@@ -4,12 +4,14 @@
 import time
 import math
 
-from common.serialtalks   import BYTE, INT, FLOAT
+from common.serialtalks   import BYTE, INT, LONG, FLOAT
 from common.modulesrouter import Module
 
 # Wheeled base instructions
 
 SET_OPENLOOP_VELOCITIES_OPCODE  = 0x04
+
+GET_CODEWHEELS_COUNTERS_OPCODE  = 0x0D
 
 SET_VELOCITIES_OPCODE   = 0x06
 
@@ -20,20 +22,33 @@ SET_POSITION_OPCODE     = 0x0A
 GET_POSITION_OPCODE     = 0x0B
 GET_VELOCITIES_OPCODE   = 0x0C
 
-SET_PID_TUNINGS_OPCODE  = 0x0E
-GET_PID_TUNINGS_OPCODE  = 0x0F
+SET_PARAMETER_VALUE_OPCODE  = 0x0E
+GET_PARAMETER_VALUE_OPCODE  = 0x0F
 
-LINEAR_VELOCITY_PID_IDENTIFIER  = 0x02
-ANGULAR_VELOCITY_PID_IDENTIFIER = 0x03
-LINEAR_POSITION_PID_IDENTIFIER  = 0x04
-ANGULAR_POSITION_PID_IDENTIFIER = 0x05
-LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER  = 0x06
-ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER = 0X07
-
-# Gripper instructions
-
-SET_GRIPPER_ENABLED_OPCODE  = 0x04
-SET_GRIPPER_POSITION_OPCODE = 0x05
+LEFTWHEEL_RADIUS_ID          = 0x10
+LEFTWHEEL_CONSTANT_ID        = 0x11
+RIGHTWHEEL_RADIUS_ID         = 0x20
+RIGHTWHEEL_CONSTANT_ID       = 0x21
+LEFTCODEWHEEL_RADIUS_ID        = 0x40
+LEFTCODEWHEEL_COUNTSPERREV_ID  = 0x41
+RIGHTCODEWHEEL_RADIUS_ID       = 0x50
+RIGHTCODEWHEEL_COUNTSPERREV_ID = 0x51
+ODOMETRY_AXLETRACK_ID        = 0x60
+VELOCITYCONTROL_AXLETRACK_ID = 0x80
+VELOCITYCONTROL_MAXLINACC_ID = 0x81
+VELOCITYCONTROL_MAXLINDEC_ID = 0x82
+VELOCITYCONTROL_MAXANGACC_ID = 0x83
+VELOCITYCONTROL_MAXANGDEC_ID = 0x84
+LINVELPID_KP_ID              = 0xA0
+LINVELPID_KI_ID              = 0xA1
+LINVELPID_KD_ID              = 0xA2
+LINVELPID_MINOUTPUT_ID       = 0xA3
+LINVELPID_MAXOUTPUT_ID       = 0xA4
+ANGVELPID_KP_ID              = 0xB0
+ANGVELPID_KI_ID              = 0xB1
+ANGVELPID_KD_ID              = 0xB2
+ANGVELPID_MINOUTPUT_ID       = 0xB3
+ANGVELPID_MAXOUTPUT_ID       = 0xB4
 
 
 class WheeledBase(Module):
@@ -43,9 +58,20 @@ class WheeledBase(Module):
 	def set_openloop_velocities(self, left, right):
 		self.send(SET_OPENLOOP_VELOCITIES_OPCODE, FLOAT(left), FLOAT(right))
 
-	def start_trajectory(self, x, y, theta):
-		self.send(START_TRAJECTORY_OPCODE, FLOAT(x), FLOAT(y), FLOAT(theta))
-	
+	def get_codewheels_counter(self, **kwargs):
+		output = self.execute(GET_CODEWHEELS_COUNTERS_OPCODE, **kwargs)
+		left, right = output.read(LONG, LONG)
+		return left, right
+
+	def set_velocities(self, linear_velocity, angular_velocity):
+		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
+
+	def start_trajectory(self, waypoints):
+		args = [INT(len(waypoints))]
+		for x, y, theta in waypoints:
+			args += [FLOAT(x), FLOAT(y), FLOAT(theta)]
+		self.send(START_TRAJECTORY_OPCODE, *args)
+
 	def trajectory_ended(self, **kwargs):
 		output = self.execute(TRAJECTORY_ENDED_OPCODE, **kwargs)
 		trajectory_ended = output.read(BYTE)
@@ -55,12 +81,9 @@ class WheeledBase(Module):
 		if theta is None:
 			current_x, current_y, current_theta = self.get_position(**kwargs)
 			theta = math.atan2(y - current_y, x - current_x)
-		self.start_trajectory(x, y, theta)
+		self.start_trajectory([(x, y, theta)])
 		while not self.trajectory_ended(**kwargs):
 			time.sleep(0.1)
-
-	def set_velocities(self, linear_velocity, angular_velocity):
-		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
 	def stop(self):
 		self.set_openloop_velocities(0, 0)
@@ -78,63 +101,14 @@ class WheeledBase(Module):
 	
 	def get_velocities(self, **kwargs):
 		output = self.execute(GET_VELOCITIES_OPCODE, **kwargs)
-		linear_velocity, angular_velocity = output.read(FLOAT, FLOAT)
-		return linear_velocity, angular_velocity
+		linvel, angvel = output.read(FLOAT, FLOAT)
+		return linvel, angvel
 
-	def set_tunings(self, identifier, Kp, Kd, Ki):
-		self.send(SET_PID_TUNINGS_OPCODE, BYTE(identifier), FLOAT(Kp), FLOAT(Kd), FLOAT(Ki))
+	def set_parameter_value(self, id, value, valuetype):
+		self.send(SET_PARAMETER_VALUE_OPCODE, BYTE(id), valuetype(value))
 	
-	def set_linear_velocity_PID_tunings(self, Kp, Ki, Kd):
-		self.set_tunings(LINEAR_VELOCITY_PID_IDENTIFIER, Kp, Ki, Kd)
-	
-	def set_angular_velocity_PID_tunings(self, Kp, Ki, Kd):
-		self.set_tunings(ANGULAR_VELOCITY_PID_IDENTIFIER, Kp, Ki, Kd)
+	def get_parameter_value(self, id, valuetype):
+		output = self.execute(GET_PARAMETER_VALUE_OPCODE, BYTE(id))
+		value = output.read(valuetype)
+		return value
 
-	def set_linear_position_PID_tunings(self, Kp, Ki, Kd):
-		self.set_tunings(LINEAR_POSITION_PID_IDENTIFIER, Kp, Ki, Kd)
-	
-	def set_angular_position_PID_tunings(self, Kp, Ki, Kd):
-		self.set_tunings(ANGULAR_POSITION_PID_IDENTIFIER, Kp, Ki, Kd)
-
-	def set_linear_position_to_velocity_PID_tunings(self, Kp, Ki, Kd):
-		self.set_tunings(LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER, Kp, Ki, Kd)
-	
-	def set_angular_position_to_velocity_PID_tunings(self, Kp, Ki, Kd):
-		self.set_tunings(ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER, Kp, Ki, Kd)
-
-	def get_tunings(self, identifier, **kwargs):
-		output = self.execute(GET_PID_TUNINGS_OPCODE, BYTE(identifier), **kwargs)
-		Kp, Kd, Ki = output.read(FLOAT, FLOAT, FLOAT)
-		return Kp, Kd, Ki
-
-	def get_linear_velocity_PID_tunings(self, **kwargs):
-		return self.get_tunings(LINEAR_VELOCITY_PID_IDENTIFIER, **kwargs)
-	
-	def get_angular_velocity_PID_tunings(self, **kwargs):
-		return self.get_tunings(ANGULAR_VELOCITY_PID_IDENTIFIER, **kwargs)
-
-	def get_linear_position_PID_tunings(self, **kwargs):
-		return self.get_tunings(LINEAR_POSITION_PID_IDENTIFIER, **kwargs)
-	
-	def get_angular_position_PID_tunings(self, **kwargs):
-		return self.get_tunings(ANGULAR_POSITION_PID_IDENTIFIER, **kwargs)
-
-	def get_linear_position_to_velocity_PID_tunings(self, **kwargs):
-		return self.get_tunings(LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER, **kwargs)
-	
-	def get_angular_position_to_velocity_PID_tunings(self, **kwargs):
-		return self.get_tunings(ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER, **kwargs)
-
-
-class Gripper(Module):
-	def __init__(self, parent, uuid = 'gripper'):
-		Module.__init__(self, parent, uuid)
-
-	def enable(self):
-		self.send(SET_GRIPPER_ENABLED_OPCODE, BYTE(1))
-
-	def disable(self):
-		self.send(SET_GRIPPER_ENABLED_OPCODE, BYTE(0))
-
-	def setposition(self, position):
-		self.send(SET_GRIPPER_POSITION_OPCODE, FLOAT(position))

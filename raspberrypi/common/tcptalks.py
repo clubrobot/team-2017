@@ -5,7 +5,8 @@ import socket
 import pickle
 import os, sys
 import traceback
-from time      import time
+import time
+import random
 from queue     import Queue, Empty
 from threading import Thread, RLock, Event, current_thread
 
@@ -48,8 +49,8 @@ def _clientsocket(ip, port, timeout):
 	clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect to the other
-	startingtime = time()
-	while timeout is None or time() - startingtime < timeout:
+	startingtime = time.time()
+	while timeout is None or time.time() - startingtime < timeout:
 		try:
 			clientsocket.connect((ip, port))
 			return clientsocket
@@ -170,15 +171,16 @@ class TCPTalks:
 
 	def rawsend(self, rawbytes):
 		try:
-			sentbytes = 0
-			while(sentbytes < len(rawbytes)):
-				sentbytes += self.socket.send(rawbytes[sentbytes:])
-			return sentbytes
-		except AttributeError:
-			raise NotConnectedError('not connected') from None
+			if hasattr(self, 'socket'):
+				sentbytes = 0
+				while(sentbytes < len(rawbytes)):
+					sentbytes += self.socket.send(rawbytes[sentbytes:])
+				return sentbytes
+		except AttributeError: pass
+		raise NotConnectedError('not connected') from None
 
 	def send(self, opcode, *args, **kwargs):
-		retcode = os.urandom(4)
+		retcode = random.randint(0, 0xFFFFFFFF)
 		content = (opcode, retcode, args, kwargs)
 		prefix  = (MASTER_BYTE,)
 		self.rawsend(pickle.dumps(prefix + content))

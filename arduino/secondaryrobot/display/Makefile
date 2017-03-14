@@ -8,6 +8,7 @@ COMMON = ../../common
 LOCAL_INO_SRCS = display.ino
 LOCAL_CPP_SRCS = \
 	$(COMMON)/SerialTalks.cpp \
+	$(COMMON)/PeriodicProcess.cpp \
 	IPDisplay.cpp \
 	instructions.cpp \
 	ledMatrix.cpp \

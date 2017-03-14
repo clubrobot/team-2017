@@ -4,12 +4,11 @@
 
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
+#include "../../common/VelocityController.h"
 #include "../../common/PID.h"
 #include "../../common/Codewheel.h"
 #include "../../common/Odometry.h"
 #include "../../common/TrajectoryPlanner.h"
-
-#define CONTROL_IN_POSITION 0
 
 // Global variables
 
@@ -18,19 +17,10 @@ extern DCMotorsDriver driver;
 extern DCMotor leftWheel;
 extern DCMotor rightWheel;
 
-extern DifferentialController positionController;
-extern DifferentialController velocityController;
+extern VelocityController velocityControl;
 
-extern PID linearVelocityController;
-extern PID angularVelocityController;
-
-#if CONTROL_IN_POSITION
-extern PID linearPositionController;
-extern PID angularPositionController;
-#else
-extern PID linearPositionToVelocityController;
-extern PID angularPositionToVelocityController;
-#endif
+extern PID linVelPID;
+extern PID angVelPID;
 
 extern Codewheel leftCodewheel;
 extern Codewheel rightCodewheel;
@@ -43,50 +33,52 @@ extern TrajectoryPlanner trajectory;
 
 void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	float leftVelocity  = input.read<float>();
-	float rightVelocity = input.read<float>();
+	float leftWheelVel  = input.read<float>();
+	float rightWheelVel = input.read<float>();
 
-	velocityController.disable();
-#if CONTROL_IN_POSITION
-	positionController.disable();
-#endif
+	velocityControl.disable();
 	trajectory.disable();
-	leftWheel .setVelocity(leftVelocity);
-	rightWheel.setVelocity(rightVelocity);
+	leftWheel .setVelocity(leftWheelVel);
+	rightWheel.setVelocity(rightWheelVel);
+}
+
+void GET_CODEWHEELS_COUNTERS(SerialTalks& talks, Deserializer& input, Serializer& output)
+{
+	long leftCodewheelCounter  = leftCodewheel. getCounter();
+	long rightCodewheelCounter = rightCodewheel.getCounter();
+
+	output.write<long>(leftCodewheelCounter);
+	output.write<long>(rightCodewheelCounter);
 }
 
 void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	float linearVelocity  = input.read<float>();
-	float angularVelocity = input.read<float>();
-#if CONTROL_IN_POSITION
-	positionController.disable();
-#endif
+	float linVelSetpoint = input.read<float>();
+	float angVelSetpoint = input.read<float>();
 	trajectory.disable();
-	velocityController.enable();
-	velocityController.setSetpoints(linearVelocity, angularVelocity);
+	velocityControl.enable();
+	velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 }
 
 void START_TRAJECTORY(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	float x     = input.read<float>();
-	float y     = input.read<float>();
-	float theta = input.read<float>();
-
-#if CONTROL_IN_POSITION
-	velocityController.disable();
-	positionController.enable();
-#else
-	velocityController.enable();
-#endif
 	trajectory.reset();
-	trajectory.addWaypoint(Position(x, y, theta));
+	trajectory.addWaypoint(odometry.getPosition());
+	int numWaypoints = input.read<int>();
+	for (int i = 0; i < numWaypoints; i++)
+	{
+		float x     = input.read<float>();
+		float y     = input.read<float>();
+		float theta = input.read<float>(); // Useless for now
+		trajectory.addWaypoint(Position(x, y, theta));
+	}
+	velocityControl.enable();
 	trajectory.enable();
 }
 
 void TRAJECTORY_ENDED(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	output.write<byte>(trajectory.hasReachedItsTarget());
+	output.write<byte>(false);
 }
 
 void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
@@ -95,117 +87,259 @@ void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
 	float y     = input.read<float>();
 	float theta = input.read<float>();
 
-	odometry.calibrateXAxis(x);
-	odometry.calibrateYAxis(y);
-	odometry.calibrateOrientation(theta);
+	odometry.setPosition(x, y, theta);
 }
 
 void GET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	const Position& position = odometry.getPosition();
+	const Position& pos = odometry.getPosition();
 	
-	output.write<float>(position.x);
-	output.write<float>(position.y);
-	output.write<float>(position.theta);
+	output.write<float>(pos.x);
+	output.write<float>(pos.y);
+	output.write<float>(pos.theta);
 }
 
 void GET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	const float linearVelocity  = odometry.getLinearVelocity ();
-	const float angularVelocity = odometry.getAngularVelocity();
+	const float linVel = odometry.getLinVel();
+	const float angVel = odometry.getAngVel();
 	
-	output.write<float>(linearVelocity);
-	output.write<float>(angularVelocity);
+	output.write<float>(linVel);
+	output.write<float>(angVel);
 }
 
-void SET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output)
+void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	byte  id = input.read<byte>();
-	float Kp = input.read<float>();
-	float Ki = input.read<float>();
-	float Kd = input.read<float>();
-
 	switch (id)
 	{
-#if CONTROL_IN_POSITION
-	case LINEAR_POSITION_PID_IDENTIFIER:
-		linearPositionController.setTunings(Kp, Ki, Kd);
-		linearPositionController.saveTunings(LINEAR_POSITION_PID_ADDRESS);
+	case LEFTWHEEL_RADIUS_ID:
+		leftWheel.setWheelRadius(input.read<float>());
+		leftWheel.save(LEFTWHEEL_ADDRESS);
 		break;
-	case ANGULAR_POSITION_PID_IDENTIFIER:
-		angularPositionController.setTunings(Kp, Ki, Kd);
-		angularPositionController.saveTunings(ANGULAR_POSITION_PID_ADDRESS);
+	case LEFTWHEEL_CONSTANT_ID:
+		leftWheel.setConstant(input.read<float>());
+		leftWheel.save(LEFTWHEEL_ADDRESS);
 		break;
-#else
-	case LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER:
-		linearPositionToVelocityController.setTunings(Kp, Ki, Kd);
-		linearPositionToVelocityController.saveTunings(LINEAR_POSITION_TO_VELOCITY_PID_ADDRESS);
+	
+	case RIGHTWHEEL_RADIUS_ID:
+		rightWheel.setWheelRadius(input.read<float>());
+		rightWheel.save(RIGHTWHEEL_ADDRESS);
 		break;
-	case ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER:
-		angularPositionToVelocityController.setTunings(Kp, Ki, Kd);
-		angularPositionToVelocityController.saveTunings(ANGULAR_POSITION_TO_VELOCITY_PID_ADDRESS);
+	case RIGHTWHEEL_CONSTANT_ID:
+		rightWheel.setConstant(input.read<float>());
+		rightWheel.save(RIGHTWHEEL_ADDRESS);
 		break;
-#endif
-	case LINEAR_VELOCITY_PID_IDENTIFIER:
-		linearVelocityController.setTunings(Kp, Ki, Kd);
-		linearVelocityController.saveTunings(LINEAR_VELOCITY_PID_ADDRESS);
+
+	case LEFTCODEWHEEL_RADIUS_ID:
+		leftCodewheel.setWheelRadius(input.read<float>());
+		leftCodewheel.save(LEFTCODEWHEEL_ADDRESS);
 		break;
-	case ANGULAR_VELOCITY_PID_IDENTIFIER:
-		angularVelocityController.setTunings(Kp, Ki, Kd);
-		angularVelocityController.saveTunings(ANGULAR_VELOCITY_PID_ADDRESS);
+	case LEFTCODEWHEEL_COUNTSPERREV_ID:
+		leftCodewheel.setCountsPerRev(input.read<long>());
+		leftCodewheel.save(LEFTCODEWHEEL_ADDRESS);
 		break;
-	default:
-		talks.err << "SET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
+	
+	case RIGHTCODEWHEEL_RADIUS_ID:
+		rightCodewheel.setWheelRadius(input.read<float>());
+		rightCodewheel.save(RIGHTCODEWHEEL_ADDRESS);
+		break;
+	case RIGHTCODEWHEEL_COUNTSPERREV_ID:
+		rightCodewheel.setCountsPerRev(input.read<long>());
+		rightCodewheel.save(RIGHTCODEWHEEL_ADDRESS);
+		break;
+	
+	case ODOMETRY_AXLETRACK_ID:
+		odometry.setAxleTrack(input.read<float>());
+		odometry.save(ODOMETRY_ADDRESS);
+		break;
+	
+	case VELOCITYCONTROL_AXLETRACK_ID:
+		velocityControl.setAxleTrack(input.read<float>());
+		velocityControl.save(VELOCITYCONTROL_ADDRESS);
+		break;
+	case VELOCITYCONTROL_MAXLINACC_ID:
+		velocityControl.setMaxAcc(input.read<float>(), velocityControl.getMaxAngAcc());
+		velocityControl.save(VELOCITYCONTROL_ADDRESS);
+		break;
+	case VELOCITYCONTROL_MAXLINDEC_ID:
+		velocityControl.setMaxDec(input.read<float>(), velocityControl.getMaxAngDec());
+		velocityControl.save(VELOCITYCONTROL_ADDRESS);
+		break;
+	case VELOCITYCONTROL_MAXANGACC_ID:
+		velocityControl.setMaxAcc(velocityControl.getMaxLinAcc(), input.read<float>());
+		velocityControl.save(VELOCITYCONTROL_ADDRESS);
+		break;
+	case VELOCITYCONTROL_MAXANGDEC_ID:
+		velocityControl.setMaxDec(velocityControl.getMaxLinDec(), input.read<float>());
+		velocityControl.save(VELOCITYCONTROL_ADDRESS);
+		break;
+	
+	case LINVELPID_KP_ID:
+		linVelPID.setTunings(input.read<float>(), linVelPID.getKi(), linVelPID.getKd());
+		linVelPID.save(LINVELPID_ADDRESS);
+		break;
+	case LINVELPID_KI_ID:
+		linVelPID.setTunings(linVelPID.getKp(), input.read<float>(), linVelPID.getKd());
+		linVelPID.save(LINVELPID_ADDRESS);
+		break;
+	case LINVELPID_KD_ID:
+		linVelPID.setTunings(linVelPID.getKp(), linVelPID.getKi(), input.read<float>());
+		linVelPID.save(LINVELPID_ADDRESS);
+		break;
+	case LINVELPID_MINOUTPUT_ID:
+		linVelPID.setOutputLimits(input.read<float>(), linVelPID.getMaxOutput());
+		linVelPID.save(LINVELPID_ADDRESS);
+		break;
+	case LINVELPID_MAXOUTPUT_ID:
+		linVelPID.setOutputLimits(linVelPID.getMinOutput(), input.read<float>());
+		linVelPID.save(LINVELPID_ADDRESS);
+		break;
+	
+	case ANGVELPID_KP_ID:
+		angVelPID.setTunings(input.read<float>(), angVelPID.getKi(), angVelPID.getKd());
+		angVelPID.save(ANGVELPID_ADDRESS);
+		break;
+	case ANGVELPID_KI_ID:
+		angVelPID.setTunings(angVelPID.getKd(), input.read<float>(), angVelPID.getKd());
+		angVelPID.save(ANGVELPID_ADDRESS);
+		break;
+	case ANGVELPID_KD_ID:
+		angVelPID.setTunings(angVelPID.getKd(), angVelPID.getKi(), input.read<float>());
+		angVelPID.save(ANGVELPID_ADDRESS);
+		break;
+	case ANGVELPID_MINOUTPUT_ID:
+		angVelPID.setOutputLimits(input.read<float>(), angVelPID.getMaxOutput());
+		angVelPID.save(ANGVELPID_ADDRESS);
+		break;
+	case ANGVELPID_MAXOUTPUT_ID:
+		angVelPID.setOutputLimits(angVelPID.getMinOutput(), input.read<float>());
+		angVelPID.save(ANGVELPID_ADDRESS);
+		break;
+	
+	case TRAJECTORY_LINVELKP_ID:
+		trajectory.setVelTunings(input.read<float>(), trajectory.getAngVelKp());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
+	case TRAJECTORY_ANGVELKP_ID:
+		trajectory.setVelTunings(trajectory.getLinVelKp(), input.read<float>());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
+	case TRAJECTORY_LINVELMAX_ID:
+		trajectory.setVelLimits(input.read<float>(), trajectory.getAngVelMax());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
+	case TRAJECTORY_ANGVELMAX_ID:
+		trajectory.setVelLimits(trajectory.getLinVelMax(), input.read<float>());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
+	case TRAJECTORY_LOOKAHED_ID:
+		trajectory.setLookAhead(input.read<float>());
+		trajectory.save(TRAJECTORY_ADDRESS);
+		break;
 	}
 }
 
-void GET_PID_TUNINGS(SerialTalks& talks, Deserializer& input, Serializer& output)
+void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	byte id = input.read<byte>();
-	float Kp, Ki, Kd;
-
 	switch (id)
 	{
-#if CONTROL_IN_POSITION
-	case LINEAR_POSITION_PID_IDENTIFIER:
-		Kp = linearPositionController.getKp();
-		Ki = linearPositionController.getKi();
-		Kd = linearPositionController.getKd();
+	case LEFTWHEEL_RADIUS_ID:
+		output.write<float>(leftWheel.getWheelRadius());
 		break;
-	case ANGULAR_POSITION_PID_IDENTIFIER:
-		Kp = angularPositionController.getKp();
-		Ki = angularPositionController.getKi();
-		Kd = angularPositionController.getKd();
+	case LEFTWHEEL_CONSTANT_ID:
+		output.write<float>(leftWheel.getConstant());
 		break;
-#else
-	case LINEAR_POSITION_TO_VELOCITY_PID_IDENTIFIER:
-		Kp = linearPositionToVelocityController.getKp();
-		Ki = linearPositionToVelocityController.getKi();
-		Kd = linearPositionToVelocityController.getKd();
+	
+	case RIGHTWHEEL_RADIUS_ID:
+		output.write<float>(rightWheel.getWheelRadius());
 		break;
-	case ANGULAR_POSITION_TO_VELOCITY_PID_IDENTIFIER:
-		Kp = angularPositionToVelocityController.getKp();
-		Ki = angularPositionToVelocityController.getKi();
-		Kd = angularPositionToVelocityController.getKd();
+	case RIGHTWHEEL_CONSTANT_ID:
+		output.write<float>(rightWheel.getConstant());
 		break;
-#endif
-	case LINEAR_VELOCITY_PID_IDENTIFIER:
-		Kp = linearVelocityController.getKp();
-		Ki = linearVelocityController.getKi();
-		Kd = linearVelocityController.getKd();
-		break;
-	case ANGULAR_VELOCITY_PID_IDENTIFIER:
-		Kp = angularVelocityController.getKp();
-		Ki = angularVelocityController.getKi();
-		Kd = angularVelocityController.getKd();
-		break;
-	default:
-		talks.err << "GET_PID_TUNINGS: unknown PID controller identifier: " << id << "\n";
-		return;
-	}
 
-	output.write<float>(Kp);
-	output.write<float>(Ki);
-	output.write<float>(Kd);
+	case LEFTCODEWHEEL_RADIUS_ID:
+		output.write<float>(leftCodewheel.getWheelRadius());
+		break;
+	case LEFTCODEWHEEL_COUNTSPERREV_ID:
+		output.write<long>(leftCodewheel.getCountsPerRev());
+		break;
+	
+	case RIGHTCODEWHEEL_RADIUS_ID:
+		output.write<float>(rightCodewheel.getWheelRadius());
+		break;
+	case RIGHTCODEWHEEL_COUNTSPERREV_ID:
+		output.write<long>(rightCodewheel.getCountsPerRev());
+		break;
+	
+	case ODOMETRY_AXLETRACK_ID:
+		output.write<float>(odometry.getAxleTrack());
+		break;
+	
+	case VELOCITYCONTROL_AXLETRACK_ID:
+		output.write<float>(velocityControl.getAxleTrack());
+		break;
+	case VELOCITYCONTROL_MAXLINACC_ID:
+		output.write<float>(velocityControl.getMaxLinAcc());
+		break;
+	case VELOCITYCONTROL_MAXLINDEC_ID:
+		output.write<float>(velocityControl.getMaxLinDec());
+		break;
+	case VELOCITYCONTROL_MAXANGACC_ID:
+		output.write<float>(velocityControl.getMaxAngAcc());
+		break;
+	case VELOCITYCONTROL_MAXANGDEC_ID:
+		output.write<float>(velocityControl.getMaxAngDec());
+		break;
+	
+	case LINVELPID_KP_ID:
+		output.write<float>(linVelPID.getKp());
+		break;
+	case LINVELPID_KI_ID:
+		output.write<float>(linVelPID.getKi());
+		break;
+	case LINVELPID_KD_ID:
+		output.write<float>(linVelPID.getKd());
+		break;
+	case LINVELPID_MINOUTPUT_ID:
+		output.write<float>(linVelPID.getMinOutput());
+		break;
+	case LINVELPID_MAXOUTPUT_ID:
+		output.write<float>(linVelPID.getMaxOutput());
+		break;
+	
+	case ANGVELPID_KP_ID:
+		output.write<float>(angVelPID.getKp());
+		break;
+	case ANGVELPID_KI_ID:
+		output.write<float>(angVelPID.getKi());
+		break;
+	case ANGVELPID_KD_ID:
+		output.write<float>(angVelPID.getKd());
+		break;
+	case ANGVELPID_MINOUTPUT_ID:
+		output.write<float>(angVelPID.getMinOutput());
+		break;
+	case ANGVELPID_MAXOUTPUT_ID:
+		output.write<float>(angVelPID.getMaxOutput());
+		break;
+
+	case TRAJECTORY_LINVELKP_ID:
+		output.write<float>(trajectory.getLinVelKp());
+		break;
+	case TRAJECTORY_ANGVELKP_ID:
+		output.write<float>(trajectory.getAngVelKp());
+		break;
+	case TRAJECTORY_LINVELMAX_ID:
+		output.write<float>(trajectory.getLinVelMax());
+		break;
+	case TRAJECTORY_ANGVELMAX_ID:
+		output.write<float>(trajectory.getAngVelMax());
+		break;
+	case TRAJECTORY_LOOKAHED_ID:
+		output.write<float>(trajectory.getLookAhead());
+		break;
+	}
 }
 

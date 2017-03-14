@@ -4,8 +4,8 @@
 import sys
 import serial
 from serial.serialutil import SerialException
-import os
 import time
+import random
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event, current_thread
 
@@ -16,7 +16,7 @@ BAUDRATE = 115200
 MASTER_BYTE = b'R'
 SLAVE_BYTE  = b'A'
 
-CONNECT_OPCODE = 0x00
+PING_OPCODE    = 0x00
 GETUUID_OPCODE = 0x01
 SETUUID_OPCODE = 0x02
 STDOUT_RETCODE = 0xFFFFFFFF
@@ -90,7 +90,10 @@ class SerialTalks:
 		# Wait until the Arduino is operational
 		startingtime = time.time()
 		while not self.is_connected:
-			if self.execute(CONNECT_OPCODE, timeout=0.1) is not None:
+			try:
+				output = self.execute(PING_OPCODE, timeout=0.1)
+			except NotConnectedError: pass
+			if output is not None:
 				self.is_connected = True
 				self.reset_queues()
 			elif timeout is not None and time.time() - startingtime > timeout:
@@ -113,15 +116,16 @@ class SerialTalks:
 		self.is_connected = False
 
 	def rawsend(self, rawbytes):
-		try:		
-			sentbytes = self.stream.write(rawbytes)
-			return sentbytes
-		except SerialException:
-			raise NotConnectedError('\'{}\' is not connected.'.format(self.port)) from None
+		try:
+			if hasattr(self, 'stream') and self.stream.is_open:
+				sentbytes = self.stream.write(rawbytes)
+				return sentbytes
+		except SerialException: pass
+		raise NotConnectedError('\'{}\' is not connected.'.format(self.port)) from None
 	
 	def send(self, opcode, *args):
-		retcode = os.urandom(4)
-		content = BYTE(opcode) + retcode + bytes().join(args)
+		retcode = random.randint(0, 0xFFFFFFFF)
+		content = BYTE(opcode) + ULONG(retcode) + bytes().join(args)
 		prefix  = MASTER_BYTE + BYTE(len(content))
 		self.rawsend(prefix + content)
 		return retcode
@@ -149,7 +153,7 @@ class SerialTalks:
 		self.queues_lock.release()
 
 	def process(self, message):
-		retcode = LONG(message.read(LONG))
+		retcode = message.read(ULONG)
 		queue = self.get_queue(retcode)
 		queue.put(message)
 
@@ -198,10 +202,10 @@ class SerialTalks:
 		return log
 
 	def getout(self, timeout=0):
-		return self.getlog(ULONG(STDOUT_RETCODE), timeout)
+		return self.getlog(STDOUT_RETCODE, timeout)
 
 	def geterr(self, timeout=0):
-		return self.getlog(ULONG(STDERR_RETCODE), timeout)
+		return self.getlog(STDERR_RETCODE, timeout)
 
 
 class SerialListener(Thread):
