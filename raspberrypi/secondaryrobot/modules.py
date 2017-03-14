@@ -50,6 +50,14 @@ ANGVELPID_KD_ID              = 0xB2
 ANGVELPID_MINOUTPUT_ID       = 0xB3
 ANGVELPID_MAXOUTPUT_ID       = 0xB4
 
+# Modules collector instructions
+
+_WRITE_DISPENSER_OPCODE    =  0x04
+_WRITE_GRIP_OPCODE         =  0X05
+_IS_UP_OPCODE              =  0x08
+_IS_DOWN_OPCODE            =  0x09
+_SET_MOTOR_VELOCITY_OPCODE =  0x0C
+
 
 class WheeledBase(Module):
 	def __init__(self, parent, uuid='wheeledbase'):
@@ -112,3 +120,77 @@ class WheeledBase(Module):
 		value = output.read(valuetype)
 		return value
 
+
+
+
+
+class ModulesCollector(Module):	
+	def __init__(self, parent, uuid='modulescollector'):
+		Module.__init__(self, parent, uuid)
+		self.highGripOpenAngle = 147
+		self.lowGripOpenAngle = 80
+		self.closeGripAngle = 5
+		self.gripCylinderAngle = 45
+
+		self.openDispenserAngle = 133
+		self.closeDispenserAngle = 0
+
+		self.climbingVelocity = -400 
+		self.goingDownVelocity = 300
+
+	def getHigh(self)):
+    	output = self.execute(_IS_UP_OPCODE)
+    	is_Up = output.read(BYTE)
+    	return bool(is_Up)
+
+	def getDown(self):
+    	output = self.execute(_IS_DOWN_OPCODE)
+    	is_Down = output.read(BYTE)
+    	return bool(is_Down)
+
+	def SetGripperPosition(self,a):
+    	self.send(_WRITE_GRIP_OPCODE, INT(a))
+
+	def OpenGripperUp(self):
+    	tempPosCommand = self.gripCylinderAngle
+		step = 1
+		time = 1 
+    	while tempPosCommand<=self.highGripOpenAngle :
+        	self.SetGripperPosition(round(tempPosCommand))
+        	tempPosCommand += step
+        	time.sleep(time/(self.highGripOpenAngle-self.gripCylinderAngle))
+
+	def OpenGripperlow(self):
+    	self.SetGripperPosition(self.lowGripOpenAngle)
+
+	def CloseGripper(self):
+    	self.SetGripperPosition(self.closeGripAngle)
+
+	def SetDispenserPosition(self,a): 
+    	self.send(_WRITE_DISPENSER_OPCODE, INT(a))
+
+	def OpenDispenser(self):
+    	self.SetDispenserPosition(self.openDispenserAngle)
+
+	def CloseDispenser(self):
+    	self.SetDispenserPosition(self.closeDispenserAngle)
+    	time.sleep(1)
+    	self.SetDispenserPosition(-1)
+
+	def SetMotorVelocity(self, a):
+    	self.send(_SET_MOTOR_VELOCITY_OPCODE, FLOAT(a))
+
+	def MotorToUp(self):
+    	self.CloseGripper()
+    	time.sleep(1)
+    	self.SetMotorVelocity(self.climbingVelocity)
+    	while not self.getHigh():
+        	time.sleep(0.1)
+
+	def MotorToDown(self):
+    	self.CloseGripper()
+    	time.sleep(0.2)
+    	self.SetMotorVelocity(self.goingDownVelocity)
+    	while not self.getDown():
+        	time.sleep(0.1)
+    	self.OpenGripperlow()
