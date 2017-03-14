@@ -67,8 +67,8 @@ void LedMatrix::setPattern(int nbPattern) {
   }
 }
 
-/*
-void slidePattern(int pattern, int del) {
+
+void LedMatrix::slidePattern(int nbPattern, int del) {
   for (int l = 0; l < 8; l++) {
     for (int i = 0; i < 8; i++) {
         leds[i] = leds[i]<<1;
@@ -80,4 +80,4 @@ void slidePattern(int pattern, int del) {
     }
     delay(del);
   }
-}*/
+}

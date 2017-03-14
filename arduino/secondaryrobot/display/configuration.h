@@ -108,6 +108,7 @@ const unsigned int cols[] = {256, 2048, 64, 2, 32, 4096, 8192, 1024}; //Col1,Col
 
 #define START_CHAR_LED_MATRIX 0x1D	// Ascii for group separator
 #define END_CHAR_LED_MATRIX '~'
+const byte alphabet[32][8] = { A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, SPACE, APOSTROPHE, HEART1, HEART2, HEART3, SPACE};
 
 //TODO : compléter table Ascii
 
