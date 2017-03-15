@@ -18,37 +18,45 @@ SET_VELOCITIES_OPCODE   = 0x06
 START_TRAJECTORY_OPCODE = 0x07
 TRAJECTORY_ENDED_OPCODE = 0x08
 
-SET_POSITION_OPCODE     = 0x0A
-GET_POSITION_OPCODE     = 0x0B
+SET_POSITION_OPCODE	 = 0x0A
+GET_POSITION_OPCODE	 = 0x0B
 GET_VELOCITIES_OPCODE   = 0x0C
 
 SET_PARAMETER_VALUE_OPCODE  = 0x0E
 GET_PARAMETER_VALUE_OPCODE  = 0x0F
 
-LEFTWHEEL_RADIUS_ID          = 0x10
-LEFTWHEEL_CONSTANT_ID        = 0x11
-RIGHTWHEEL_RADIUS_ID         = 0x20
-RIGHTWHEEL_CONSTANT_ID       = 0x21
-LEFTCODEWHEEL_RADIUS_ID        = 0x40
+LEFTWHEEL_RADIUS_ID		  = 0x10
+LEFTWHEEL_CONSTANT_ID		= 0x11
+RIGHTWHEEL_RADIUS_ID		 = 0x20
+RIGHTWHEEL_CONSTANT_ID	   = 0x21
+LEFTCODEWHEEL_RADIUS_ID		= 0x40
 LEFTCODEWHEEL_COUNTSPERREV_ID  = 0x41
-RIGHTCODEWHEEL_RADIUS_ID       = 0x50
+RIGHTCODEWHEEL_RADIUS_ID	   = 0x50
 RIGHTCODEWHEEL_COUNTSPERREV_ID = 0x51
-ODOMETRY_AXLETRACK_ID        = 0x60
+ODOMETRY_AXLETRACK_ID		= 0x60
 VELOCITYCONTROL_AXLETRACK_ID = 0x80
 VELOCITYCONTROL_MAXLINACC_ID = 0x81
 VELOCITYCONTROL_MAXLINDEC_ID = 0x82
 VELOCITYCONTROL_MAXANGACC_ID = 0x83
 VELOCITYCONTROL_MAXANGDEC_ID = 0x84
-LINVELPID_KP_ID              = 0xA0
-LINVELPID_KI_ID              = 0xA1
-LINVELPID_KD_ID              = 0xA2
-LINVELPID_MINOUTPUT_ID       = 0xA3
-LINVELPID_MAXOUTPUT_ID       = 0xA4
-ANGVELPID_KP_ID              = 0xB0
-ANGVELPID_KI_ID              = 0xB1
-ANGVELPID_KD_ID              = 0xB2
-ANGVELPID_MINOUTPUT_ID       = 0xB3
-ANGVELPID_MAXOUTPUT_ID       = 0xB4
+LINVELPID_KP_ID			  = 0xA0
+LINVELPID_KI_ID			  = 0xA1
+LINVELPID_KD_ID			  = 0xA2
+LINVELPID_MINOUTPUT_ID	   = 0xA3
+LINVELPID_MAXOUTPUT_ID	   = 0xA4
+ANGVELPID_KP_ID			  = 0xB0
+ANGVELPID_KI_ID			  = 0xB1
+ANGVELPID_KD_ID			  = 0xB2
+ANGVELPID_MINOUTPUT_ID	   = 0xB3
+ANGVELPID_MAXOUTPUT_ID	   = 0xB4
+
+# Modules collector instructions
+
+_WRITE_DISPENSER_OPCODE	=  0x04
+_WRITE_GRIP_OPCODE		 =  0X05
+_IS_UP_OPCODE			  =  0x08
+_IS_DOWN_OPCODE			=  0x09
+_SET_MOTOR_VELOCITY_OPCODE =  0x0C
 
 
 class WheeledBase(Module):
@@ -112,3 +120,81 @@ class WheeledBase(Module):
 		value = output.read(valuetype)
 		return value
 
+
+
+
+
+class ModulesGripper(Module):	
+	def __init__(self, parent, uuid='modulescollector'):
+		Module.__init__(self, parent, uuid)
+		self.high_gripOpenAngle = 147
+		self.lowGripOpenAngle = 80
+		self.closeGripAngle = 5
+		self.gripCylinderAngle = 45
+
+	def set_position(self,a):
+		self.send(_WRITE_GRIP_OPCODE, INT(a))
+
+	def open_up(self):
+		tempPosCommand = self.gripCylinderAngle
+		step = 1
+		time = 1 
+		while tempPosCommand<=self.highGripOpenAngle :
+			self.set_position(round(tempPosCommand))
+			tempPosCommand += step
+			time.sleep(time/(self.highGripOpenAngle-self.gripCylinderAngle))
+
+	def open_low(self):
+		self.set_position(self.lowGripOpenAngle)
+
+	def close(self):
+		self.set_position(self.closeGripAngle)
+
+
+class ModulesDispenser(Module):
+	def __init__(self, parent, uuid='modulescollector'):
+		Module.__init__(self, parent, uuid)
+		self.openDispenserAngle = 133
+		self.closeDispenserAngle = 0
+	
+	def set_position(self,a): 
+		self.send(_WRITE_DISPENSER_OPCODE, INT(a))
+
+	def open(self):
+		self.set_position(self.openDispenserAngle)
+
+	def close(self):
+		self.set_position(self.closeDispenserAngle)
+		time.sleep(1)
+		self.set_position(-1)
+
+
+
+class ModulesMotor(Module):
+	def __init__(self, parent, uuid='modulescollector'):
+		Module.__init__(self, parent, uuid)
+		self.climbingVelocity = -400 
+		self.goingDownVelocity = 300
+	
+	def get_high(self):
+		output = self.execute(_IS_UP_OPCODE)
+		isup = output.read(BYTE)
+		return bool(isup)
+
+	def get_down(self):
+		output = self.execute(_IS_DOWN_OPCODE)
+		isdown = output.read(BYTE)
+		return bool(isdown)
+	
+	def set_velocity(self, a):
+		self.send(_SET_MOTOR_VELOCITY_OPCODE, FLOAT(a))
+
+	def toup(self):
+		self.set_velocity(self.climbingVelocity)
+		while not self.get_high():
+			time.sleep(0.1)
+
+	def todown(self):
+		self.set_velocity(self.goingDownVelocity)
+		while not self.get_down():
+			time.sleep(0.1)
