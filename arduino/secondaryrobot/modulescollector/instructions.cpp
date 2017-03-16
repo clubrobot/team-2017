@@ -46,7 +46,16 @@ void IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& output){
 
 void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output){
     float vel = input.read<float>();
-    if(vel <= 400){
-        gripperMotor.setVelocity(vel);
-    }
+    if(gripper.attached() && gripper.read()>5){
+            gripperMotor.setVelocity(0);
+            gripper.write(5);
+            delay(20);
+        }
+    if(!gripper.attached()){
+        gripperMotor.setVelocity(0);
+        gripper.attach(SERVO2);
+        gripper.write(5);
+        delay(20);
+        }
+    gripperMotor.setVelocity(vel);
 }

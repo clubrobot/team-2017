@@ -5,8 +5,11 @@
 #include "instructions.h"
 #include "../../common/DCMotor.h"
 #include "../../common/SerialTalks.h"
+#include "../../common/Clock.h"
 
-#define BRAKEVELOCITY 75
+#define MAXMOVINGTIME 5000000
+
+const float BRAKEVELOCITY = 0.16;
 
 
 DCMotorsDriver motorDriver;
@@ -18,6 +21,8 @@ Servo dispenser;
 EndStop highStop;
 EndStop lowStop;
 
+Clock MovingTime;
+bool MotorIsMoving = false;
 
 void setup(){
     Serial.begin(SERIALTALKS_BAUDRATE);
@@ -39,8 +44,7 @@ void setup(){
     motorDriver.reset();
     
     gripperMotor.attach(MOTOR2_EN, MOTOR2_PWM, MOTOR2_DIR);
-    gripperMotor.setConstant(60/(300/6)/11.1);
-    gripperMotor.setWheelRadius(7.5);
+    gripperMotor.setConstant(1/11.1);
 
     // Miscellanous
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
@@ -50,6 +54,27 @@ void setup(){
 
 void loop(){
      talks.execute();   
+     if(!MotorIsMoving && (gripperMotor.getVelocity() != 0 || abs(gripperMotor.getVelocity()) != BRAKEVELOCITY)){
+         MovingTime.restart();
+         MotorIsMoving = true;    
+     }
+     
+     else if(MotorIsMoving){
+        if(gripperMotor.getVelocity() == 0 || abs(gripperMotor.getVelocity()) == BRAKEVELOCITY){ 
+            MotorIsMoving = false;
+        }
+        else if(gripper.read()>5){
+            float vel = gripperMotor.getVelocity();
+            gripperMotor.setVelocity(0);
+            gripper.write(5);
+            delay(20);
+            gripperMotor.setVelocity(vel);
+        }
+         else if(MovingTime.getElapsedTime() > MAXMOVINGTIME){
+            gripperMotor.setVelocity(0);
+        }
+     }
+
      if(highStop.getState() && gripperMotor.getVelocity()<BRAKEVELOCITY*(-1)){
         gripperMotor.setVelocity(BRAKEVELOCITY*(-1));
      }
