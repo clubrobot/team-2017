@@ -57,6 +57,7 @@ _WRITE_GRIP_OPCODE		 =  0X05
 _IS_UP_OPCODE			  =  0x08
 _IS_DOWN_OPCODE			=  0x09
 _SET_MOTOR_VELOCITY_OPCODE =  0x0C
+_GET_MESURE_SENSOR_OPCODE = 0x06
 
 
 class WheeledBase(Module):
@@ -194,3 +195,13 @@ class ModulesMotor(Module):
 
 	def todown(self):
 		self.set_velocity(self.goingDownVelocity)
+		
+
+class UltrasonicSensor(Module):
+    def __init__(self, parent, uuid='sensors'):
+		Module.__init__(self, parent, uuid)
+
+    def get_mesure(self,**kwargs):
+        output = self.execute(_GET_MESURE_SENSOR_OPCODE, **kwargs)
+        ar,av=output.read(INT,INT)
+        return ar,av
