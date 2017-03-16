@@ -63,6 +63,10 @@ _IS_UP_OPCODE			    = 0x08
 _IS_DOWN_OPCODE			    = 0x09
 _SET_MOTOR_VELOCITY_OPCODE  = 0x0C
 
+# Ultrasonic sensors instructions
+
+_GET_MESURE_SENSOR_OPCODE   = 0x06
+
 
 class WheeledBase(Module):
 	def __init__(self, parent, uuid='wheeledbase'):
@@ -143,18 +147,18 @@ class ModulesGripper(Module):
 	def open_up(self):
 		temp_pos_command = self.grip_cylinder_angle
 		step = 1
-		time = 1 
+		t = 1 
 		while temp_pos_command<=self.high_open_angle :
 			self.set_position(round(temp_pos_command))
 			temp_pos_command += step
-			time.sleep(time/(self.high_open_angle-self.grip_cylinder_angle))
+			time.sleep(t/(self.high_open_angle-self.grip_cylinder_angle))
 		self.set_position(self.high_open_angle)
 
 	def open_low(self):
 		self.set_position(self.low_open_angle)
 
 	def close(self):
-		self.set_position(self.low_open_angle)
+		self.set_position(self.close_angle)
 
 
 class ModulesDispenser(Module):
@@ -202,14 +206,14 @@ class ModulesElevator(Module):
 
 	def todown(self):
 		self.set_velocity(self.going_down_velocity)
-		
+
 
 class UltrasonicSensor(Module):
-    def __init__(self, parent, uuid='sensors'):
+	def __init__(self, parent, uuid='sensors'):
 		Module.__init__(self, parent, uuid)
 
-    def get_mesure(self,**kwargs):
-        output = self.execute(_GET_MESURE_SENSOR_OPCODE, **kwargs)
-        ar,av=output.read(INT,INT)
-        return ar,av
+	def get_mesure(self,**kwargs):
+		output = self.execute(_GET_MESURE_SENSOR_OPCODE, **kwargs)
+		ar,av=output.read(INT,INT)
+		return ar,av
 
