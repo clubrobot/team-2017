@@ -132,54 +132,55 @@ class WheeledBase(Module):
 class ModulesGripper(Module):	
 	def __init__(self, parent, uuid='modulescollector'):
 		Module.__init__(self, parent, uuid)
-		self.high_gripOpenAngle = 147
-		self.lowGripOpenAngle = 80
-		self.closeGripAngle = 5
-		self.gripCylinderAngle = 45
+		self.high_open_angle = 147
+		self.low_open_angle = 80
+		self.close_angle = 5
+		self.grip_cylinder_angle = 45
 
 	def set_position(self,a):
 		self.send(_WRITE_GRIP_OPCODE, INT(a))
 
 	def open_up(self):
-		tempPosCommand = self.gripCylinderAngle
+		temp_pos_command = self.grip_cylinder_angle
 		step = 1
 		time = 1 
-		while tempPosCommand<=self.highGripOpenAngle :
-			self.set_position(round(tempPosCommand))
-			tempPosCommand += step
-			time.sleep(time/(self.highGripOpenAngle-self.gripCylinderAngle))
+		while temp_pos_command<=self.high_open_angle :
+			self.set_position(round(temp_pos_command))
+			temp_pos_command += step
+			time.sleep(time/(self.high_open_angle-self.grip_cylinder_angle))
+		self.set_position(self.high_open_angle)
 
 	def open_low(self):
-		self.set_position(self.lowGripOpenAngle)
+		self.set_position(self.low_open_angle)
 
 	def close(self):
-		self.set_position(self.closeGripAngle)
+		self.set_position(self.low_open_angle)
 
 
 class ModulesDispenser(Module):
 	def __init__(self, parent, uuid='modulescollector'):
 		Module.__init__(self, parent, uuid)
-		self.openDispenserAngle = 133
-		self.closeDispenserAngle = 0
+		self.open_dispenser_angle = 133
+		self.close_dispenser_angle = 0
 	
 	def set_position(self,a): 
 		self.send(_WRITE_DISPENSER_OPCODE, INT(a))
 
 	def open(self):
-		self.set_position(self.openDispenserAngle)
+		self.set_position(self.open_dispenser_angle)
 
 	def close(self):
-		self.set_position(self.closeDispenserAngle)
+		self.set_position(self.close_dispenser_angle)
 		time.sleep(1)
 		self.set_position(-1)
 
 
 
-class ModulesMotor(Module):
+class ModulesElevator(Module):
 	def __init__(self, parent, uuid='modulescollector'):
 		Module.__init__(self, parent, uuid)
-		self.climbingVelocity = -400 
-		self.goingDownVelocity = 300
+		self.cimbing_Velocity = -10 
+		self.going_down_velocity = 8
 	
 	def get_high(self):
 		output = self.execute(_IS_UP_OPCODE)
@@ -195,7 +196,20 @@ class ModulesMotor(Module):
 		self.send(_SET_MOTOR_VELOCITY_OPCODE, FLOAT(a))
 
 	def toup(self):
-		self.set_velocity(self.climbingVelocity)
+		self.set_velocity(self.cimbing_Velocity)
+		while not self.get_high():
+			time.sleep(0.1)
 
 	def todown(self):
-		self.set_velocity(self.goingDownVelocity)
+		self.set_velocity(self.going_down_velocity)
+		
+
+class UltrasonicSensor(Module):
+    def __init__(self, parent, uuid='sensors'):
+		Module.__init__(self, parent, uuid)
+
+    def get_mesure(self,**kwargs):
+        output = self.execute(_GET_MESURE_SENSOR_OPCODE, **kwargs)
+        ar,av=output.read(INT,INT)
+        return ar,av
+
