@@ -19,14 +19,16 @@ bool TrajectoryPlanner::addWaypoint(const Position& waypoint)
 void TrajectoryPlanner::reset()
 {
 	m_numWaypoints = 0;
+	m_edgeIndex = 0;
+	m_goalIndex = 0;
+	m_goalParam = 0;
 }
 
 void TrajectoryPlanner::computeProjection(const Position& pos)
 {
 	m_projection = m_waypoints[m_numWaypoints - 1];
-	m_edgeIndex = 0;
 	m_projectionDistance = INFINITY;
-	for (int i = 0; i < m_numWaypoints - 1; i++)
+	for (int i = m_edgeIndex; i < m_numWaypoints - 1; i++)
 	{
 		const float dx = pos.x - m_waypoints[i].x;
 		const float dy = pos.y - m_waypoints[i].y;
@@ -57,9 +59,12 @@ void TrajectoryPlanner::computeProjection(const Position& pos)
 
 void TrajectoryPlanner::computeGoal(const Position& pos)
 {
-	m_goal = m_waypoints[m_numWaypoints - 1];
-	bool foundGoal = false;
-	for (int i = m_edgeIndex; i < m_numWaypoints - 1; i++)
+	if (m_goalIndex < m_edgeIndex)
+	{
+		m_goalIndex = m_edgeIndex;
+		m_goalParam = 0;
+	}
+	for (int i = m_goalIndex; i < m_numWaypoints - 1; i++)
 	{
 		const float dx = pos.x - m_waypoints[i].x;
 		const float dy = pos.y - m_waypoints[i].y;
@@ -71,14 +76,13 @@ void TrajectoryPlanner::computeGoal(const Position& pos)
 		{
 			t = (edgedx * dx + edgedy * dy) / (edgeLength * edgeLength);
 			t += sqrt(m_lookAhead * m_lookAhead - h * h) / edgeLength;
-			if (t >= 0 && t <= 1)
+			if ((i > m_goalIndex || t >= m_goalParam) && t >= 0 && t < 1)
 			{
+				m_goalIndex = i;
+				m_goalParam = t;
 				m_goal.x = m_waypoints[i].x + t * edgedx;
 				m_goal.y = m_waypoints[i].y + t * edgedy;
-				foundGoal = true;
 			}
-			else if (foundGoal)
-				break;
 		}
 	}
 }
@@ -91,11 +95,6 @@ void TrajectoryPlanner::process(float timestep)
 		computeGoal(m_posInput);
 	else
 		m_goal = m_projection;
-
-	// Remove the skipped waypoints
-	for (int i = m_edgeIndex; i < m_numWaypoints; i++)
-		m_waypoints[i - m_edgeIndex] = m_waypoints[i];
-	m_numWaypoints -= m_edgeIndex;
 
 	// Compute the setpoint velocitites
 	float delta = atan2(m_goal.y - m_posInput.y, m_goal.x - m_posInput.x) - m_posInput.theta;

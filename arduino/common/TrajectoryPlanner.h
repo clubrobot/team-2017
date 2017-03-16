@@ -59,6 +59,8 @@ private:
 
 	// Computation variables
 	int m_edgeIndex;
+	int m_goalIndex;
+	float m_goalParam;
 	float m_projectionDistance;
 	Position m_projection;
 	Position m_goal;
