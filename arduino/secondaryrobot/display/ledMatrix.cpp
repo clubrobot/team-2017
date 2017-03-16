@@ -1,16 +1,13 @@
 #include "ledMatrix.h"
 
 
-
-
-
-
-
 void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin)
 {
 	_DATAPIN = dataPin;
 	_CLOCKPIN = clockPin;
 	_LATCHPIN = latchPin;
+	_pattern.init();
+	_pattern.setTimestep(PATTERN_TIMESTEP);
 }
 
 void LedMatrix::process(float timestep)
@@ -21,7 +18,7 @@ void LedMatrix::process(float timestep)
 		_actualColumn = 0;
 	}
 	for (int row = 0; row < 8; row++) {
-		if (_patternToDisplay[row]&(0x01<<(7-_actualColumn))) {
+		if (_pattern._patternToDisplay[row]&(0x01<<(7-_actualColumn))) {
 			_data|=rows[row];  // Turn on this led
 		}
 		else {
@@ -33,7 +30,8 @@ void LedMatrix::process(float timestep)
 }
 
 
-void LedMatrix::updateMatrix(){
+void LedMatrix::updateMatrix()
+{
   byte octet1 = _data&0x00FF;
   byte octet2 = (_data&0xFF00)>>8;
   digitalWrite(_LATCHPIN,LOW);
@@ -43,7 +41,8 @@ void LedMatrix::updateMatrix(){
 }
 
 
-void LedMatrix::initMatrix() {
+void LedMatrix::initMatrix() 
+{
   //col à 0 pour allumer row à 1 pour allumer
   _data = 0;
   for(int i = 0;i<8;i++){
@@ -52,8 +51,15 @@ void LedMatrix::initMatrix() {
   this->updateMatrix();
 }
 
+void Pattern::init()
+{
+	_endOfPreviousPattern = 0;
+	_currentPattern = 0;
+	this->setPattern();
+}
 
-void LedMatrix::clearPattern() {
+void Pattern::clearPattern() 
+{
   // Clear pattern to display array
   for (int i = 0; i < 8; i++) {
     _patternToDisplay[i] = 0;
@@ -61,23 +67,30 @@ void LedMatrix::clearPattern() {
 }
 
 
-void LedMatrix::setPattern(int nbPattern) {
+void Pattern::setPattern()
+{
   for (int i = 0; i < 8; i++) {
-    _patternToDisplay[i] = _patterns[nbPattern][i] ;
+    _patternToDisplay[i] = _patterns[_currentPattern][i] ;
   }
 }
 
 
-void LedMatrix::slidePattern(int nbPattern, int del) {
-  for (int l = 0; l < 8; l++) {
-    for (int i = 0; i < 8; i++) {
-        leds[i] = leds[i]<<1;
+void Pattern::slidePattern() 
+{
+	_endOfPreviousPattern++;
+	if(_endOfPreviousPattern>=8)
+		_endOfPreviousPattern = 0;
+    for (int row = 0; row < 8; row++) {
+        _patternToDisplay[row] = _patternToDisplay[row]<<1;
     }
-    for (int j = 0; j < 8; j++) {
-      if ((patterns[pattern][j] & 0x01 << (8 - l)) >= 1) {
-        leds[j] |= 1 ;
-      } 
+    for (int row = 0; row < 8; row++) {
+    	if ((_patterns[_currentPattern][row] & 0x01 << (8 - _endOfPreviousPattern)) >= 1) {
+			_patternToDisplay[row] |= 1 ;
+    	} 
     }
-    delay(del);
-  }
+}
+
+void Pattern::process(float timestep)
+{
+	this->slidePattern();
 }

@@ -19,6 +19,8 @@
 
 // Time constants
 #define IP_DISPLAY_TIMESTEP 3e-3    // Execution step time in s
+#define LED_MATRIX_TIMESTEP 3e-3    // Execution step time in s
+#define PATTERN_TIMESTEP 3e-3    // Execution step time in s
 
 // IP_display constants
 #define IP_DISPLAY_BUFFER_SIZE 25   // Size of the data buffer receiver
@@ -105,10 +107,6 @@ const unsigned int cols[] = {256, 2048, 64, 2, 32, 4096, 8192, 1024}; //Col1,Col
 
 // Alphabet
 #ifdef INIT_EEPROM_LED_MATRIX
-
-#define START_CHAR_LED_MATRIX 0x1D	// Ascii for group separator
-#define END_CHAR_LED_MATRIX '~'
-const byte alphabet[32][8] = { A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, SPACE, APOSTROPHE, HEART1, HEART2, HEART3, SPACE};
 
 //TODO : compléter table Ascii
 
@@ -453,6 +451,16 @@ const byte alphabet[32][8] = { A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q
     0b01000000, \
     0b01111110, \
   }
+
+
+#define START_CHAR_LED_MATRIX 0x1D	// Ascii for group separator
+#define END_CHAR_LED_MATRIX '~'
+const byte alphabet[32][8] = { 	LETTER_A, LETTER_B, LETTER_C, LETTER_D, LETTER_E, LETTER_F, LETTER_G,\
+								LETTER_H, LETTER_I, LETTER_J, LETTER_K, LETTER_L, LETTER_M, LETTER_N,\
+								LETTER_O, LETTER_P, LETTER_Q, LETTER_R, LETTER_S, LETTER_T, LETTER_U,\
+								LETTER_V, LETTER_W, LETTER_X, LETTER_Y, LETTER_Z, SPACE, APOSTROPHE, HEART1, HEART2, HEART3, SPACE};
+
+
 #endif	// INIT_EEPROM_LED_MATRIX
 
 //***********************
