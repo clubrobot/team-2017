@@ -198,11 +198,13 @@ class ModulesElevator(Module):
 
 	def go_up(self):
 		self.set_velocity(self.climbing_Velocity)
-		while not self.get_high():
+		while not self.isup():
 			time.sleep(0.1)
 
 	def go_down(self):
 		self.set_velocity(self.going_down_velocity)
+		while not self.isdown():
+			time.sleep(0.1)
 
 
 class UltrasonicSensor(Module):
