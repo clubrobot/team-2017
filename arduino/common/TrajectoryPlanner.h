@@ -43,6 +43,9 @@ public:
 
 private:
 
+	void computeProjection(const Position& pos);
+	void computeGoal(const Position& pos);
+
 	virtual void process(float timestep);
 
 	// I/O
@@ -53,6 +56,12 @@ private:
 	// Trajectory specifications
 	Position m_waypoints[TRAJECTORYPLANNER_MAX_WAYPOINTS];
 	int  m_numWaypoints;
+
+	// Computation variables
+	int m_edgeIndex;
+	float m_projectionDistance;
+	Position m_projection;
+	Position m_goal;
 
 	// Path following tunings
 	float m_lookAhead;
