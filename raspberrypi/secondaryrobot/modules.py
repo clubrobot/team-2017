@@ -146,12 +146,12 @@ class ModulesGripper(Module):
 
 	def open_up(self):
 		temp_pos_command = self.grip_cylinder_angle
-		step = 1
-		t = 1 
+		step = 0.5
+		t = 0.3
 		while temp_pos_command<=self.high_open_angle :
 			self.set_position(round(temp_pos_command))
 			temp_pos_command += step
-			time.sleep(t/(self.high_open_angle-self.grip_cylinder_angle))
+			time.sleep((t*step)/(self.high_open_angle-self.grip_cylinder_angle))
 		self.set_position(self.high_open_angle)
 
 	def open_low(self):
@@ -183,7 +183,7 @@ class ModulesDispenser(Module):
 class ModulesElevator(Module):
 	def __init__(self, parent, uuid='modulescollector'):
 		Module.__init__(self, parent, uuid)
-		self.cimbing_Velocity = -10 
+		self.cimbing_Velocity = -11.1 
 		self.going_down_velocity = 8
 	
 	def get_high(self):

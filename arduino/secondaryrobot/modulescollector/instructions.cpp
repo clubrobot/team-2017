@@ -49,13 +49,13 @@ void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& outp
     if(gripper.attached() && gripper.read()>5){
             gripperMotor.setVelocity(0);
             gripper.write(5);
-            delay(500);
+            delay(200);
         }
     if(!gripper.attached()){
         gripperMotor.setVelocity(0);
         gripper.attach(SERVO2);
         gripper.write(5);
-        delay(500);
+        delay(200);
         }
     gripperMotor.setVelocity(vel);
 }
