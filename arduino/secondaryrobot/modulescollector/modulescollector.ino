@@ -6,7 +6,9 @@
 #include "../../common/DCMotor.h"
 #include "../../common/SerialTalks.h"
 
-#define BRAKEVELOCITY 75
+#define MAXMOVINGTIME 5000000
+
+const float BRAKEVELOCITY = 0.16;
 
 
 DCMotorsDriver motorDriver;
@@ -18,6 +20,9 @@ Servo dispenser;
 EndStop highStop;
 EndStop lowStop;
 
+bool MotorIsMoving = false;
+unsigned long MovingTime = 0;
+unsigned long StartTime;
 
 void setup(){
     Serial.begin(SERIALTALKS_BAUDRATE);
@@ -50,6 +55,28 @@ void setup(){
 
 void loop(){
      talks.execute();   
+     if(!MotorIsMoving && (gripperMotor.getVelocity() != 0 || abs(gripperMotor.getVelocity()) != BRAKEVELOCITY)){
+         StartTime = micros();
+         MotorIsMoving = true;    
+     }
+     
+     else if(MotorIsMoving){
+        MovingTime = micros() - StartTime;
+        if(gripperMotor.getVelocity() == 0 || abs(gripperMotor.getVelocity()) == BRAKEVELOCITY){ 
+            MotorIsMoving = false;
+        }
+        else if(gripper.read()>5){
+            float vel = gripperMotor.getVelocity();
+            gripperMotor.setVelocity(0);
+            gripper.write(5);
+            delay(20);
+            gripperMotor.setVelocity(vel);
+        }
+         else if(MovingTime > MAXMOVINGTIME){
+            gripperMotor.setVelocity(0);
+        }
+     }
+
      if(highStop.getState() && gripperMotor.getVelocity()<BRAKEVELOCITY*(-1)){
         gripperMotor.setVelocity(BRAKEVELOCITY*(-1));
      }

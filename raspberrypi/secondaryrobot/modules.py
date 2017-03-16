@@ -191,10 +191,6 @@ class ModulesMotor(Module):
 
 	def toup(self):
 		self.set_velocity(self.climbingVelocity)
-		while not self.get_high():
-			time.sleep(0.1)
 
 	def todown(self):
 		self.set_velocity(self.goingDownVelocity)
-		while not self.get_down():
-			time.sleep(0.1)
