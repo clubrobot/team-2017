@@ -54,6 +54,19 @@ void TrajectoryPlanner::computeProjection(const Position& pos)
 				m_edgeIndex = i;
 			}
 		}
+		else if (i+1 >= m_numWaypoints - 1)
+		{
+			const float dx = pos.x - m_waypoints[i+1].x;
+			const float dy = pos.y - m_waypoints[i+1].y;
+			float h = sqrt(dx * dx + dy * dy);
+			if (h < m_projectionDistance)
+			{
+				m_edgeIndex = i;
+				m_projectionDistance = h;
+				m_projection.x = m_waypoints[i+1].x;
+				m_projection.y = m_waypoints[i+1].y;
+			}
+		}
 	}
 }
 
@@ -98,9 +111,16 @@ void TrajectoryPlanner::process(float timestep)
 
 	// Compute the setpoint velocitites
 	float delta = atan2(m_goal.y - m_posInput.y, m_goal.x - m_posInput.x) - m_posInput.theta;
-	delta = inrange(delta, -M_PI, M_PI);
-	m_linVelSetpoint = m_linVelMax * saturate(cos(delta), 0, 1);
-	m_angVelSetpoint = saturate(m_angVelKp * delta, -m_angVelMax, m_angVelMax);
+	if (m_angVelMax * m_lookAhead >= m_linVelMax * 2 * abs(sin(delta)))
+	{
+		m_linVelSetpoint = m_linVelMax;
+		m_angVelSetpoint = m_linVelSetpoint * (2 * sin(delta)) / m_lookAhead;
+	}
+	else
+	{
+		m_angVelSetpoint = m_angVelMax * sign(sin(delta));
+		m_linVelSetpoint = m_angVelSetpoint * m_lookAhead / (2 * sin(delta));
+	}
 }
 
 void TrajectoryPlanner::load(int address)
