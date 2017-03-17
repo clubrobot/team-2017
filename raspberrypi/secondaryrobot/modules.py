@@ -59,6 +59,7 @@ TRAJECTORY_LOOKAHED_ID      = 0xD4
 
 _WRITE_DISPENSER_OPCODE     = 0x04
 _WRITE_GRIP_OPCODE          = 0X05
+_OPEN_SLOWLY_OPCODE			= 0x06
 _IS_UP_OPCODE			    = 0x08
 _IS_DOWN_OPCODE			    = 0x09
 _SET_MOTOR_VELOCITY_OPCODE  = 0x0C
@@ -144,14 +145,10 @@ class ModulesGripper(Module):
 	def set_position(self,a):
 		self.send(_WRITE_GRIP_OPCODE, INT(a))
 
+	def open_up(self, t):
+		self.send(_OPEN_SLOWLY_OPCODE, FLOAT(t))
+
 	def open_up(self):
-		temp_pos_command = self.grip_cylinder_angle
-		step = 0.5
-		t = 0.3
-		while temp_pos_command<=self.high_open_angle :
-			self.set_position(round(temp_pos_command))
-			temp_pos_command += step
-			time.sleep((t*step)/(self.high_open_angle-self.grip_cylinder_angle))
 		self.set_position(self.high_open_angle)
 
 	def open_low(self):
@@ -183,15 +180,15 @@ class ModulesDispenser(Module):
 class ModulesElevator(Module):
 	def __init__(self, parent, uuid='modulescollector'):
 		Module.__init__(self, parent, uuid)
-		self.cimbing_Velocity = -11.1 
+		self.climbing_Velocity = -11.1 
 		self.going_down_velocity = 8
 	
-	def get_high(self):
+	def isup(self):
 		output = self.execute(_IS_UP_OPCODE)
 		isup = output.read(BYTE)
 		return bool(isup)
 
-	def get_down(self):
+	def isdown(self):
 		output = self.execute(_IS_DOWN_OPCODE)
 		isdown = output.read(BYTE)
 		return bool(isdown)
@@ -199,13 +196,15 @@ class ModulesElevator(Module):
 	def set_velocity(self, a):
 		self.send(_SET_MOTOR_VELOCITY_OPCODE, FLOAT(a))
 
-	def toup(self):
-		self.set_velocity(self.cimbing_Velocity)
-		while not self.get_high():
+	def go_up(self):
+		self.set_velocity(self.climbing_Velocity)
+		while not self.isup():
 			time.sleep(0.1)
 
-	def todown(self):
+	def go_down(self):
 		self.set_velocity(self.going_down_velocity)
+		while not self.isdown():
+			time.sleep(0.1)
 
 
 class UltrasonicSensor(Module):
