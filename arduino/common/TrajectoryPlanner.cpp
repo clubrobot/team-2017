@@ -157,7 +157,7 @@ void TrajectoryPlanner::process(float timestep)
 		checkProjectionGoal();
 
 	// Compute the goal cartesian position.
-	Position goal = m_waypoints[m_numWaypoints];
+	Position goal = m_waypoints[m_numWaypoints-1];
 	if (m_goalIndex < m_numWaypoints - 1)
 	{
 		int i = m_goalIndex;
