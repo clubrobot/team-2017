@@ -16,6 +16,9 @@ LOCAL_CPP_SRCS = \
 # Sketch libraries
 ARDUINO_LIBS = EEPROM Servo
 
+# Misc
+CPPFLAGS += -std=c++11
+
 # Congratulations! You made a pretty Makefile :)
 # Now let the grown-ups do the hard work :D
 MODULEMK_DIR = ../..

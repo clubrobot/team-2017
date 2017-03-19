@@ -19,8 +19,8 @@
 
 // Time constants
 #define IP_DISPLAY_TIMESTEP 3e-3    // Execution step time in s
-#define LED_MATRIX_TIMESTEP 3e-3    // Execution step time in s
-#define PATTERN_TIMESTEP 3e-3    // Execution step time in s
+#define LED_MATRIX_TIMESTEP 1e-3    // Execution step time in s
+#define PATTERN_TIMESTEP 60e-3    // Execution step time in s
 
 // IP_display constants
 #define IP_DISPLAY_BUFFER_SIZE 25   // Size of the data buffer receiver

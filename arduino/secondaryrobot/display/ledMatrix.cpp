@@ -6,15 +6,38 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin)
 	_DATAPIN = dataPin;
 	_CLOCKPIN = clockPin;
 	_LATCHPIN = latchPin;
+	pinMode(_DATAPIN, OUTPUT);
+	pinMode(_CLOCKPIN, OUTPUT);
+	pinMode(_LATCHPIN, OUTPUT);
+	_actualColumn = 0;
+	initMatrix();
 	_pattern.init();
 	_pattern.setTimestep(PATTERN_TIMESTEP);
+}
+
+void LedMatrix::enable()
+{
+	PeriodicProcess::enable();
+	_pattern.enable();
+}
+
+void LedMatrix::disable()
+{
+	PeriodicProcess::disable();
+	_pattern.disable();
+}
+
+void LedMatrix::update()
+{
+	PeriodicProcess::update();
+	_pattern.update();
 }
 
 void LedMatrix::process(float timestep)
 {
 	_data|=_maskColumns;  // Turn all column off
 	_actualColumn++;
-	if (_actualColumn == 8) {
+	if (_actualColumn >= 8) {
 		_actualColumn = 0;
 	}
 	for (int row = 0; row < 8; row++) {
@@ -25,8 +48,8 @@ void LedMatrix::process(float timestep)
 			_data&=~(rows[row]); // Turn off this led
 		}
 	}
-	_data&= ~(cols[_actualColumn]); // Turn whole column on at once (for equal lighting times)
-	this -> updateMatrix();	
+	_data&= ~(cols[_actualColumn]); // Turn whole column on at once
+	updateMatrix();	
 }
 
 
@@ -48,14 +71,16 @@ void LedMatrix::initMatrix()
   for(int i = 0;i<8;i++){
     _data+=cols[i];
   }
-  this->updateMatrix();
+  _maskColumns = _data;
+  updateMatrix();
 }
 
 void Pattern::init()
 {
 	_endOfPreviousPattern = 0;
 	_currentPattern = 0;
-	this->setPattern();
+	_nbPatterns = 6;
+	clearPattern();
 }
 
 void Pattern::clearPattern() 
@@ -78,8 +103,11 @@ void Pattern::setPattern()
 void Pattern::slidePattern() 
 {
 	_endOfPreviousPattern++;
-	if(_endOfPreviousPattern>=8)
+	if(_endOfPreviousPattern>=8){
+		_currentPattern = ++_currentPattern % (_nbPatterns);
 		_endOfPreviousPattern = 0;
+	}
+		
     for (int row = 0; row < 8; row++) {
         _patternToDisplay[row] = _patternToDisplay[row]<<1;
     }
@@ -92,5 +120,5 @@ void Pattern::slidePattern()
 
 void Pattern::process(float timestep)
 {
-	this->slidePattern();
+	slidePattern();
 }

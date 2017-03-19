@@ -29,11 +29,13 @@ void setup()
 
 	ledmatrix.attach(DATA_MATRIX1,CLOCK_MATRIX1,LATCH_MATRIX1);
 	ledmatrix.setTimestep(LED_MATRIX_TIMESTEP);
-	
+	ledmatrix.enable();
+
 }
 
 void loop()
 {
 	talks.execute();
 	ipdisplay.update();
+	ledmatrix.update();
 }

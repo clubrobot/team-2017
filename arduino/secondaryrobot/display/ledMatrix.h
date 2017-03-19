@@ -1,9 +1,12 @@
 #include <Arduino.h>
 #include "../../common/PeriodicProcess.h"
 #include "configuration.h"
+#include "IPDisplay.h"		// DEBUG
 
 #ifndef LEDMATRIX_H
 #define LEDMATRIX_H
+
+extern Ipdisplay ipdisplay;
 
 class Pattern : public PeriodicProcess
 {
@@ -23,6 +26,9 @@ private:
 	byte _patterns[NB_PATTERNS_MAX][8];			// Array of all the message to display
 	int _currentPattern;						// The position of the current pattern in the array _patterns
 	int _endOfPreviousPattern;					// Separation between 2 consecutive patterns being sliding
+	byte _nbPatterns;							// Number of patterns having to be displayed
+
+	Pattern() : _patterns {LETTER_R,LETTER_O,LETTER_B,LETTER_O,LETTER_T,SPACE} {}
 
 	virtual void process(float timestep);
 	
@@ -37,6 +43,9 @@ class LedMatrix : public PeriodicProcess
     void attach(byte dataPin, byte clockPin, byte latchPin);			// Attach a matrix to its pin
 	void updateMatrix();												// Send data to the registers
 	void initMatrix();													// Init the matrix data + update data into registers
+	void enable();
+	void disable();
+	void update();
     //void computeBuffer(char buffer[], byte shift);
 
   private:
