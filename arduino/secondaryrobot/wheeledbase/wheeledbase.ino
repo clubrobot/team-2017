@@ -91,9 +91,7 @@ void setup()
 	angVelPID.setOutputLimits(-maxAngVel, maxAngVel);
 
 	// Trajectories
-	trajectory.setVelTunings(3, 4);
-	trajectory.setVelLimits(MAX_LINEAR_VELOCITY, MAX_ANGULAR_VELOCITY);
-	trajectory.setLookAhead(200);
+	trajectory.load(TRAJECTORY_ADDRESS);
 	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
 	trajectory.disable();
 

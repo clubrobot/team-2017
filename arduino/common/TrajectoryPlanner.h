@@ -43,8 +43,9 @@ public:
 
 private:
 
-	void computeProjection(const Position& pos);
-	void computeGoal(const Position& pos);
+	bool checkLookAheadGoal();
+	void checkProjectionGoal();
+	float getDistAfterGoal();
 
 	virtual void process(float timestep);
 
@@ -58,12 +59,8 @@ private:
 	int  m_numWaypoints;
 
 	// Computation variables
-	int m_edgeIndex;
 	int m_goalIndex;
 	float m_goalParam;
-	float m_projectionDistance;
-	Position m_projection;
-	Position m_goal;
 
 	// Path following tunings
 	float m_lookAhead;

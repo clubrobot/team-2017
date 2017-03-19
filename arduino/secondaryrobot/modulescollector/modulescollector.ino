@@ -7,7 +7,7 @@
 #include "../../common/SerialTalks.h"
 #include "../../common/Clock.h"
 
-#define MAXMOVINGTIME 5000000
+#define MAXMOVINGTIME 4000000
 
 const float BRAKEVELOCITY = 0.16;
 
@@ -62,13 +62,6 @@ void loop(){
      else if(MotorIsMoving){
         if(gripperMotor.getVelocity() == 0 || abs(gripperMotor.getVelocity()) == BRAKEVELOCITY){ 
             MotorIsMoving = false;
-        }
-        else if(gripper.read()>5){
-            float vel = gripperMotor.getVelocity();
-            gripperMotor.setVelocity(0);
-            gripper.write(5);
-            delay(20);
-            gripperMotor.setVelocity(vel);
         }
          else if(MovingTime.getElapsedTime() > MAXMOVINGTIME){
             gripperMotor.setVelocity(0);
