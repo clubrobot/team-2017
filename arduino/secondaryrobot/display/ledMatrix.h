@@ -18,7 +18,7 @@ public:
 	void clearPatternToDisplay();				// Clear pattern to display array
 	void clearPatterns();						// Clear _patterns array
 	void setPattern();							// Set the current pattern into the patternToDisplay array
-	void slidePattern();						// Slide the patternToDisplay array
+	void slidePattern(int shift);						// Slide the patternToDisplay array
 
 
 private:

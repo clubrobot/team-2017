@@ -131,7 +131,7 @@ void LedMatrix::computeBuffer(char buffer[])
 
 void Pattern::init()
 {
-	_endOfPreviousPattern = 0;
+	_endOfPreviousPattern = 7;
 	_currentPattern = 0;
 	_nbPatterns = 9;
 	clearPatternToDisplay();
@@ -164,26 +164,26 @@ void Pattern::setPattern()
 }
 
 
-void Pattern::slidePattern() 
+void Pattern::slidePattern(int shift) 
 {
-	_endOfPreviousPattern++;
-	if(_endOfPreviousPattern>=8){
+	setTimestep(PATTERN_TIMESTEP*shift);
+	if(_endOfPreviousPattern<0){
 		_currentPattern = ++_currentPattern % (_nbPatterns);
-		_endOfPreviousPattern = 0;
+		_endOfPreviousPattern = 7;
 	}
-		
+	_endOfPreviousPattern-=shift;	
     for (int row = 0; row < 8; row++) {
-        _patternToDisplay[row] = _patternToDisplay[row]<<1;
-    }
-    for (int row = 0; row < 8; row++) {
-    	if ((_patterns[_currentPattern][row] & 0x01 << (8 - _endOfPreviousPattern)) >= 1) {
-			_patternToDisplay[row] |= 1 ;
-    	} 
+        _patternToDisplay[row] = _patternToDisplay[row]<<shift;
+		for(int i = 0; i< shift; i++){
+			if ((_patterns[_currentPattern][row] & 0x01 <<  (_endOfPreviousPattern+i+1)%8) >= 1) {
+				_patternToDisplay[row] |= 0x01<<i ;
+    		}
+		} 
     }
 }
 
 void Pattern::process(float timestep)
 {
-	slidePattern();
+	slidePattern(1);
 }
 
