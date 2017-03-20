@@ -14,9 +14,10 @@ class Pattern : public PeriodicProcess
 
 public:
 
-	void init();													// init the pattern
-	void clearPattern();												// Clear pattern to display array
-	void setPattern();										// Set the current pattern into the patternToDisplay array
+	void init();														// init the pattern
+	void clearPatternToDisplay();										// Clear pattern to display array
+	void clearPatterns();												// Clear _patterns array
+	void setPattern();													// Set the current pattern into the patternToDisplay array
 	void slidePattern();												// Slide the patternToDisplay array
 
 
@@ -28,7 +29,7 @@ private:
 	int _endOfPreviousPattern;					// Separation between 2 consecutive patterns being sliding
 	byte _nbPatterns;							// Number of patterns having to be displayed
 
-	Pattern() : _patterns {LETTER_R,LETTER_O,LETTER_B,LETTER_O,LETTER_T,SPACE} {}
+	Pattern() : _patterns {LETTER_B,LETTER_O,LETTER_R,LETTER_N,LETTER_I,LETTER_B,LETTER_U,LETTER_S,SPACE} {}
 
 	virtual void process(float timestep);
 	
@@ -43,6 +44,7 @@ class LedMatrix : public PeriodicProcess
     void attach(byte dataPin, byte clockPin, byte latchPin);			// Attach a matrix to its pin
 	void updateMatrix();												// Send data to the registers
 	void initMatrix();													// Init the matrix data + update data into registers
+	void computeBuffer(char buffer[]);									// Compute Serial input
 	void enable();
 	void disable();
 	void update();

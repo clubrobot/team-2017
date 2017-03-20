@@ -55,48 +55,77 @@ void LedMatrix::process(float timestep)
 
 void LedMatrix::updateMatrix()
 {
-  byte octet1 = _data&0x00FF;
-  byte octet2 = (_data&0xFF00)>>8;
-  digitalWrite(_LATCHPIN,LOW);
-  shiftOut(_DATAPIN,_CLOCKPIN,MSBFIRST,octet1);
-  shiftOut(_DATAPIN,_CLOCKPIN,MSBFIRST,octet2);
-  digitalWrite(_LATCHPIN,HIGH);
+	byte octet1 = _data&0x00FF;
+	byte octet2 = (_data&0xFF00)>>8;
+	digitalWrite(_LATCHPIN,LOW);
+	shiftOut(_DATAPIN,_CLOCKPIN,MSBFIRST,octet1);
+	shiftOut(_DATAPIN,_CLOCKPIN,MSBFIRST,octet2);
+	digitalWrite(_LATCHPIN,HIGH);
 }
 
 
 void LedMatrix::initMatrix() 
 {
-  //col à 0 pour allumer row à 1 pour allumer
-  _data = 0;
-  for(int i = 0;i<8;i++){
-    _data+=cols[i];
-  }
-  _maskColumns = _data;
-  updateMatrix();
+	//col à 0 pour allumer row à 1 pour allumer
+	_data = 0;
+	for(int i = 0;i<8;i++){
+		_data+=cols[i];
+	}
+	_maskColumns = _data;
+	updateMatrix();
+}
+
+void LedMatrix::computeBuffer(char buffer[])
+{
+	talks.out << "nouveau message : " << buffer;
+	_pattern.clearPatterns();
+	int i;
+	for (i = 0; buffer[i]!='\0' && i < NB_PATTERNS_MAX; i++) {
+		for (int j = 0; j < 8; j++) {
+			if (buffer[i] == ' ') {
+				_pattern._patterns[i][j] = alphabet[26][j];
+			} else if (buffer[i] == '\'') {
+				_pattern._patterns[i][j] = alphabet[27][j];
+			} else {
+				_pattern._patterns[i][j] = alphabet[buffer[i] - 97][j];
+			}
+		}
+	}
+	_pattern._nbPatterns = i;
 }
 
 void Pattern::init()
 {
 	_endOfPreviousPattern = 0;
 	_currentPattern = 0;
-	_nbPatterns = 6;
-	clearPattern();
+	_nbPatterns = 9;
+	clearPatternToDisplay();
 }
 
-void Pattern::clearPattern() 
+void Pattern::clearPatternToDisplay() 
 {
-  // Clear pattern to display array
-  for (int i = 0; i < 8; i++) {
-    _patternToDisplay[i] = 0;
-  }
+	// Clear pattern to display array
+	for (int i = 0; i < 8; i++) {
+		_patternToDisplay[i] = 0;
+	}
+}
+
+void Pattern::clearPatterns()
+{
+	// Clear patterns message
+	for (int i = 0; i<NB_PATTERNS_MAX; i++){
+		for (int j = 0; j<8; j++){
+			_patterns[i][j] = 0;
+		}
+	}
 }
 
 
 void Pattern::setPattern()
 {
-  for (int i = 0; i < 8; i++) {
-    _patternToDisplay[i] = _patterns[_currentPattern][i] ;
-  }
+	for (int i = 0; i < 8; i++) {
+		_patternToDisplay[i] = _patterns[_currentPattern][i] ;
+	}
 }
 
 
@@ -122,3 +151,4 @@ void Pattern::process(float timestep)
 {
 	slidePattern();
 }
+
