@@ -42,7 +42,7 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
 			if(buffer[i+1] == '.' && buffer[i] != '.'){	// gère le cas de l'affichage d'un point après un digit
 				i++;
 			}
-			if(nbDigits>12){
+			if(nbDigits>12){		// Buffer overflow case
 				nbDigits--;
 				buffer[i] = 0;
 			}

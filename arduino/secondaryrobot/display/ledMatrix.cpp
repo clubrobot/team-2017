@@ -1,11 +1,12 @@
 #include "ledMatrix.h"
 
 
-void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin)
+void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation)
 {
 	_DATAPIN = dataPin;
 	_CLOCKPIN = clockPin;
 	_LATCHPIN = latchPin;
+	_rotation = rotation;
 	pinMode(_DATAPIN, OUTPUT);
 	pinMode(_CLOCKPIN, OUTPUT);
 	pinMode(_LATCHPIN, OUTPUT);
@@ -40,13 +41,47 @@ void LedMatrix::process(float timestep)
 	if (_actualColumn >= 8) {
 		_actualColumn = 0;
 	}
-	for (int row = 0; row < 8; row++) {
-		if (_pattern._patternToDisplay[row]&(0x01<<(7-_actualColumn))) {
-			_data|=rows[row];  // Turn on this led
-		}
-		else {
-			_data&=~(rows[row]); // Turn off this led
-		}
+	switch(_rotation){
+		case 90 : 				// 90° rotation
+					for (int row = 0; row < 8; row++) {
+						if (_pattern._patternToDisplay[_actualColumn]&(0x01<<(row))) {
+							_data|=rows[row];  // Turn on this led
+						}
+						else {
+							_data&=~(rows[row]); // Turn off this led
+						}
+					}
+					break;
+		case 180 :				// 180° rotation
+					for (int row = 0; row < 8; row++) {
+						if (_pattern._patternToDisplay[7-row]&(0x01<<(_actualColumn))) {
+							_data|=rows[row];  // Turn on this led
+						}
+						else {
+							_data&=~(rows[row]); // Turn off this led
+						}
+					}
+					break;
+		case 270 : 				// 270° rotation
+					for (int row = 0; row < 8; row++) {
+						if (_pattern._patternToDisplay[7-_actualColumn]&(0x01<<(7-row))) {
+							_data|=rows[row];  // Turn on this led
+						}
+						else {
+							_data&=~(rows[row]); // Turn off this led
+						}
+					}
+					break;
+		default :				// 0° rotation 
+					for (int row = 0; row < 8; row++) {
+						if (_pattern._patternToDisplay[row]&(0x01<<(7-_actualColumn))) {
+							_data|=rows[row];  // Turn on this led
+						}
+						else {
+							_data&=~(rows[row]); // Turn off this led
+						}
+					}
+
 	}
 	_data&= ~(cols[_actualColumn]); // Turn whole column on at once
 	updateMatrix();	

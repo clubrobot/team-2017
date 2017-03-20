@@ -97,8 +97,9 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
 #define CLOCK_MATRIX3
 #define LATCH_MATRIX3
 
-// generapl configuration
+// general configuration
 
+#define ROTATION_MATRIX_1 90
 #define NB_PATTERNS_MAX 20
 
 // Weight of each dot
