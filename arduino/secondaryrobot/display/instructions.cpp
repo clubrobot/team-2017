@@ -18,7 +18,9 @@ void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &out
 	int matrixID = input.read<int>();			// ID of the matrix to be updates. Set to 0 to send the data to all the matrix
 	int shift = input.read<int>();				// Number of columns to shift every PATTERN_TIMESTEP
 	char buffer[NB_PATTERNS_MAX] = "";
-	input >> buffer;
+	for (int i = 0; i< NB_PATTERNS_MAX; i++){
+		buffer[i] = input.read<char>();
+	}
 	ledmatrix.computeBuffer(buffer);
 }
 
@@ -26,8 +28,9 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
 {
 	
     char buffer[IP_DISPLAY_BUFFER_SIZE] = "";
-    input >> buffer;
-    //TODO : gerer le cas du depacement de la taille du buffer
+	for (int i = 0; i< IP_DISPLAY_BUFFER_SIZE; i++){
+		buffer[i] = input.read<char>();
+	}
 
 	int nbDigits = 0;
 	int shift = 0;
@@ -38,6 +41,10 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
             nbDigits++;
 			if(buffer[i+1] == '.' && buffer[i] != '.'){	// gère le cas de l'affichage d'un point après un digit
 				i++;
+			}
+			if(nbDigits>12){
+				nbDigits--;
+				buffer[i] = 0;
 			}
         }
     }
