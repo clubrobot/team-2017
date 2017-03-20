@@ -18,7 +18,7 @@ public:
 	void clearPatternToDisplay();				// Clear pattern to display array
 	void clearPatterns();						// Clear _patterns array
 	void setPattern();							// Set the current pattern into the patternToDisplay array
-	void slidePattern(int shift);						// Slide the patternToDisplay array
+	void slidePattern();						// Slide the patternToDisplay array
 
 
 private:
@@ -28,6 +28,7 @@ private:
 	int _currentPattern;						// The position of the current pattern in the array _patterns
 	int _endOfPreviousPattern;					// Separation between 2 consecutive patterns being sliding
 	byte _nbPatterns;							// Number of patterns having to be displayed
+	byte _shift;								// Number of shifts to apply when sliding patterns
 
 	Pattern() : _patterns {LETTER_B,LETTER_O,LETTER_R,LETTER_N,LETTER_I,LETTER_B,LETTER_U,LETTER_S,SPACE} {}
 
@@ -48,7 +49,7 @@ class LedMatrix : public PeriodicProcess
 	void enable();
 	void disable();
 	void update();
-    //void computeBuffer(char buffer[], byte shift);
+	void setShift(int shift);		// Set the shift parameter for the pattern
 
   private:
 

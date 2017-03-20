@@ -11,6 +11,7 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation)
 	pinMode(_CLOCKPIN, OUTPUT);
 	pinMode(_LATCHPIN, OUTPUT);
 	_actualColumn = 0;
+	setShift(1);
 	initMatrix();
 	_pattern.init();
 	_pattern.setTimestep(PATTERN_TIMESTEP);
@@ -32,6 +33,11 @@ void LedMatrix::update()
 {
 	PeriodicProcess::update();
 	_pattern.update();
+}
+
+void LedMatrix::setShift(int shift)
+{
+	_pattern._shift = shift;
 }
 
 void LedMatrix::process(float timestep)
@@ -164,17 +170,17 @@ void Pattern::setPattern()
 }
 
 
-void Pattern::slidePattern(int shift) 
+void Pattern::slidePattern() 
 {
-	setTimestep(PATTERN_TIMESTEP*shift);
+	setTimestep(PATTERN_TIMESTEP*_shift);
 	if(_endOfPreviousPattern<0){
 		_currentPattern = ++_currentPattern % (_nbPatterns);
 		_endOfPreviousPattern = 7;
 	}
-	_endOfPreviousPattern-=shift;	
+	_endOfPreviousPattern-=_shift;	
     for (int row = 0; row < 8; row++) {
-        _patternToDisplay[row] = _patternToDisplay[row]<<shift;
-		for(int i = 0; i< shift; i++){
+        _patternToDisplay[row] = _patternToDisplay[row]<<_shift;
+		for(int i = 0; i< _shift; i++){
 			if ((_patterns[_currentPattern][row] & 0x01 <<  (_endOfPreviousPattern+i+1)%8) >= 1) {
 				_patternToDisplay[row] |= 0x01<<i ;
     		}
@@ -184,6 +190,6 @@ void Pattern::slidePattern(int shift)
 
 void Pattern::process(float timestep)
 {
-	slidePattern(1);
+	slidePattern();
 }
 

@@ -21,6 +21,7 @@ void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &out
 	for (int i = 0; i< NB_PATTERNS_MAX; i++){
 		buffer[i] = input.read<char>();
 	}
+	ledmatrix.setShift(shift);
 	ledmatrix.computeBuffer(buffer);
 }
 
