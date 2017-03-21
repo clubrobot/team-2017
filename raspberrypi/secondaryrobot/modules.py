@@ -13,23 +13,25 @@ SET_OPENLOOP_VELOCITIES_OPCODE  = 0x04
 
 GET_CODEWHEELS_COUNTERS_OPCODE  = 0x0D
 
-SET_VELOCITIES_OPCODE   = 0x06
+SET_VELOCITIES_OPCODE           = 0x06
 
-START_TRAJECTORY_OPCODE = 0x07
-TRAJECTORY_ENDED_OPCODE = 0x08
+START_PUREPURSUIT_OPCODE        = 0x07
+START_TURNONTHESPOT_OPCODE      = 0x09
 
-SET_POSITION_OPCODE	 = 0x0A
-GET_POSITION_OPCODE	 = 0x0B
-GET_VELOCITIES_OPCODE   = 0x0C
+POSITION_REACHED_OPCODE         = 0x08
 
-SET_PARAMETER_VALUE_OPCODE  = 0x0E
-GET_PARAMETER_VALUE_OPCODE  = 0x0F
+SET_POSITION_OPCODE	            = 0x0A
+GET_POSITION_OPCODE	            = 0x0B
+GET_VELOCITIES_OPCODE           = 0x0C
 
-LEFTWHEEL_RADIUS_ID	        = 0x10
-LEFTWHEEL_CONSTANT_ID       = 0x11
-RIGHTWHEEL_RADIUS_ID        = 0x20
-RIGHTWHEEL_CONSTANT_ID      = 0x21
-LEFTCODEWHEEL_RADIUS_ID	    = 0x40
+SET_PARAMETER_VALUE_OPCODE      = 0x0E
+GET_PARAMETER_VALUE_OPCODE      = 0x0F
+
+LEFTWHEEL_RADIUS_ID	            = 0x10
+LEFTWHEEL_CONSTANT_ID           = 0x11
+RIGHTWHEEL_RADIUS_ID            = 0x20
+RIGHTWHEEL_CONSTANT_ID          = 0x21
+LEFTCODEWHEEL_RADIUS_ID	        = 0x40
 LEFTCODEWHEEL_COUNTSPERREV_ID   = 0x41
 RIGHTCODEWHEEL_RADIUS_ID        = 0x50
 RIGHTCODEWHEEL_COUNTSPERREV_ID  = 0x51
@@ -39,21 +41,21 @@ VELOCITYCONTROL_MAXLINACC_ID    = 0x81
 VELOCITYCONTROL_MAXLINDEC_ID    = 0x82
 VELOCITYCONTROL_MAXANGACC_ID    = 0x83
 VELOCITYCONTROL_MAXANGDEC_ID    = 0x84
-LINVELPID_KP_ID             = 0xA0
-LINVELPID_KI_ID             = 0xA1
-LINVELPID_KD_ID             = 0xA2
-LINVELPID_MINOUTPUT_ID      = 0xA3
-LINVELPID_MAXOUTPUT_ID      = 0xA4
-ANGVELPID_KP_ID             = 0xB0
-ANGVELPID_KI_ID             = 0xB1
-ANGVELPID_KD_ID             = 0xB2
-ANGVELPID_MINOUTPUT_ID	    = 0xB3
-ANGVELPID_MAXOUTPUT_ID	    = 0xB4
-TRAJECTORY_LINVELKP_ID      = 0xD0
-TRAJECTORY_ANGVELKP_ID      = 0xD1
-TRAJECTORY_LINVELMAX_ID     = 0xD2
-TRAJECTORY_ANGVELMAX_ID     = 0xD3
-TRAJECTORY_LOOKAHED_ID      = 0xD4
+LINVELPID_KP_ID                 = 0xA0
+LINVELPID_KI_ID                 = 0xA1
+LINVELPID_KD_ID                 = 0xA2
+LINVELPID_MINOUTPUT_ID          = 0xA3
+LINVELPID_MAXOUTPUT_ID          = 0xA4
+ANGVELPID_KP_ID                 = 0xB0
+ANGVELPID_KI_ID                 = 0xB1
+ANGVELPID_KD_ID                 = 0xB2
+ANGVELPID_MINOUTPUT_ID	        = 0xB3
+ANGVELPID_MAXOUTPUT_ID	        = 0xB4
+POSITIONCONTROL_LINVELKP_ID     = 0xD0
+POSITIONCONTROL_ANGVELKP_ID     = 0xD1
+POSITIONCONTROL_LINVELMAX_ID    = 0xD2
+POSITIONCONTROL_ANGVELMAX_ID    = 0xD3
+PUREPURSUIT_LOOKAHED_ID         = 0xE0
 
 # Modules collector instructions
 
@@ -84,24 +86,26 @@ class WheeledBase(Module):
 	def set_velocities(self, linear_velocity, angular_velocity):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
-	def start_trajectory(self, waypoints):
-		args = [INT(len(waypoints))]
-		for x, y, theta in waypoints:
-			args += [FLOAT(x), FLOAT(y), FLOAT(theta)]
+	def purepursuit(self, waypoints):
+		args = [INT(len(waypoints))] + [FLOAT(x), FLOAT(y) for x, y in waypoints]
 		self.send(START_TRAJECTORY_OPCODE, *args)
 
-	def trajectory_ended(self, **kwargs):
-		output = self.execute(TRAJECTORY_ENDED_OPCODE, **kwargs)
+	def turnonthespot(self, theta):
+		self.send(START_TURNONTHESPOT_OPCODE, FLOAT(theta))
+
+	def position_reached(self, **kwargs):
+		output = self.execute(POSITION_REACHED_OPCODE, **kwargs)
 		trajectory_ended = output.read(BYTE)
 		return bool(trajectory_ended)
 
 	def goto(self, x, y, theta=None, **kwargs):
-		if theta is None:
-			current_x, current_y, current_theta = self.get_position(**kwargs)
-			theta = math.atan2(y - current_y, x - current_x)
-		self.start_trajectory([(x, y, theta)])
-		while not self.trajectory_ended(**kwargs):
+		self.purepursuit([(x, y)])
+		while not self.position_reached(**kwargs):
 			time.sleep(0.1)
+		if theta is not None:
+			turnonthespot(theta)
+			while not self.position_reached(**kwargs):
+				time.sleep(0.1)
 
 	def stop(self):
 		self.set_openloop_velocities(0, 0)
