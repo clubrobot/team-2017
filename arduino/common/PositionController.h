@@ -21,6 +21,7 @@ public:
 
 	void setVelTunings(float linVelKp, float angVelKp) {m_linVelKp  = linVelKp;  m_angVelKp  = angVelKp;}
 	void setVelLimits(float linVelMax, float angVelMax){m_linVelMax = linVelMax; m_angVelMax = angVelMax;}
+	void setPosThresholds(float linPosThreshold, float angPosThreshold){m_linPosThreshold = linPosThreshold; m_angPosThreshold = angPosThreshold;}
 
 	void setMoveStrategy(AbstractMoveStrategy& moveStrategy);
 
@@ -30,6 +31,8 @@ public:
 	float getAngVelKp() const {return m_angVelKp;}
 	float getLinVelMax() const {return m_linVelMax;}
 	float getAngVelMax() const {return m_angVelMax;}
+	float getLinPosThreshold() const {return m_linPosThreshold;}
+	float getAngPosThreshold() const {return m_angPosThreshold;}
 
 	void load(int address);
 	void save(int address) const;
@@ -50,6 +53,8 @@ private:
 	float m_angVelKp;
 	float m_linVelMax;
 	float m_angVelMax;
+	float m_linPosThreshold;
+	float m_angPosThreshold;
 
 	// Strategy Design Pattern
 	AbstractMoveStrategy* m_moveStrategy;
@@ -73,6 +78,8 @@ protected:
 	float getAngVelKp() const {return m_context->m_angVelKp;}
 	float getLinVelMax() const {return m_context->m_linVelMax;}
 	float getAngVelMax() const {return m_context->m_angVelMax;}
+	float getLinPosThreshold() const {return m_context->m_linPosThreshold;}
+	float getAngPosThreshold() const {return m_context->m_angPosThreshold;}
 
 private:
 
