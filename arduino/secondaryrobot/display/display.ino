@@ -1,12 +1,14 @@
 #include <Arduino.h>
 #include "../../common/SerialTalks.h"
-#include "IPDisplay.h"
+#include "IPDisplay.h" 
 #include "instructions.h"
 #include "configuration.h"
+#include "ledMatrix.h"
 
 // Variables
 
 Ipdisplay ipdisplay;
+LedMatrix ledmatrix;
 
 void setup()
 {
@@ -24,10 +26,16 @@ void setup()
 	ipdisplay.attach(DATA_IPDISPLAY, CLOCK_IPDISPLAY, LATCH_IPDISPLAY);
 	ipdisplay.setTimestep(IP_DISPLAY_TIMESTEP);
 	ipdisplay.enable();
+
+	ledmatrix.attach(DATA_MATRIX1,CLOCK_MATRIX1,LATCH_MATRIX1,ROTATION_MATRIX_1);
+	ledmatrix.setTimestep(LED_MATRIX_TIMESTEP);
+	ledmatrix.enable();
+
 }
 
 void loop()
 {
 	talks.execute();
 	ipdisplay.update();
+	ledmatrix.update();
 }
