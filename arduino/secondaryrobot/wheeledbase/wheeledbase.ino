@@ -97,8 +97,6 @@ void setup()
 	positionControl.disable();
 
 	purePursuit.load(PUREPURSUIT_ADDRESS);
-	purePursuit.setLookAhead(200);
-	purePursuit.save(PUREPURSUIT_ADDRESS);
 
 	// Miscellanous
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz

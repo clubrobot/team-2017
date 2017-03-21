@@ -55,6 +55,8 @@ POSITIONCONTROL_LINVELKP_ID     = 0xD0
 POSITIONCONTROL_ANGVELKP_ID     = 0xD1
 POSITIONCONTROL_LINVELMAX_ID    = 0xD2
 POSITIONCONTROL_ANGVELMAX_ID    = 0xD3
+POSITIONCONTROL_LINPOSTHRESHOLD_ID  = 0xD4
+POSITIONCONTROL_ANGPOSTHRESHOLD_ID  = 0xD5
 PUREPURSUIT_LOOKAHED_ID         = 0xE0
 
 # Modules collector instructions
@@ -102,10 +104,10 @@ class WheeledBase(Module):
 		self.purepursuit([(x, y)])
 		while not self.position_reached(**kwargs):
 			time.sleep(0.1)
-		if theta is not None:
-			turnonthespot(theta)
-			while not self.position_reached(**kwargs):
-				time.sleep(0.1)
+		if theta is None: return
+		turnonthespot(theta)
+		while not self.position_reached(**kwargs):
+			time.sleep(0.1)
 
 	def stop(self):
 		self.set_openloop_velocities(0, 0)

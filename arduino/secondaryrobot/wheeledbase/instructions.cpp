@@ -237,6 +237,14 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		positionControl.setVelLimits(positionControl.getLinVelMax(), input.read<float>());
 		positionControl.save(POSITIONCONTROL_ADDRESS);
 		break;
+	case POSITIONCONTROL_LINPOSTHRESHOLD_ID:
+		positionControl.setPosThresholds(input.read<float>(), positionControl.getAngPosThreshold());
+		positionControl.save(POSITIONCONTROL_ADDRESS);
+		break;
+	case POSITIONCONTROL_ANGPOSTHRESHOLD_ID:
+		positionControl.setPosThresholds(positionControl.getLinPosThreshold(), input.read<float>());
+		positionControl.save(POSITIONCONTROL_ADDRESS);
+		break;
 
 	case PUREPURSUIT_LOOKAHED_ID:
 		purePursuit.setLookAhead(input.read<float>());
@@ -341,6 +349,12 @@ void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		break;
 	case POSITIONCONTROL_ANGVELMAX_ID:
 		output.write<float>(positionControl.getAngVelMax());
+		break;
+	case POSITIONCONTROL_LINPOSTHRESHOLD_ID:
+		output.write<float>(positionControl.getLinPosThreshold());
+		break;
+	case POSITIONCONTROL_ANGPOSTHRESHOLD_ID:
+		output.write<float>(positionControl.getAngPosThreshold());
 		break;
 
 	case PUREPURSUIT_LOOKAHED_ID:

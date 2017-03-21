@@ -53,6 +53,7 @@ protected:
 	// Computation variables
 	int m_goalIndex;
 	float m_goalParam;
+	bool m_goalReached;
 
 	// Path following tunings
 	float m_lookAhead;

@@ -21,6 +21,7 @@ void PurePursuit::reset()
 	m_numWaypoints = 0;
 	m_goalIndex = 0;
 	m_goalParam = 0;
+	m_goalReached = 0;
 }
 
 bool PurePursuit::checkLookAheadGoal(const float x, const float y)
@@ -197,12 +198,14 @@ void PurePursuit::computeVelSetpoints(float timestep)
 		linVelSetpoint = angVelSetpoint * chord / (2 * sin(delta));
 	}
 
+	m_goalReached = chord < getLinPosThreshold();
+
 	setVelSetpoints(linVelSetpoint, angVelSetpoint);
 }
 
 bool PurePursuit::getPositionReached()
 {
-	return m_goalIndex == m_numWaypoints-1;
+	return m_goalReached;
 }
 
 void PurePursuit::load(int address)
