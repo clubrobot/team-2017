@@ -87,8 +87,8 @@ class WheeledBase(Module):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
 	def purepursuit(self, waypoints):
-		args = [INT(len(waypoints))] + [FLOAT(x), FLOAT(y) for x, y in waypoints]
-		self.send(START_TRAJECTORY_OPCODE, *args)
+		args = [INT(len(waypoints))] + [FLOAT(x) + FLOAT(y) for x, y in waypoints]
+		self.send(START_PUREPURSUIT_OPCODE, *args)
 
 	def turnonthespot(self, theta):
 		self.send(START_TURNONTHESPOT_OPCODE, FLOAT(theta))
