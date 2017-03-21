@@ -7,18 +7,17 @@
 
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
-#include "../../common/DifferentialController.h"
-#include "../../common/VelocityController.h"
-#include "../../common/PID.h"
 #include "../../common/Codewheel.h"
 #include "../../common/Odometry.h"
-#include "../../common/TrajectoryPlanner.h"
+#include "../../common/PID.h"
+#include "../../common/VelocityController.h"
+#include "../../common/PositionController.h"
+#include "../../common/PurePursuit.h"
 #include "../../common/mathutils.h"
 
 // Load the different modules
 
 DCMotorsDriver driver;
-
 DCMotor leftWheel;
 DCMotor rightWheel;
 
@@ -32,7 +31,9 @@ VelocityController velocityControl;
 PID linVelPID;
 PID angVelPID;
 
-TrajectoryPlanner trajectory;
+PositionController positionControl;
+
+PurePursuit purePursuit;
 
 // Setup
 
@@ -44,8 +45,8 @@ void setup()
 	talks.bind(SET_OPENLOOP_VELOCITIES_OPCODE, SET_OPENLOOP_VELOCITIES);
 	talks.bind(GET_CODEWHEELS_COUNTERS_OPCODE, GET_CODEWHEELS_COUNTERS);
 	talks.bind(SET_VELOCITIES_OPCODE, SET_VELOCITIES);
-	talks.bind(START_TRAJECTORY_OPCODE, START_TRAJECTORY);
-	talks.bind(TRAJECTORY_ENDED_OPCODE, TRAJECTORY_ENDED);
+	talks.bind(START_PUREPURSUIT_OPCODE, START_PUREPURSUIT);
+	talks.bind(POSITION_REACHED_OPCODE, POSITION_REACHED);
 	talks.bind(SET_POSITION_OPCODE, SET_POSITION);
 	talks.bind(GET_POSITION_OPCODE, GET_POSITION);
 	talks.bind(GET_VELOCITIES_OPCODE, GET_VELOCITIES);
@@ -90,10 +91,14 @@ void setup()
 	linVelPID.setOutputLimits(-maxLinVel, maxLinVel);
 	angVelPID.setOutputLimits(-maxAngVel, maxAngVel);
 
-	// Trajectories
-	trajectory.load(TRAJECTORY_ADDRESS);
-	trajectory.setTimestep(TRAJECTORY_TIMESTEP);
-	trajectory.disable();
+	// Position control
+	positionControl.load(POSITIONCONTROL_ADDRESS);
+	positionControl.setTimestep(POSITIONCONTROL_TIMESTEP);
+	positionControl.disable();
+
+	purePursuit.load(PUREPURSUIT_ADDRESS);
+	purePursuit.setLookAhead(200);
+	purePursuit.save(PUREPURSUIT_ADDRESS);
 
 	// Miscellanous
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
@@ -108,15 +113,15 @@ void loop()
 	// Update odometry
 	if (odometry.update())
 	{
-		trajectory.setPosInput(odometry.getPosition());
+		positionControl.setPosInput(odometry.getPosition());
 		velocityControl.setInputs(odometry.getLinVel(), odometry.getAngVel());
 	}
 
 	// Compute trajectory
-	if (trajectory.update())
+	if (positionControl.update())
 	{
-		float linVelSetpoint = trajectory.getLinVelSetpoint();
-		float angVelSetpoint = trajectory.getAngVelSetpoint();
+		float linVelSetpoint = positionControl.getLinVelSetpoint();
+		float angVelSetpoint = positionControl.getAngVelSetpoint();
 		velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 	}
 

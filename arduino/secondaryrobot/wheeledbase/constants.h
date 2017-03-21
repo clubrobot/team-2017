@@ -43,6 +43,6 @@
 
 #define ODOMETRY_TIMESTEP          5e-3 // s
 #define PID_CONTROLLERS_TIMESTEP  20e-3 // s
-#define TRAJECTORY_TIMESTEP       50e-3 // s
+#define POSITIONCONTROL_TIMESTEP  50e-3 // s
 
 #endif // __CONSTANTS_H__

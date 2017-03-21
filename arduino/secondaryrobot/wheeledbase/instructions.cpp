@@ -4,30 +4,32 @@
 
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
-#include "../../common/VelocityController.h"
-#include "../../common/PID.h"
 #include "../../common/Codewheel.h"
 #include "../../common/Odometry.h"
-#include "../../common/TrajectoryPlanner.h"
+#include "../../common/PID.h"
+#include "../../common/VelocityController.h"
+#include "../../common/PositionController.h"
+#include "../../common/PurePursuit.h"
 
 // Global variables
 
 extern DCMotorsDriver driver;
-
 extern DCMotor leftWheel;
 extern DCMotor rightWheel;
-
-extern VelocityController velocityControl;
-
-extern PID linVelPID;
-extern PID angVelPID;
 
 extern Codewheel leftCodewheel;
 extern Codewheel rightCodewheel;
 
 extern Odometry odometry;
 
-extern TrajectoryPlanner trajectory;
+extern VelocityController velocityControl;
+
+extern PID linVelPID;
+extern PID angVelPID;
+
+extern PositionController positionControl;
+
+extern PurePursuit purePursuit;
 
 // Instructions
 
@@ -37,7 +39,7 @@ void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer
 	float rightWheelVel = input.read<float>();
 
 	velocityControl.disable();
-	trajectory.disable();
+	positionControl.disable();
 	leftWheel .setVelocity(leftWheelVel);
 	rightWheel.setVelocity(rightWheelVel);
 }
@@ -55,30 +57,32 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	float linVelSetpoint = input.read<float>();
 	float angVelSetpoint = input.read<float>();
-	trajectory.disable();
+	positionControl.disable();
 	velocityControl.enable();
 	velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 }
 
-void START_TRAJECTORY(SerialTalks& talks, Deserializer& input, Serializer& output)
+void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	trajectory.reset();
-	trajectory.addWaypoint(odometry.getPosition());
+	purePursuit.reset();
+	purePursuit.addWaypoint(odometry.getPosition());
 	int numWaypoints = input.read<int>();
 	for (int i = 0; i < numWaypoints; i++)
 	{
-		float x     = input.read<float>();
-		float y     = input.read<float>();
-		float theta = input.read<float>(); // Useless for now
-		trajectory.addWaypoint(Position(x, y, theta));
+		float x = input.read<float>();
+		float y = input.read<float>();
+		purePursuit.addWaypoint(PurePursuit::Waypoint(x, y));
+		if (i == numWaypoints-1)
+			positionControl.setPosSetpoint(Position(x, y, 0));
 	}
 	velocityControl.enable();
-	trajectory.enable();
+	positionControl.setMoveStrategy(purePursuit);
+	positionControl.enable();
 }
 
-void TRAJECTORY_ENDED(SerialTalks& talks, Deserializer& input, Serializer& output)
+void POSITION_REACHED(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	output.write<byte>(false);
+	output.write<byte>(positionControl.getPositionReached());
 }
 
 void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
@@ -217,25 +221,26 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		angVelPID.save(ANGVELPID_ADDRESS);
 		break;
 	
-	case TRAJECTORY_LINVELKP_ID:
-		trajectory.setVelTunings(input.read<float>(), trajectory.getAngVelKp());
-		trajectory.save(TRAJECTORY_ADDRESS);
+	case POSITIONCONTROL_LINVELKP_ID:
+		positionControl.setVelTunings(input.read<float>(), positionControl.getAngVelKp());
+		positionControl.save(POSITIONCONTROL_ADDRESS);
 		break;
-	case TRAJECTORY_ANGVELKP_ID:
-		trajectory.setVelTunings(trajectory.getLinVelKp(), input.read<float>());
-		trajectory.save(TRAJECTORY_ADDRESS);
+	case POSITIONCONTROL_ANGVELKP_ID:
+		positionControl.setVelTunings(positionControl.getLinVelKp(), input.read<float>());
+		positionControl.save(POSITIONCONTROL_ADDRESS);
 		break;
-	case TRAJECTORY_LINVELMAX_ID:
-		trajectory.setVelLimits(input.read<float>(), trajectory.getAngVelMax());
-		trajectory.save(TRAJECTORY_ADDRESS);
+	case POSITIONCONTROL_LINVELMAX_ID:
+		positionControl.setVelLimits(input.read<float>(), positionControl.getAngVelMax());
+		positionControl.save(POSITIONCONTROL_ADDRESS);
 		break;
-	case TRAJECTORY_ANGVELMAX_ID:
-		trajectory.setVelLimits(trajectory.getLinVelMax(), input.read<float>());
-		trajectory.save(TRAJECTORY_ADDRESS);
+	case POSITIONCONTROL_ANGVELMAX_ID:
+		positionControl.setVelLimits(positionControl.getLinVelMax(), input.read<float>());
+		positionControl.save(POSITIONCONTROL_ADDRESS);
 		break;
-	case TRAJECTORY_LOOKAHED_ID:
-		trajectory.setLookAhead(input.read<float>());
-		trajectory.save(TRAJECTORY_ADDRESS);
+
+	case PUREPURSUIT_LOOKAHED_ID:
+		purePursuit.setLookAhead(input.read<float>());
+		purePursuit.save(PUREPURSUIT_ADDRESS);
 		break;
 	}
 }
@@ -325,20 +330,21 @@ void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		output.write<float>(angVelPID.getMaxOutput());
 		break;
 
-	case TRAJECTORY_LINVELKP_ID:
-		output.write<float>(trajectory.getLinVelKp());
+	case POSITIONCONTROL_LINVELKP_ID:
+		output.write<float>(positionControl.getLinVelKp());
 		break;
-	case TRAJECTORY_ANGVELKP_ID:
-		output.write<float>(trajectory.getAngVelKp());
+	case POSITIONCONTROL_ANGVELKP_ID:
+		output.write<float>(positionControl.getAngVelKp());
 		break;
-	case TRAJECTORY_LINVELMAX_ID:
-		output.write<float>(trajectory.getLinVelMax());
+	case POSITIONCONTROL_LINVELMAX_ID:
+		output.write<float>(positionControl.getLinVelMax());
 		break;
-	case TRAJECTORY_ANGVELMAX_ID:
-		output.write<float>(trajectory.getAngVelMax());
+	case POSITIONCONTROL_ANGVELMAX_ID:
+		output.write<float>(positionControl.getAngVelMax());
 		break;
-	case TRAJECTORY_LOOKAHED_ID:
-		output.write<float>(trajectory.getLookAhead());
+
+	case PUREPURSUIT_LOOKAHED_ID:
+		output.write<float>(purePursuit.getLookAhead());
 		break;
 	}
 }
