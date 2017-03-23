@@ -16,6 +16,8 @@ public:
 	void setPosInput   (const Position& posInput)   {m_posInput    = posInput;}
 	void setPosSetpoint(const Position& posSetpoint){m_posSetpoint = posSetpoint;}
 
+	void setThetaSetpoint(float theta){m_posSetpoint.theta = theta;}
+
 	float getLinVelSetpoint() const {return m_linVelSetpoint;}
 	float getAngVelSetpoint() const {return m_angVelSetpoint;}
 

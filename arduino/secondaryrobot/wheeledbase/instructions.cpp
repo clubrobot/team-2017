@@ -10,6 +10,7 @@
 #include "../../common/VelocityController.h"
 #include "../../common/PositionController.h"
 #include "../../common/PurePursuit.h"
+#include "../../common/TurnOnTheSpot.h"
 
 // Global variables
 
@@ -29,7 +30,8 @@ extern PID angVelPID;
 
 extern PositionController positionControl;
 
-extern PurePursuit purePursuit;
+extern PurePursuit   purePursuit;
+extern TurnOnTheSpot turnOnTheSpot;
 
 // Instructions
 
@@ -77,6 +79,15 @@ void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& outp
 	}
 	velocityControl.enable();
 	positionControl.setMoveStrategy(purePursuit);
+	positionControl.enable();
+}
+
+void START_TURNONTHESPOT(SerialTalks& talks, Deserializer& input, Serializer& output)
+{
+	float theta = input.read<float>();
+	velocityControl.enable();
+	positionControl.setThetaSetpoint(theta);
+	positionControl.setMoveStrategy(turnOnTheSpot);
 	positionControl.enable();
 }
 

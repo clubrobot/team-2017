@@ -67,6 +67,8 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 
 void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output);
 
+void START_TURNONTHESPOT(SerialTalks& talks, Deserializer& input, Serializer& output);
+
 void POSITION_REACHED(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output);

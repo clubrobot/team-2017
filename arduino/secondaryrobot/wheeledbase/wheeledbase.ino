@@ -13,6 +13,7 @@
 #include "../../common/VelocityController.h"
 #include "../../common/PositionController.h"
 #include "../../common/PurePursuit.h"
+#include "../../common/TurnOnTheSpot.h"
 #include "../../common/mathutils.h"
 
 // Load the different modules
@@ -33,7 +34,8 @@ PID angVelPID;
 
 PositionController positionControl;
 
-PurePursuit purePursuit;
+PurePursuit   purePursuit;
+TurnOnTheSpot turnOnTheSpot;
 
 // Setup
 
