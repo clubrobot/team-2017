@@ -7,9 +7,6 @@
 // initialisation EEPROM *
 //************************
 
-#define INIT_EEPROM				// disable to save ROM space
-#define INIT_EEPROM_LED_MATRIX			// disable to save ROM space
-
 
 
 //************
@@ -48,28 +45,6 @@ const byte DISP_PIN[] = {4, 3, 2};
 //a,b,c,d,e,f,g,dp  
 #define START_CHAR ' '
 #define END_CHAR '~'
-#ifdef INIT_EEPROM
-//                            SPACE    ,     !     ,     "     ,     #     ,     $     ,     %     ,     &     ,     '     ,     (     ,     )
-const byte segToDisplay[] = {0b00000000, 0b01100001, 0b01000100, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b01000000, 0b10011100, 0b11110000,
-//                               *     ,     +     ,     ,     ,     -     ,     .     ,     /     ,     0     ,     1     ,     2     ,     3
-							 0b00000000, 0b00000000, 0b00000000, 0b00000010, 0b00000001, 0b00000000, 0b11111100, 0b01100000, 0b11011010, 0b11110010,
-//                               4     ,     5     ,     6     ,     7     ,     8     ,     9     ,     :     ,     ;     ,     <     ,     =
-							 0b01100110, 0b10110110, 0b10111110, 0b11100000, 0b11111110, 0b11110110, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-//                               >     ,     ?     ,     @     ,     A     ,     B     ,     C     ,     D     ,     E     ,     F     ,     G
-							 0b00000000, 0b00000000, 0b00000000, 0b11101110, 0b00111110, 0b10011100, 0b01111010, 0b10011110, 0b10001110, 0b10111100,
-//                               H     ,     I     ,     J     ,     K     ,     L     ,     M     ,     N     ,     O     ,     P     ,     Q
-							 0b01101110, 0b01100000, 0b01110000, 0b00000000, 0b00011100, 0b00000000, 0b00000000, 0b11111100, 0b11001110, 0b00000000,
-//                               R     ,     S     ,     T     ,     U     ,     V     ,     W     ,     X     ,     Y     ,     Z     ,     [
-						 	 0b11101110, 0b10110110, 0b00000000, 0b01111100, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b10011100,
-//                               \     ,     ]     ,     ^     ,     _     ,     `     ,     a     ,     b     ,     c     ,     d     ,     e
-						 	 0b00000000, 0b11110000, 0b00000000, 0b00010000, 0b00000000, 0b11101110, 0b00111110, 0b00011010, 0b01111010, 0b10011110,
-//                               f     ,     g     ,     h     ,     i     ,     j     ,     k     ,     l     ,     m     ,     n     ,     o
-						 	 0b10001110, 0b10111100, 0b00101110, 0b00100000, 0b01110000, 0b00000000, 0b00011100, 0b00000000, 0b00101010, 0b00111010,
-//                               p     ,     q     ,     r     ,     s     ,     t     ,     u     ,     v     ,     w     ,     x     ,     y
-						 	 0b11001110, 0b11100110, 0b00001010, 0b10110110, 0b00011110, 0b00111000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-//                               z     ,     {     ,     |     ,     }     ,     ~     
-						 	 0b00000000, 0b00000000, 0b01100000, 0b00000000, 0b00000000};
-#endif
 
 //Weight of each segment
 //                         a , b , c , d , e , f , g , dp
@@ -107,7 +82,6 @@ const unsigned int rows[] = {4, 16384, 8, 32768, 128, 1, 512, 16}; //Row1,Row2,.
 const unsigned int cols[] = {256, 2048, 64, 2, 32, 4096, 8192, 1024}; //Col1,Col2,...,Col8
 
 // Alphabet
-#ifdef INIT_EEPROM_LED_MATRIX
 
 //TODO : compléter table Ascii
 
@@ -462,7 +436,6 @@ const byte alphabet[32][8] = { 	LETTER_A, LETTER_B, LETTER_C, LETTER_D, LETTER_E
 								LETTER_V, LETTER_W, LETTER_X, LETTER_Y, LETTER_Z, SPACE, APOSTROPHE, HEART1, HEART2, HEART3, SPACE};
 
 
-#endif	// INIT_EEPROM_LED_MATRIX
 
 //***********************
 // EEPROM configuration *
