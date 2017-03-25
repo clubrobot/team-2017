@@ -29,8 +29,9 @@ private:
 	int _endOfPreviousPattern;					// Separation between 2 consecutive patterns being sliding
 	byte _nbPatterns;							// Number of patterns having to be displayed
 	byte _shift;								// Number of shifts to apply when sliding patterns
+	byte _patternWidth[NB_PATTERNS_MAX];		// The width of each pattern
 
-	Pattern() : _patterns {LETTER_B,LETTER_O,LETTER_R,LETTER_N,LETTER_I,LETTER_B,LETTER_U,LETTER_S,SPACE} {}
+	Pattern() : _patterns {LETTER_B,LETTER_O,LETTER_R,LETTER_N,LETTER_I,LETTER_B,LETTER_U,LETTER_S,SPACE}, _patternWidth {7,4,7,7,8,8,8,8,2} {}
 
 	virtual void process(float timestep);
 	

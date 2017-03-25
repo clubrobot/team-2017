@@ -17,7 +17,7 @@
 // Time constants
 #define IP_DISPLAY_TIMESTEP 3e-3    // Execution step time in s
 #define LED_MATRIX_TIMESTEP 1e-3    // Execution step time in s
-#define PATTERN_TIMESTEP 60e-3    // Execution step time in s
+#define PATTERN_TIMESTEP 100e-3    // Execution step time in s
 
 // IP_display constants
 #define IP_DISPLAY_BUFFER_SIZE 25   // Size of the data buffer receiver
@@ -434,6 +434,8 @@ const byte alphabet[32][8] = { 	LETTER_A, LETTER_B, LETTER_C, LETTER_D, LETTER_E
 								LETTER_H, LETTER_I, LETTER_J, LETTER_K, LETTER_L, LETTER_M, LETTER_N,\
 								LETTER_O, LETTER_P, LETTER_Q, LETTER_R, LETTER_S, LETTER_T, LETTER_U,\
 								LETTER_V, LETTER_W, LETTER_X, LETTER_Y, LETTER_Z, SPACE, APOSTROPHE, HEART1, HEART2, HEART3, SPACE};
+
+//const byte charWidth[32] = {8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8};
 
 
 

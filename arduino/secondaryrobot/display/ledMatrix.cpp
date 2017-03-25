@@ -173,7 +173,7 @@ void Pattern::setPattern()
 void Pattern::slidePattern() 
 {
 	setTimestep(PATTERN_TIMESTEP*_shift);
-	if(_endOfPreviousPattern<0){
+	if(_endOfPreviousPattern-(8-_patternWidth[_currentPattern])<0){
 		_currentPattern = ++_currentPattern % (_nbPatterns);
 		_endOfPreviousPattern = 7;
 	}
