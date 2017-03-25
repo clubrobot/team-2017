@@ -81,10 +81,10 @@ void SET_EEPROM_CHAR_IPDISPLAY(SerialTalks &talks, Deserializer &input, Serializ
 void SET_EEPROM_CHAR_LEDMATRIX(SerialTalks &talks, Deserializer &input, Serializer &output)
 {
 	char character = input.read<char>();		// The char to change
-	for(byte i = 0; i<8;i++){
-		 EEPROM.write(EEPROM_LEDMATRIX_DATA_START_ADDRESS + 8*( character - START_CHAR_LED_MATRIX), input.read<byte>());		// pattern
+	for(int i = 0; i<8;i++){
+		 EEPROM.write(EEPROM_LEDMATRIX_DATA_START_ADDRESS + i + 8*(int)( character - START_CHAR_LED_MATRIX), input.read<byte>());		// pattern
 	}
-	EEPROM.write(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  character - START_CHAR_LED_MATRIX, input.read<byte>());		// width
+	EEPROM.write(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  (int)character - START_CHAR_LED_MATRIX, input.read<byte>());		// width
 }
 
 void SET_EEPROM_SPEED_MATRIX(SerialTalks &talks, Deserializer &input, Serializer &output)

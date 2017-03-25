@@ -51,6 +51,7 @@ void LedMatrix::setMode(byte mode)
 
 void LedMatrix::process(float timestep)
 {
+	Clock clk;
 	_data|=_maskColumns;  // Turn all column off
 	_actualColumn++;
 	if (_actualColumn >= 8) {
@@ -99,7 +100,7 @@ void LedMatrix::process(float timestep)
 
 	}
 	_data&= ~(cols[_actualColumn]); // Turn whole column on at once
-	updateMatrix();	
+	updateMatrix();
 }
 
 
@@ -132,7 +133,10 @@ void LedMatrix::computeBuffer(char buffer[])
 	int i;
 	for (i = 0; buffer[i]!='\0' && i < NB_PATTERNS_MAX; i++) {
 		for (int j = 0; j < 8; j++) {
-			if (buffer[i] == ' ') {
+			_pattern._patterns[i][j] = EEPROM.read(EEPROM_LEDMATRIX_DATA_START_ADDRESS + j + 8*(buffer[i]  - START_CHAR_LED_MATRIX));
+			_pattern._patternWidth[i] =  EEPROM.read(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  buffer[i] - START_CHAR_LED_MATRIX);
+
+			/*if (buffer[i] == ' ') {
 				_pattern._patterns[i][j] = alphabet[26][j];
 				_pattern._patternWidth[i] = charWidth[26];
 			} else if (buffer[i] == '\'') {
@@ -141,7 +145,7 @@ void LedMatrix::computeBuffer(char buffer[])
 			} else {
 				_pattern._patterns[i][j] = alphabet[buffer[i] - 97][j];
 				_pattern._patternWidth[i] = charWidth[buffer[i] - 97];
-			}
+			}*/
 		}
 	}
 	_pattern.init();
