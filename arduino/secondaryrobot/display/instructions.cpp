@@ -25,8 +25,20 @@ void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &out
 	for (int i = 0; i< NB_PATTERNS_MAX; i++){
 		buffer[i] = input.read<char>();
 	}
-	ledmatrix1.setMode(mode);
-	ledmatrix1.computeBuffer(buffer);
+
+	switch(matrixID){
+		case 1 :
+			ledmatrix1.setMode(mode);
+			ledmatrix1.computeBuffer(buffer);
+			break;
+		case 2 :
+			ledmatrix2.setMode(mode);
+			ledmatrix2.computeBuffer(buffer);
+			break;
+		case 3 :
+			ledmatrix3.setMode(mode);
+			ledmatrix3.computeBuffer(buffer);
+	}
 }
 
 void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
@@ -66,7 +78,14 @@ void SET_EEPROM_CHAR_IPDISPLAY(SerialTalks &talks, Deserializer &input, Serializ
 }
 
 
-//void SET_EEPROM_CHAR_LEDMATRIX(SerialTalks &talks, Deserializer &input, Serializer &output);
+void SET_EEPROM_CHAR_LEDMATRIX(SerialTalks &talks, Deserializer &input, Serializer &output)
+{
+	char character = input.read<char>();		// The char to change
+	for(byte i = 0; i<8;i++){
+		 EEPROM.write(EEPROM_LEDMATRIX_DATA_START_ADDRESS + 8*( character - START_CHAR_LED_MATRIX), input.read<byte>());		// pattern
+	}
+	EEPROM.write(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  character - START_CHAR_LED_MATRIX, input.read<byte>());		// width
+}
 
 void SET_EEPROM_SPEED_MATRIX(SerialTalks &talks, Deserializer &input, Serializer &output)
 {
