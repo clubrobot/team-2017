@@ -105,7 +105,7 @@ class WheeledBase(Module):
 		while not self.position_reached(**kwargs):
 			time.sleep(0.1)
 		if theta is None: return
-		turnonthespot(theta)
+		self.turnonthespot(theta)
 		while not self.position_reached(**kwargs):
 			time.sleep(0.1)
 
