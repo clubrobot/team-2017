@@ -164,9 +164,13 @@ void Pattern::clearPatterns()
 
 void Pattern::setPattern()
 {
+	setTimestep(PATTERN_TIMESTEP*8);
 	for (int i = 0; i < 8; i++) {
 		_patternToDisplay[i] = _patterns[_currentPattern][i] ;
+		_patternToDisplay[i] = _patternToDisplay[i]>>((8-_patternWidth[_currentPattern])/2);	// Centering of the pattern
+
 	}
+	_currentPattern = ++_currentPattern % (_nbPatterns);
 }
 
 
@@ -190,6 +194,7 @@ void Pattern::slidePattern()
 
 void Pattern::process(float timestep)
 {
-	slidePattern();
+	//slidePattern();
+	setPattern();
 }
 
