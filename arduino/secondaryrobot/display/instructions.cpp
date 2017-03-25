@@ -54,6 +54,17 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
 }
 
 
+void SET_EEPROM_CHAR_IPDISPLAY(SerialTalks &talks, Deserializer &input, Serializer &output)
+{
+	char character = input.read<char>();		// The char to change
+	char data = input.read<char>();				// The segments to display
+	EEPROM.write(EEPROM_IPDISPLAY_START_ADDRESS + character - START_CHAR,data);
+}
+
+
+//void SET_EEPROM_CHAR_LEDMATRIX(SerialTalks &talks, Deserializer &input, Serializer &output);
+
+
 #ifdef INIT_EEPROM
 	void INIT_EEPROM_DATA(SerialTalks &talks, Deserializer &input, Serializer &output)
 	{
