@@ -8,7 +8,9 @@
 // Variables
 
 Ipdisplay ipdisplay;
-LedMatrix ledmatrix;
+LedMatrix ledmatrix1;
+LedMatrix ledmatrix2;
+LedMatrix ledmatrix3;
 
 void setup()
 {
@@ -17,9 +19,8 @@ void setup()
 
 	talks.bind(SET_MATRIX_MESSAGE_OPCODE, SET_MATRIX_MESSAGE);
 	talks.bind(SET_IPDISPLAY_MESSAGE_OPCODE, SET_IPDISPLAY_MESSAGE);
-	#ifdef INIT_EEPROM
-		talks.bind(INIT_EEPROM_DATA_OPCODE, INIT_EEPROM_DATA);
-	#endif
+	talks.bind(SET_EEPROM_CHAR_IPDISPLAY_OPCODE,SET_EEPROM_CHAR_IPDISPLAY);
+	talks.bind(SET_EEPROM_SPEED_MATRIX_OPCODE,SET_EEPROM_SPEED_MATRIX);
 
 	// Variables initialisation
 
@@ -27,9 +28,9 @@ void setup()
 	ipdisplay.setTimestep(IP_DISPLAY_TIMESTEP);
 	ipdisplay.enable();
 
-	ledmatrix.attach(DATA_MATRIX1,CLOCK_MATRIX1,LATCH_MATRIX1,ROTATION_MATRIX_1);
-	ledmatrix.setTimestep(LED_MATRIX_TIMESTEP);
-	ledmatrix.enable();
+	ledmatrix1.attach(DATA_MATRIX1,CLOCK_MATRIX1,LATCH_MATRIX1,ROTATION_MATRIX_1);
+	ledmatrix1.setTimestep(LED_MATRIX_TIMESTEP);
+	ledmatrix1.enable();
 
 }
 
@@ -37,5 +38,6 @@ void loop()
 {
 	talks.execute();
 	ipdisplay.update();
-	ledmatrix.update();
+	ledmatrix1.update();
+	//talks.out << EEPROM_LEDMATRIX1_MESSAGE_SAVED_START_ADDRESS << "\n";
 }

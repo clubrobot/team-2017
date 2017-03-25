@@ -1,7 +1,7 @@
 #include "ledMatrix.h"
 
 
-void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation)
+void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation, byte idMatrix)
 {
 	_DATAPIN = dataPin;
 	_CLOCKPIN = clockPin;
@@ -11,10 +11,19 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation)
 	pinMode(_CLOCKPIN, OUTPUT);
 	pinMode(_LATCHPIN, OUTPUT);
 	_actualColumn = 0;
-	setShift(1);
+	setMode(SLIDE_MODE);
 	initMatrix();
 	_pattern.init();
-	_pattern.setTimestep(PATTERN_TIMESTEP);
+	switch (idMatrix){
+		case 1:
+			_pattern.setTimestep((float)EEPROMReadInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS)/1000);
+			break;
+		case 2:
+			_pattern.setTimestep((float)EEPROMReadInt(EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS)/1000);
+			break;
+		case 3:
+			_pattern.setTimestep((float)EEPROMReadInt(EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS)/1000);
+	}
 }
 
 void LedMatrix::enable()
@@ -35,9 +44,9 @@ void LedMatrix::update()
 	_pattern.update();
 }
 
-void LedMatrix::setShift(int shift)
+void LedMatrix::setMode(byte mode)
 {
-	_pattern._shift = shift;
+	_pattern._mode = mode;
 }
 
 void LedMatrix::process(float timestep)
@@ -125,13 +134,17 @@ void LedMatrix::computeBuffer(char buffer[])
 		for (int j = 0; j < 8; j++) {
 			if (buffer[i] == ' ') {
 				_pattern._patterns[i][j] = alphabet[26][j];
+				_pattern._patternWidth[i] = charWidth[26];
 			} else if (buffer[i] == '\'') {
 				_pattern._patterns[i][j] = alphabet[27][j];
+				_pattern._patternWidth[i] = charWidth[27];
 			} else {
 				_pattern._patterns[i][j] = alphabet[buffer[i] - 97][j];
+				_pattern._patternWidth[i] = charWidth[buffer[i] - 97];
 			}
 		}
 	}
+	_pattern.init();
 	_pattern._nbPatterns = i;
 }
 
@@ -164,32 +177,39 @@ void Pattern::clearPatterns()
 
 void Pattern::setPattern()
 {
+	setTimestep(PATTERN_TIMESTEP*8);
 	for (int i = 0; i < 8; i++) {
 		_patternToDisplay[i] = _patterns[_currentPattern][i] ;
+		_patternToDisplay[i] = _patternToDisplay[i]>>((8-_patternWidth[_currentPattern])/2);	// Centering of the pattern
+
 	}
+	_currentPattern = ++_currentPattern % (_nbPatterns);
 }
 
 
 void Pattern::slidePattern() 
 {
-	setTimestep(PATTERN_TIMESTEP*_shift);
-	if(_endOfPreviousPattern<0){
+	setTimestep(PATTERN_TIMESTEP);
+	if(_endOfPreviousPattern-(8-_patternWidth[_currentPattern])<0){
 		_currentPattern = ++_currentPattern % (_nbPatterns);
 		_endOfPreviousPattern = 7;
 	}
-	_endOfPreviousPattern-=_shift;	
+	_endOfPreviousPattern--;	
     for (int row = 0; row < 8; row++) {
-        _patternToDisplay[row] = _patternToDisplay[row]<<_shift;
-		for(int i = 0; i< _shift; i++){
-			if ((_patterns[_currentPattern][row] & 0x01 <<  (_endOfPreviousPattern+i+1)%8) >= 1) {
-				_patternToDisplay[row] |= 0x01<<i ;
-    		}
-		} 
-    }
+        _patternToDisplay[row] = _patternToDisplay[row]<<1;
+		if ((_patterns[_currentPattern][row] & 0x01 <<  (_endOfPreviousPattern+1)%8) >= 1)
+    		_patternToDisplay[row] |= 0x01 ;
+	}
 }
 
 void Pattern::process(float timestep)
 {
-	slidePattern();
+	switch(_mode){
+		case SLIDE_MODE:
+			slidePattern();
+			break;
+		case ANIMATION_MODE:
+			setPattern();
+	}
 }
 

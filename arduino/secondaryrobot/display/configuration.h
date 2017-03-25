@@ -7,9 +7,6 @@
 // initialisation EEPROM *
 //************************
 
-#define INIT_EEPROM				// disable to save ROM space
-#define INIT_EEPROM_LED_MATRIX			// disable to save ROM space
-
 
 
 //************
@@ -20,7 +17,7 @@
 // Time constants
 #define IP_DISPLAY_TIMESTEP 3e-3    // Execution step time in s
 #define LED_MATRIX_TIMESTEP 1e-3    // Execution step time in s
-#define PATTERN_TIMESTEP 60e-3    // Execution step time in s
+#define PATTERN_TIMESTEP 100e-3    // Execution step time in s
 
 // IP_display constants
 #define IP_DISPLAY_BUFFER_SIZE 25   // Size of the data buffer receiver
@@ -48,28 +45,6 @@ const byte DISP_PIN[] = {4, 3, 2};
 //a,b,c,d,e,f,g,dp  
 #define START_CHAR ' '
 #define END_CHAR '~'
-#ifdef INIT_EEPROM
-//                            SPACE    ,     !     ,     "     ,     #     ,     $     ,     %     ,     &     ,     '     ,     (     ,     )
-const byte segToDisplay[] = {0b00000000, 0b01100001, 0b01000100, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b01000000, 0b10011100, 0b11110000,
-//                               *     ,     +     ,     ,     ,     -     ,     .     ,     /     ,     0     ,     1     ,     2     ,     3
-							 0b00000000, 0b00000000, 0b00000000, 0b00000010, 0b00000001, 0b00000000, 0b11111100, 0b01100000, 0b11011010, 0b11110010,
-//                               4     ,     5     ,     6     ,     7     ,     8     ,     9     ,     :     ,     ;     ,     <     ,     =
-							 0b01100110, 0b10110110, 0b10111110, 0b11100000, 0b11111110, 0b11110110, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-//                               >     ,     ?     ,     @     ,     A     ,     B     ,     C     ,     D     ,     E     ,     F     ,     G
-							 0b00000000, 0b00000000, 0b00000000, 0b11101110, 0b00111110, 0b10011100, 0b01111010, 0b10011110, 0b10001110, 0b10111100,
-//                               H     ,     I     ,     J     ,     K     ,     L     ,     M     ,     N     ,     O     ,     P     ,     Q
-							 0b01101110, 0b01100000, 0b01110000, 0b00000000, 0b00011100, 0b00000000, 0b00000000, 0b11111100, 0b11001110, 0b00000000,
-//                               R     ,     S     ,     T     ,     U     ,     V     ,     W     ,     X     ,     Y     ,     Z     ,     [
-						 	 0b11101110, 0b10110110, 0b00000000, 0b01111100, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b10011100,
-//                               \     ,     ]     ,     ^     ,     _     ,     `     ,     a     ,     b     ,     c     ,     d     ,     e
-						 	 0b00000000, 0b11110000, 0b00000000, 0b00010000, 0b00000000, 0b11101110, 0b00111110, 0b00011010, 0b01111010, 0b10011110,
-//                               f     ,     g     ,     h     ,     i     ,     j     ,     k     ,     l     ,     m     ,     n     ,     o
-						 	 0b10001110, 0b10111100, 0b00101110, 0b00100000, 0b01110000, 0b00000000, 0b00011100, 0b00000000, 0b00101010, 0b00111010,
-//                               p     ,     q     ,     r     ,     s     ,     t     ,     u     ,     v     ,     w     ,     x     ,     y
-						 	 0b11001110, 0b11100110, 0b00001010, 0b10110110, 0b00011110, 0b00111000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,
-//                               z     ,     {     ,     |     ,     }     ,     ~     
-						 	 0b00000000, 0b00000000, 0b01100000, 0b00000000, 0b00000000};
-#endif
 
 //Weight of each segment
 //                         a , b , c , d , e , f , g , dp
@@ -101,13 +76,13 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
 
 #define ROTATION_MATRIX_1 90
 #define NB_PATTERNS_MAX 20
+enum {SLIDE_MODE,ANIMATION_MODE};
 
 // Weight of each dot
 const unsigned int rows[] = {4, 16384, 8, 32768, 128, 1, 512, 16}; //Row1,Row2,...,Row8
 const unsigned int cols[] = {256, 2048, 64, 2, 32, 4096, 8192, 1024}; //Col1,Col2,...,Col8
 
 // Alphabet
-#ifdef INIT_EEPROM_LED_MATRIX
 
 //TODO : compléter table Ascii
 
@@ -454,15 +429,16 @@ const unsigned int cols[] = {256, 2048, 64, 2, 32, 4096, 8192, 1024}; //Col1,Col
   }
 
 
-#define START_CHAR_LED_MATRIX 0x1D	// Ascii for group separator
+#define START_CHAR_LED_MATRIX ' '	// Ascii for group separator
 #define END_CHAR_LED_MATRIX '~'
-const byte alphabet[32][8] = { 	LETTER_A, LETTER_B, LETTER_C, LETTER_D, LETTER_E, LETTER_F, LETTER_G,\
+const byte alphabet[31][8] = { 	LETTER_A, LETTER_B, LETTER_C, LETTER_D, LETTER_E, LETTER_F, LETTER_G,\
 								LETTER_H, LETTER_I, LETTER_J, LETTER_K, LETTER_L, LETTER_M, LETTER_N,\
 								LETTER_O, LETTER_P, LETTER_Q, LETTER_R, LETTER_S, LETTER_T, LETTER_U,\
-								LETTER_V, LETTER_W, LETTER_X, LETTER_Y, LETTER_Z, SPACE, APOSTROPHE, HEART1, HEART2, HEART3, SPACE};
+								LETTER_V, LETTER_W, LETTER_X, LETTER_Y, LETTER_Z, SPACE, APOSTROPHE, HEART1, HEART2, HEART3};
+
+const byte charWidth[31] = {8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,3,8,8,8,8};
 
 
-#endif	// INIT_EEPROM_LED_MATRIX
 
 //***********************
 // EEPROM configuration *
@@ -473,7 +449,21 @@ const byte alphabet[32][8] = { 	LETTER_A, LETTER_B, LETTER_C, LETTER_D, LETTER_E
 #define EEPROM_IPDISPLAY_START_ADDRESS EEPROM_START_ADDRESS
 #define EEPROM_IPDISPLAY_LENGTH END_CHAR-START_CHAR+1
 // LED Matrix
-#define EEPROM_LEDMATRIX_START_ADDRESS EEPROM_IPDISPLAY_START_ADDRESS+EEPROM_IPDISPLAY_LENGTH
-#define EEPROM_LEDMATRIX_LENGTH		//TODO
+#define EEPROM_LEDMATRIX_DATA_START_ADDRESS EEPROM_IPDISPLAY_START_ADDRESS+EEPROM_IPDISPLAY_LENGTH
+#define EEPROM_LEDMATRIX_DATA_LENGTH	((END_CHAR_LED_MATRIX-START_CHAR_LED_MATRIX+1)*8)
+#define EEPROM_LEDMATRIX_WIDTH_START_ADDRESS EEPROM_LEDMATRIX_DATA_START_ADDRESS + EEPROM_LEDMATRIX_DATA_LENGTH
+#define EEPROM_LEDMATRIX_WITDH_LENGTH END_CHAR_LED_MATRIX-START_CHAR_LED_MATRIX+1
+#define EEPROM_LEDMATRIX1_MESSAGE_SAVED_START_ADDRESS EEPROM_LEDMATRIX_WIDTH_START_ADDRESS + EEPROM_LEDMATRIX_WITDH_LENGTH
+#define EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH 8
+#define EEPROM_LEDMATRIX2_MESSAGE_SAVED_START_ADDRESS EEPROM_LEDMATRIX1_MESSAGE_SAVED_START_ADDRESS + EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH
+#define EEPROM_LEDMATRIX2_MESSAGE_SAVED_LENGTH 8
+#define EEPROM_LEDMATRIX3_MESSAGE_SAVED_START_ADDRESS EEPROM_LEDMATRIX2_MESSAGE_SAVED_START_ADDRESS + EEPROM_LEDMATRIX2_MESSAGE_SAVED_LENGTH
+#define EEPROM_LEDMATRIX3_MESSAGE_SAVED_LENGTH 8
+#define EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS EEPROM_LEDMATRIX3_MESSAGE_SAVED_START_ADDRESS + EEPROM_LEDMATRIX3_MESSAGE_SAVED_LENGTH
+#define EEPROM_LEDMATRIX1_TIMESTEP_LENGTH sizeof(int)
+#define EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS + EEPROM_LEDMATRIX1_TIMESTEP_LENGTH
+#define EEPROM_LEDMATRIX2_TIMESTEP_LENGTH sizeof(int)
+#define EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS + EEPROM_LEDMATRIX2_TIMESTEP_LENGTH
+#define EEPROM_LEDMATRIX3_TIMESTEP_LENGTH sizeof(int)
 
 #endif

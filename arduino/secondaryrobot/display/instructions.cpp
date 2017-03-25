@@ -3,10 +3,14 @@
 #include "IPDisplay.h"
 #include "ledMatrix.h"
 #include <EEPROM.h>
+#include "eepromManagment.h"
 
 // Global variables
 extern Ipdisplay ipdisplay;
-extern LedMatrix ledmatrix;
+extern LedMatrix ledmatrix1;
+extern LedMatrix ledmatrix2;
+extern LedMatrix ledmatrix3;
+
 
 // Instructions
 void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
@@ -15,14 +19,14 @@ void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &out
 	// numero de la matrice
 	// type d'affichage (continu, défilement)
 	// chaine de caractère a afficher
-	int matrixID = input.read<int>();			// ID of the matrix to be updates. Set to 0 to send the data to all the matrix
-	int shift = input.read<int>();				// Number of columns to shift every PATTERN_TIMESTEP
+	byte matrixID = input.read<byte>();			// ID of the matrix to be updates. Set to 0 to send the data to all the matrix
+	byte mode = input.read<byte>();				// Mode of the matrix {SLIDE_MODE, ANIMATION_MODE}
 	char buffer[NB_PATTERNS_MAX] = "";
 	for (int i = 0; i< NB_PATTERNS_MAX; i++){
 		buffer[i] = input.read<char>();
 	}
-	ledmatrix.setShift(shift);
-	ledmatrix.computeBuffer(buffer);
+	ledmatrix1.setMode(mode);
+	ledmatrix1.computeBuffer(buffer);
 }
 
 void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
@@ -54,11 +58,30 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
 }
 
 
-#ifdef INIT_EEPROM
-	void INIT_EEPROM_DATA(SerialTalks &talks, Deserializer &input, Serializer &output)
-	{
-		for(int i = 0;i<EEPROM_IPDISPLAY_LENGTH;i++){
-			EEPROM.write(EEPROM_IPDISPLAY_START_ADDRESS+i,segToDisplay[i]);	
-		}
+void SET_EEPROM_CHAR_IPDISPLAY(SerialTalks &talks, Deserializer &input, Serializer &output)
+{
+	char character = input.read<char>();		// The char to change
+	char data = input.read<char>();				// The segments to display
+	EEPROM.write(EEPROM_IPDISPLAY_START_ADDRESS + character - START_CHAR,data);
+}
+
+
+//void SET_EEPROM_CHAR_LEDMATRIX(SerialTalks &talks, Deserializer &input, Serializer &output);
+
+void SET_EEPROM_SPEED_MATRIX(SerialTalks &talks, Deserializer &input, Serializer &output)
+{
+	byte idMatrix = input.read<byte>();			// The matrix ID
+	int speed = input.read<int>();				// The pattern speed in ms
+	switch(idMatrix){
+		case 1 :
+			EEPROMWriteInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS,speed);
+			break;
+		case 2 :
+			EEPROMWriteInt(EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS,speed);
+			break;
+		case 3 :
+			EEPROMWriteInt(EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS,speed);
 	}
-#endif
+	
+}
+
