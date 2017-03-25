@@ -15,13 +15,13 @@ void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &out
 	// numero de la matrice
 	// type d'affichage (continu, défilement)
 	// chaine de caractère a afficher
-	int matrixID = input.read<int>();			// ID of the matrix to be updates. Set to 0 to send the data to all the matrix
-	int shift = input.read<int>();				// Number of columns to shift every PATTERN_TIMESTEP
+	byte matrixID = input.read<byte>();			// ID of the matrix to be updates. Set to 0 to send the data to all the matrix
+	byte mode = input.read<byte>();				// Mode of the matrix {SLIDE_MODE, ANIMATION_MODE}
 	char buffer[NB_PATTERNS_MAX] = "";
 	for (int i = 0; i< NB_PATTERNS_MAX; i++){
 		buffer[i] = input.read<char>();
 	}
-	ledmatrix.setShift(shift);
+	ledmatrix.setMode(mode);
 	ledmatrix.computeBuffer(buffer);
 }
 

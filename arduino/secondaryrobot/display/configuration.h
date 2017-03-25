@@ -76,6 +76,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
 
 #define ROTATION_MATRIX_1 90
 #define NB_PATTERNS_MAX 20
+enum {SLIDE_MODE,ANIMATION_MODE};
 
 // Weight of each dot
 const unsigned int rows[] = {4, 16384, 8, 32768, 128, 1, 512, 16}; //Row1,Row2,...,Row8
@@ -430,12 +431,12 @@ const unsigned int cols[] = {256, 2048, 64, 2, 32, 4096, 8192, 1024}; //Col1,Col
 
 #define START_CHAR_LED_MATRIX 0x1D	// Ascii for group separator
 #define END_CHAR_LED_MATRIX '~'
-const byte alphabet[32][8] = { 	LETTER_A, LETTER_B, LETTER_C, LETTER_D, LETTER_E, LETTER_F, LETTER_G,\
+const byte alphabet[31][8] = { 	LETTER_A, LETTER_B, LETTER_C, LETTER_D, LETTER_E, LETTER_F, LETTER_G,\
 								LETTER_H, LETTER_I, LETTER_J, LETTER_K, LETTER_L, LETTER_M, LETTER_N,\
 								LETTER_O, LETTER_P, LETTER_Q, LETTER_R, LETTER_S, LETTER_T, LETTER_U,\
-								LETTER_V, LETTER_W, LETTER_X, LETTER_Y, LETTER_Z, SPACE, APOSTROPHE, HEART1, HEART2, HEART3, SPACE};
+								LETTER_V, LETTER_W, LETTER_X, LETTER_Y, LETTER_Z, SPACE, APOSTROPHE, HEART1, HEART2, HEART3};
 
-//const byte charWidth[32] = {8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8};
+const byte charWidth[31] = {8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,3,8,8,8,8};
 
 
 

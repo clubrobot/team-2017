@@ -11,7 +11,7 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation)
 	pinMode(_CLOCKPIN, OUTPUT);
 	pinMode(_LATCHPIN, OUTPUT);
 	_actualColumn = 0;
-	setShift(1);
+	setMode(SLIDE_MODE);
 	initMatrix();
 	_pattern.init();
 	_pattern.setTimestep(PATTERN_TIMESTEP);
@@ -35,9 +35,9 @@ void LedMatrix::update()
 	_pattern.update();
 }
 
-void LedMatrix::setShift(int shift)
+void LedMatrix::setMode(byte mode)
 {
-	_pattern._shift = shift;
+	_pattern._mode = mode;
 }
 
 void LedMatrix::process(float timestep)
@@ -125,13 +125,17 @@ void LedMatrix::computeBuffer(char buffer[])
 		for (int j = 0; j < 8; j++) {
 			if (buffer[i] == ' ') {
 				_pattern._patterns[i][j] = alphabet[26][j];
+				_pattern._patternWidth[i] = charWidth[26];
 			} else if (buffer[i] == '\'') {
 				_pattern._patterns[i][j] = alphabet[27][j];
+				_pattern._patternWidth[i] = charWidth[27];
 			} else {
 				_pattern._patterns[i][j] = alphabet[buffer[i] - 97][j];
+				_pattern._patternWidth[i] = charWidth[buffer[i] - 97];
 			}
 		}
 	}
+	_pattern.init();
 	_pattern._nbPatterns = i;
 }
 
@@ -176,25 +180,27 @@ void Pattern::setPattern()
 
 void Pattern::slidePattern() 
 {
-	setTimestep(PATTERN_TIMESTEP*_shift);
+	setTimestep(PATTERN_TIMESTEP);
 	if(_endOfPreviousPattern-(8-_patternWidth[_currentPattern])<0){
 		_currentPattern = ++_currentPattern % (_nbPatterns);
 		_endOfPreviousPattern = 7;
 	}
-	_endOfPreviousPattern-=_shift;	
+	_endOfPreviousPattern--;	
     for (int row = 0; row < 8; row++) {
-        _patternToDisplay[row] = _patternToDisplay[row]<<_shift;
-		for(int i = 0; i< _shift; i++){
-			if ((_patterns[_currentPattern][row] & 0x01 <<  (_endOfPreviousPattern+i+1)%8) >= 1) {
-				_patternToDisplay[row] |= 0x01<<i ;
-    		}
-		} 
-    }
+        _patternToDisplay[row] = _patternToDisplay[row]<<1;
+		if ((_patterns[_currentPattern][row] & 0x01 <<  (_endOfPreviousPattern+1)%8) >= 1)
+    		_patternToDisplay[row] |= 0x01 ;
+	}
 }
 
 void Pattern::process(float timestep)
 {
-	//slidePattern();
-	setPattern();
+	switch(_mode){
+		case SLIDE_MODE:
+			slidePattern();
+			break;
+		case ANIMATION_MODE:
+			setPattern();
+	}
 }
 
