@@ -28,7 +28,7 @@ void setup()
 	ipdisplay.setTimestep(IP_DISPLAY_TIMESTEP);
 	ipdisplay.enable();
 
-	ledmatrix1.attach(DATA_MATRIX1,CLOCK_MATRIX1,LATCH_MATRIX1,ROTATION_MATRIX_1);
+	ledmatrix1.attach(DATA_MATRIX1,CLOCK_MATRIX1,LATCH_MATRIX1,ROTATION_MATRIX_1,1);
 	ledmatrix1.setTimestep(LED_MATRIX_TIMESTEP);
 	ledmatrix1.enable();
 
