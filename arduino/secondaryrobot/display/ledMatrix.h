@@ -1,12 +1,10 @@
 #include <Arduino.h>
 #include "../../common/PeriodicProcess.h"
 #include "configuration.h"
-#include "IPDisplay.h"		// DEBUG
+#include "eepromManagment.h"
 
 #ifndef LEDMATRIX_H
 #define LEDMATRIX_H
-
-extern Ipdisplay ipdisplay;
 
 class Pattern : public PeriodicProcess
 {
@@ -43,10 +41,10 @@ class LedMatrix : public PeriodicProcess
 
   public:
 
-    void attach(byte dataPin, byte clockPin, byte latchPin, int rotation);			// Attach a matrix to its pin
-	void updateMatrix();															// Send data to the registers
-	void initMatrix();																// Init the matrix data + update data into registers
-	void computeBuffer(char buffer[]);												// Compute Serial input
+    void attach(byte dataPin, byte clockPin, byte latchPin, int rotation, byte idMatrix);			// Attach a matrix to its pin
+	void updateMatrix();																			// Send data to the registers
+	void initMatrix();																				// Init the matrix data + update data into registers
+	void computeBuffer(char buffer[]);																// Compute Serial input
 	void enable();
 	void disable();
 	void update();

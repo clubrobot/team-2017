@@ -1,7 +1,7 @@
 #include "ledMatrix.h"
 
 
-void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation)
+void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation, byte idMatrix)
 {
 	_DATAPIN = dataPin;
 	_CLOCKPIN = clockPin;
@@ -14,7 +14,16 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation)
 	setMode(SLIDE_MODE);
 	initMatrix();
 	_pattern.init();
-	_pattern.setTimestep(PATTERN_TIMESTEP);
+	switch (idMatrix){
+		case 1:
+			_pattern.setTimestep((float)EEPROMReadInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS)/1000);
+			break;
+		case 2:
+			_pattern.setTimestep((float)EEPROMReadInt(EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS)/1000);
+			break;
+		case 3:
+			_pattern.setTimestep((float)EEPROMReadInt(EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS)/1000);
+	}
 }
 
 void LedMatrix::enable()
