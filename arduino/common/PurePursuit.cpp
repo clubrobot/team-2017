@@ -6,6 +6,11 @@
 #include "mathutils.h"
 
 
+void PurePursuit::setDirection(Direction direction)
+{
+	m_direction = direction;
+}
+
 bool PurePursuit::addWaypoint(const Waypoint& waypoint)
 {
 	if (m_numWaypoints < PUREPURSUIT_MAX_WAYPOINTS)
@@ -19,9 +24,11 @@ bool PurePursuit::addWaypoint(const Waypoint& waypoint)
 void PurePursuit::reset()
 {
 	m_numWaypoints = 0;
+	m_direction = FORWARD;
 	m_goalIndex = 0;
 	m_goalParam = 0;
-	m_goalReached = 0;
+	m_stabilize = false;
+	m_goalReached = false;
 }
 
 bool PurePursuit::checkLookAheadGoal(const float x, const float y)
@@ -177,27 +184,47 @@ void PurePursuit::computeVelSetpoints(float timestep)
 
 	// Compute the norm and the argument of the vector going from the robot to its goal.
 	float chord = sqrt((goal.x - x) * (goal.x - x) + (goal.y - y) * (goal.y - y));
-	float delta = atan2(goal.y - y, goal.x - x) - theta;
+	float delta = atan2(goal.y - y, goal.x - x) - theta + M_PI / 2 * (1 - m_direction);
 
 	// Compute the remaining distance and an appropriate velocity setpoint.
-	float linPosSetpoint = (chord + getDistAfterGoal()) * sign(cos(delta));
+	float linPosSetpoint = (chord + getDistAfterGoal()) * m_direction;
 	float linVelSetpoint = saturate(linVelKp * linPosSetpoint, -linVelMax, linVelMax);
-	float angVelSetpoint;
+	float angVelSetpoint = angVelMax * sign(sin(delta));
+
+	// Once the robot has gone beyond its final target, we try to stabilize it.
+	m_stabilize |= (m_goalIndex >= m_numWaypoints - 1) && (cos(delta) < 0);
 
 	// The curvature that the robot must follow is `2 * sin(delta) / chord`. So we deduce from this
 	// and the linear velocity setpoint the angular velocity setpoint. If it exceeds the maximum
 	// angular velocity, then we do the opposite: we set the angular velocity setpoint and deduce
 	// from it and the previous formula the linear velocity setpoint.
-	if (angVelMax * chord >= 2 * abs(linVelSetpoint * sin(delta)))
+	if (m_stabilize || cos(delta) > 0)
 	{
-		angVelSetpoint = linVelSetpoint * (2 * sin(delta)) / chord;
+		if (abs(angVelSetpoint * chord) >= 2 * abs(linVelSetpoint * sin(delta)))
+			angVelSetpoint = linVelSetpoint * m_direction * (2 * sin(delta)) / chord;
+		else
+			linVelSetpoint = angVelSetpoint * m_direction * chord / (2 * sin(delta));
 	}
+	
+	// In order to stabilize the robot, we must forget the direction setpoint. That way the robot
+	// can switch between forward and backward directions and stay around its final position. 
+	if (m_stabilize)
+	{
+		linVelSetpoint *= sign(cos(delta));
+		angVelSetpoint *= sign(cos(delta));
+	}
+	
+	// When traveling on the path, we slow down the robot if its orientation is farther than it
+	// should. The following is an empiric but continuous formula.
 	else
 	{
-		angVelSetpoint = angVelMax * sign(linVelSetpoint * sin(delta));
-		linVelSetpoint = angVelSetpoint * chord / (2 * sin(delta));
+		if (cos(delta) > 0)
+			linVelSetpoint *= (1 + cos(2 * delta)) / 2;
+		else
+			linVelSetpoint *= 0;
 	}
 
+	// This could be computed elsewhere but here is convenient. 
 	m_goalReached = chord < getLinPosThreshold();
 
 	setVelSetpoints(linVelSetpoint, angVelSetpoint);
