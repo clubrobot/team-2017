@@ -28,8 +28,7 @@ private:
 	byte _nbPatterns;							// Number of patterns having to be displayed
 	byte _mode;									// mode of the matrix {SLIDE_MODE, ANIMATION_MODE}
 	byte _patternWidth[NB_PATTERNS_MAX];		// The width of each pattern
-
-	Pattern() : _patterns {LETTER_B,LETTER_O,LETTER_R,LETTER_N,LETTER_I,LETTER_B,LETTER_U,LETTER_S,SPACE}, _patternWidth {7,4,7,7,8,8,8,8,2} {}
+	float _timeStep;
 
 	virtual void process(float timestep);
 	
@@ -49,6 +48,7 @@ class LedMatrix : public PeriodicProcess
 	void disable();
 	void update();
 	void setMode(byte mode);		// Set mode of the matrix {SLIDE_MODE, ANIMATION_MODE}
+	void changeTimeStep(float timeStep);
 
   private:
 

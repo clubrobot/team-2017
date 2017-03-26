@@ -11,19 +11,32 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation,
 	pinMode(_CLOCKPIN, OUTPUT);
 	pinMode(_LATCHPIN, OUTPUT);
 	_actualColumn = 0;
-	setMode(SLIDE_MODE);
 	initMatrix();
 	_pattern.init();
 	switch (idMatrix){
 		case 1:
-			_pattern.setTimestep((float)EEPROMReadInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS)/1000);
+			_pattern._timeStep = ((float)EEPROMReadInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS)/1000);
+			char initMessage[EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH];
+			for(int i = 0;i<EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH;i++){
+				initMessage[i] = EEPROM.read(EEPROM_LEDMATRIX1_MESSAGE_SAVED_START_ADDRESS+i);
+			}
+			computeBuffer(initMessage);
+			setMode(EEPROM.read(EEPROM_LEDMATRIX1_DEFAULT_MODE_ADDRESS));
 			break;
 		case 2:
-			_pattern.setTimestep((float)EEPROMReadInt(EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS)/1000);
+			_pattern._timeStep = ((float)EEPROMReadInt(EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS)/1000);
 			break;
 		case 3:
-			_pattern.setTimestep((float)EEPROMReadInt(EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS)/1000);
+			_pattern._timeStep = ((float)EEPROMReadInt(EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS)/1000);
+			break;
+		default:
+			_pattern._timeStep = PATTERN_TIMESTEP;
 	}
+}
+
+void LedMatrix::changeTimeStep(float timeStep){
+	_pattern._timeStep = timeStep;
+	_pattern.setTimestep(timeStep);
 }
 
 void LedMatrix::enable()
@@ -47,6 +60,13 @@ void LedMatrix::update()
 void LedMatrix::setMode(byte mode)
 {
 	_pattern._mode = mode;
+	switch(_pattern._mode){
+		case SLIDE_MODE:
+			_pattern.setTimestep(_pattern._timeStep);
+			break;
+		case ANIMATION_MODE:
+			_pattern.setTimestep(_pattern._timeStep*8);
+	}
 }
 
 void LedMatrix::process(float timestep)
@@ -135,17 +155,6 @@ void LedMatrix::computeBuffer(char buffer[])
 		for (int j = 0; j < 8; j++) {
 			_pattern._patterns[i][j] = EEPROM.read(EEPROM_LEDMATRIX_DATA_START_ADDRESS + j + 8*(buffer[i]  - START_CHAR_LED_MATRIX));
 			_pattern._patternWidth[i] =  EEPROM.read(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  buffer[i] - START_CHAR_LED_MATRIX);
-
-			/*if (buffer[i] == ' ') {
-				_pattern._patterns[i][j] = alphabet[26][j];
-				_pattern._patternWidth[i] = charWidth[26];
-			} else if (buffer[i] == '\'') {
-				_pattern._patterns[i][j] = alphabet[27][j];
-				_pattern._patternWidth[i] = charWidth[27];
-			} else {
-				_pattern._patterns[i][j] = alphabet[buffer[i] - 97][j];
-				_pattern._patternWidth[i] = charWidth[buffer[i] - 97];
-			}*/
 		}
 	}
 	_pattern.init();
@@ -181,7 +190,6 @@ void Pattern::clearPatterns()
 
 void Pattern::setPattern()
 {
-	setTimestep(PATTERN_TIMESTEP*8);
 	for (int i = 0; i < 8; i++) {
 		_patternToDisplay[i] = _patterns[_currentPattern][i] ;
 		_patternToDisplay[i] = _patternToDisplay[i]>>((8-_patternWidth[_currentPattern])/2);	// Centering of the pattern
@@ -193,7 +201,6 @@ void Pattern::setPattern()
 
 void Pattern::slidePattern() 
 {
-	setTimestep(PATTERN_TIMESTEP);
 	if(_endOfPreviousPattern-(8-_patternWidth[_currentPattern])<0){
 		_currentPattern = ++_currentPattern % (_nbPatterns);
 		_endOfPreviousPattern = 7;

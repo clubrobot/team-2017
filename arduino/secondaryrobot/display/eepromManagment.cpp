@@ -1,5 +1,6 @@
 #include "eepromManagment.h"
 #include "../../common/SerialTalks.h"
+#include "configuration.h"
 
 extern SerialTalks talks;
 
@@ -24,6 +25,7 @@ unsigned int EEPROMReadInt(int p_address)
 
 void printEEPROM()
 {
+	/*
 	talks.out << "--------------------------------------------------------------------------------------------------------------------------------\n";
 	talks.out << "                                                  Arduino EEPROM\n";
 	talks.out << "--------------------------------------------------------------------------------------------------------------------------------\n";
@@ -38,5 +40,14 @@ void printEEPROM()
 		}
 		talks.out << "\n";
 		talks.out << "--------------------------------------------------------------------------------------------------------------------------------\n";
+	}
+	*/
+	talks.out << "--------------------------------------------------------------------------------------------------------------------------------\n";
+	talks.out << "                                                  Arduino EEPROM\n";
+	talks.out << "--------------------------------------------------------------------------------------------------------------------------------\n";
+	talks.out << "width\n";
+	for(char c = START_CHAR_LED_MATRIX; c < END_CHAR_LED_MATRIX; c++){
+		talks.execute();
+		talks.out << c << " : " << EEPROM.read(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS + c - START_CHAR_LED_MATRIX) << "\n";
 	}
 }
