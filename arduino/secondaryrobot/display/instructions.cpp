@@ -103,7 +103,6 @@ void SET_EEPROM_SPEED_MATRIX(SerialTalks &talks, Deserializer &input, Serializer
 		case 3 :
 			ledmatrix3.changeTimeStep((float)speed/1000);
 	}
-	
 }
 
 void SET_EEPROM_DEFAULT_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
@@ -116,13 +115,8 @@ void SET_EEPROM_DEFAULT_MESSAGE(SerialTalks &talks, Deserializer &input, Seriali
 	switch(idMatrix){
 		case 1 :
 			EEPROM.write(EEPROM_LEDMATRIX1_DEFAULT_MODE_ADDRESS,mode);
-			if (mode == ANIMATION_MODE){
-				EEPROMWriteInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS,speed/8);
-				ledmatrix1.changeTimeStep((float)speed/8/1000);
-			} else {
-				EEPROMWriteInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS,speed);
-				ledmatrix1.changeTimeStep((float)speed/1000);
-			}
+			EEPROMWriteInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS,speed);
+			ledmatrix1.changeTimeStep((float)speed/1000);
 			for (int i = 0; i< EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH; i++){
 				buffer[i] = input.read<char>();
 				EEPROM.write(EEPROM_LEDMATRIX1_MESSAGE_SAVED_START_ADDRESS+i, buffer[i]);

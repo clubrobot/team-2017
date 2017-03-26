@@ -15,7 +15,7 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation,
 	_pattern.init();
 	switch (idMatrix){
 		case 1:
-			_pattern._timeStep = ((float)EEPROMReadInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS)/1000);
+			changeTimeStep((float)EEPROMReadInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS)/1000);
 			char initMessage[EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH];
 			for(int i = 0;i<EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH;i++){
 				initMessage[i] = EEPROM.read(EEPROM_LEDMATRIX1_MESSAGE_SAVED_START_ADDRESS+i);
@@ -36,7 +36,7 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation,
 
 void LedMatrix::changeTimeStep(float timeStep){
 	_pattern._timeStep = timeStep;
-	_pattern.setTimestep(timeStep);
+	_pattern.setTimestep(_pattern._timeStep);
 }
 
 void LedMatrix::enable()
@@ -60,13 +60,6 @@ void LedMatrix::update()
 void LedMatrix::setMode(byte mode)
 {
 	_pattern._mode = mode;
-	switch(_pattern._mode){
-		case SLIDE_MODE:
-			_pattern.setTimestep(_pattern._timeStep);
-			break;
-		case ANIMATION_MODE:
-			_pattern.setTimestep(_pattern._timeStep*8);
-	}
 }
 
 void LedMatrix::process(float timestep)
