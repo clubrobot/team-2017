@@ -86,14 +86,17 @@ void SET_EEPROM_CHAR_LEDMATRIX(SerialTalks &talks, Deserializer &input, Serializ
 	}
 	byte width = input.read<byte>();
 	EEPROM.write(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  (int)character - START_CHAR_LED_MATRIX, width);		// width
-	talks.out <<width << EEPROM.read((EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  (int)character - START_CHAR_LED_MATRIX)) << "\n";
 }
 
-void SET_EEPROM_SPEED_MATRIX(SerialTalks &talks, Deserializer &input, Serializer &output)
+void SET_SPEED_MATRIX(SerialTalks &talks, Deserializer &input, Serializer &output)
 {
 	byte idMatrix = input.read<byte>();			// The matrix ID
 	int speed = input.read<int>();				// The pattern speed in ms
 	switch(idMatrix){
+		case 0 :
+			ledmatrix1.changeTimeStep((float)speed/1000);
+			ledmatrix2.changeTimeStep((float)speed/1000);
+			ledmatrix3.changeTimeStep((float)speed/1000);
 		case 1 :
 			ledmatrix1.changeTimeStep((float)speed/1000);
 			break;

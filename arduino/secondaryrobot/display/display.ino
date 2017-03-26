@@ -20,7 +20,7 @@ void setup()
 	talks.bind(SET_MATRIX_MESSAGE_OPCODE, SET_MATRIX_MESSAGE);
 	talks.bind(SET_IPDISPLAY_MESSAGE_OPCODE, SET_IPDISPLAY_MESSAGE);
 	talks.bind(SET_EEPROM_CHAR_IPDISPLAY_OPCODE,SET_EEPROM_CHAR_IPDISPLAY);
-	talks.bind(SET_EEPROM_SPEED_MATRIX_OPCODE,SET_EEPROM_SPEED_MATRIX);
+	talks.bind(SET_SPEED_MATRIX_OPCODE,SET_SPEED_MATRIX);
 	talks.bind(SET_EEPROM_CHAR_LEDMATRIX_OPCODE,SET_EEPROM_CHAR_LEDMATRIX);
 	talks.bind(SET_EEPROM_DEFAULT_MESSAGE_OPCODE,SET_EEPROM_DEFAULT_MESSAGE);
 
@@ -34,6 +34,14 @@ void setup()
 	ledmatrix1.setTimestep(LED_MATRIX_TIMESTEP);
 	ledmatrix1.enable();
 
+	ledmatrix2.attach(DATA_MATRIX2,CLOCK_MATRIX2,LATCH_MATRIX2,ROTATION_MATRIX_2,2);
+	ledmatrix2.setTimestep(LED_MATRIX_TIMESTEP);
+	ledmatrix2.enable();
+
+	ledmatrix3.attach(DATA_MATRIX3,CLOCK_MATRIX3,LATCH_MATRIX3,ROTATION_MATRIX_3,3);
+	ledmatrix3.setTimestep(LED_MATRIX_TIMESTEP);
+	ledmatrix3.enable();
+
 	
 
 }
@@ -43,25 +51,6 @@ void loop()
 	talks.execute();
 	ipdisplay.update();
 	ledmatrix1.update();
-	//talks.out << EEPROM.read(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS + ' ' - START_CHAR_LED_MATRIX) << "\n\n";
-	//printEEPROM();
-	/*talks.out << "EEPROM_LEDMATRIX_DATA_START_ADDRESS : " << EEPROM_LEDMATRIX_DATA_START_ADDRESS << "\n";
-	talks.out << "#\n";
-	for (int i = 0; i<8;i++){
-		talks.out << EEPROM.read(EEPROM_LEDMATRIX_DATA_START_ADDRESS + i + 8*( '#' - START_CHAR_LED_MATRIX)) << "\n";
-	}
-	talks.out << EEPROM.read(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  '#' - START_CHAR_LED_MATRIX) << "\n\n";
-
-	talks.out << "%\n";
-	for (int i = 0; i<8;i++){
-		talks.out << EEPROM.read(EEPROM_LEDMATRIX_DATA_START_ADDRESS + i + 8*( '%' - START_CHAR_LED_MATRIX)) << "\n";
-	}
-	talks.out << EEPROM.read(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  '%' - START_CHAR_LED_MATRIX) << "\n\n";
-
-	talks.out << "}\n";
-	for (int i = 0; i<8;i++){
-		talks.out << EEPROM.read(EEPROM_LEDMATRIX_DATA_START_ADDRESS + i + 8*( '}' - START_CHAR_LED_MATRIX)) << "\n";
-	}
-	talks.out << EEPROM.read(EEPROM_LEDMATRIX_WIDTH_START_ADDRESS +  '}' - START_CHAR_LED_MATRIX) << "\n\n";
-	//talks.out << EEPROM_LEDMATRIX1_MESSAGE_SAVED_START_ADDRESS << "\n";*/
+	ledmatrix2.update();
+	ledmatrix3.update();
 }

@@ -23,8 +23,8 @@ private:
 
 	byte _patternToDisplay[8];					// Pattern to display = {Row1,Row2,...,Row8}
 	byte _patterns[NB_PATTERNS_MAX][8];			// Array of all the message to display
-	int _currentPattern;						// The position of the current pattern in the array _patterns
-	int _endOfPreviousPattern;					// Separation between 2 consecutive patterns being sliding
+	byte _currentPattern;						// The position of the current pattern in the array _patterns
+	byte _endOfPreviousPattern;					// Separation between 2 consecutive patterns being sliding
 	byte _nbPatterns;							// Number of patterns having to be displayed
 	byte _mode;									// mode of the matrix {SLIDE_MODE, ANIMATION_MODE}
 	byte _patternWidth[NB_PATTERNS_MAX];		// The width of each pattern
