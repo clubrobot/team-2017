@@ -18,7 +18,7 @@ LOCAL_CPP_SRCS = \
 	$(COMMON)/VelocityController.cpp \
 	$(COMMON)/PositionController.cpp \
 	$(COMMON)/PurePursuit.cpp \
-	$(COMMON)/TurnOnTheSpot.cpp \
+	$(COMMON)/SmoothTrajectory.cpp \
 	$(COMMON)/mathutils.cpp
 
 # Sketch libraries
