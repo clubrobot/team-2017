@@ -35,6 +35,10 @@ public:
 
 	void setLookAhead(float lookAhead){m_lookAhead = lookAhead;}
 
+	Direction       getDirection()         const {return m_direction;}
+	const Waypoint& getWaypoint(int index) const {return m_waypoints[index];}
+	int             getNumWaypoints()      const {return m_numWaypoints;}
+
 	float getLookAhead() const {return m_lookAhead;}
 
 	void load(int address);

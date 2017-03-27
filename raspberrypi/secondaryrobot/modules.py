@@ -88,8 +88,10 @@ class WheeledBase(Module):
 	def set_velocities(self, linear_velocity, angular_velocity):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
-	def purepursuit(self, waypoints):
-		args = [INT(len(waypoints))] + [FLOAT(x) + FLOAT(y) for x, y in waypoints]
+	def purepursuit(self, waypoints, direction='forward'):
+		args = BYTE({'forward':0, 'backward':1}[direction])
+		args += [INT(len(waypoints))]
+		args += [FLOAT(x) + FLOAT(y) for x, y in waypoints]
 		self.send(START_PUREPURSUIT_OPCODE, *args)
 
 	def turnonthespot(self, theta):
@@ -97,17 +99,28 @@ class WheeledBase(Module):
 
 	def position_reached(self, **kwargs):
 		output = self.execute(POSITION_REACHED_OPCODE, **kwargs)
-		trajectory_ended = output.read(BYTE)
-		return bool(trajectory_ended)
+		position_reached = output.read(BYTE)
+		return bool(position_reached)
 
-	def goto(self, x, y, theta=None, **kwargs):
-		self.purepursuit([(x, y)])
+	def goto(self, x, y, theta=None, direction=None, **kwargs):
+		# Compute the preferred direction if not set
+		if direction is None:
+			x0, y0, theta0 = self.get_position()
+			if math.cos(math.atan2(y - y0, x - x0) - theta0) >= 0:
+				direction = 'forward'
+			else:
+				direction = 'backward'
+		
+		# Go to the setpoint position
+		self.purepursuit([(x, y)], direction)
 		while not self.position_reached(**kwargs):
 			time.sleep(0.1)
-		if theta is None: return
-		self.turnonthespot(theta)
-		while not self.position_reached(**kwargs):
-			time.sleep(0.1)
+		
+		# Get the setpoint orientation
+		if theta is not None:
+			self.turnonthespot(theta)
+			while not self.position_reached(**kwargs):
+				time.sleep(0.1)
 
 	def stop(self):
 		self.set_openloop_velocities(0, 0)

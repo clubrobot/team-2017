@@ -12,6 +12,8 @@
 #include "../../common/PurePursuit.h"
 #include "../../common/TurnOnTheSpot.h"
 
+#include <math.h>
+
 // Global variables
 
 extern DCMotorsDriver driver;
@@ -66,17 +68,27 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 
 void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
+	// Setup PurePursuit controller
 	purePursuit.reset();
-	purePursuit.addWaypoint(odometry.getPosition());
+	switch (input.read<byte>())
+	{
+	case 0: purePursuit.setDirection(PurePursuit::FORWARD); break;
+	case 1: purePursuit.setDirection(PurePursuit::BACKWARD); break;
+	}
 	int numWaypoints = input.read<int>();
 	for (int i = 0; i < numWaypoints; i++)
 	{
 		float x = input.read<float>();
 		float y = input.read<float>();
 		purePursuit.addWaypoint(PurePursuit::Waypoint(x, y));
-		if (i == numWaypoints-1)
-			positionControl.setPosSetpoint(Position(x, y, 0));
 	}
+
+	// Compute final setpoint
+	const PurePursuit::Waypoint wp0 = purePursuit.getWaypoint(purePursuit.getNumWaypoints() - 2);
+	const PurePursuit::Waypoint wp1 = purePursuit.getWaypoint(purePursuit.getNumWaypoints() - 1);
+	positionControl.setPosSetpoint(Position(wp1.x, wp1.y, atan2(wp1.y - wp0.y, wp1.x - wp0.x)));
+
+	// Enable PurePursuit controller
 	velocityControl.enable();
 	positionControl.setMoveStrategy(purePursuit);
 	positionControl.enable();
