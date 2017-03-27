@@ -97,10 +97,14 @@ class WheeledBase(Module):
 	def turnonthespot(self, theta):
 		self.send(START_TURNONTHESPOT_OPCODE, FLOAT(theta))
 
-	def position_reached(self, **kwargs):
+	def isarrived(self, **kwargs):
 		output = self.execute(POSITION_REACHED_OPCODE, **kwargs)
-		position_reached = output.read(BYTE)
-		return bool(position_reached)
+		isarrived = output.read(BYTE)
+		return bool(isarrived)
+
+	def wait(self, timestep=0.1, **kwargs):
+		while not self.isarrived(**kwargs):
+			time.sleep(timestep)
 
 	def goto(self, x, y, theta=None, direction=None, **kwargs):
 		# Compute the preferred direction if not set
@@ -113,14 +117,12 @@ class WheeledBase(Module):
 		
 		# Go to the setpoint position
 		self.purepursuit([(x, y)], direction)
-		while not self.position_reached(**kwargs):
-			time.sleep(0.1)
+		self.wait(**kwargs)
 		
 		# Get the setpoint orientation
 		if theta is not None:
 			self.turnonthespot(theta)
-			while not self.position_reached(**kwargs):
-				time.sleep(0.1)
+			self.wait(**kwargs)
 
 	def stop(self):
 		self.set_openloop_velocities(0, 0)
