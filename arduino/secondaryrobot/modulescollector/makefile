@@ -11,6 +11,8 @@ LOCAL_CPP_SRCS = \
     $(COMMON)/SerialTalks.cpp \
     $(COMMON)/EndStop.cpp \
     $(COMMON)/DCMotor.cpp \
+    $(COMMON)/PeriodicProcess.cpp \
+    $(COMMON)/Velocityservo.cpp \
     $(COMMON)/clock.h
 
 
