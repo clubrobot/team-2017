@@ -1,6 +1,3 @@
-#include "VelocityServo.h"
-#include <Servo.h>
-
 VelocityServo::Velocitywrite(int vel, int setpoint){
 	m_velocity = vel;
 	m_setpoint = setpoint;
@@ -35,6 +32,6 @@ VelocityServo::attach(int pin){
 	m_arrived = true;
 }
 
-VelocityServo::detach(int pin){
+VelocityServo::detach(){
 	m_servo.detach();
 }

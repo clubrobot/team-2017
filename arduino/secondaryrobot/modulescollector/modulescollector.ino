@@ -1,12 +1,12 @@
 #include <Arduino.h>
-#include "../../common/EndStop.h"
+#include <Servo.h>
 #include "PIN.h"
 #include "instructions.h"
-#include <Servo.h>
 #include "../../common/DCMotor.h"
 #include "../../common/SerialTalks.h"
 #include "../../common/Clock.h"
 #include "../../common/VelocityServo.h"
+#include "../../common/EndStop.h"
 
 #define MAXMOVINGTIME 4000000
 
