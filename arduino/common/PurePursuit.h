@@ -24,13 +24,20 @@ public:
 		float x, y;
 	};
 
-	PurePursuit() : m_numWaypoints(0){}
+	enum Direction {FORWARD=1, BACKWARD=-1};
 
+	PurePursuit() : m_numWaypoints(0), m_direction(FORWARD){}
+
+	void setDirection(Direction direction);
 	bool addWaypoint(const Waypoint& waypoint);
 
 	void reset();
 
 	void setLookAhead(float lookAhead){m_lookAhead = lookAhead;}
+
+	Direction       getDirection()         const {return m_direction;}
+	const Waypoint& getWaypoint(int index) const {return m_waypoints[index];}
+	int             getNumWaypoints()      const {return m_numWaypoints;}
 
 	float getLookAhead() const {return m_lookAhead;}
 
@@ -49,10 +56,12 @@ protected:
 	// Trajectory specifications
 	Waypoint m_waypoints[PUREPURSUIT_MAX_WAYPOINTS];
 	int m_numWaypoints;
+	Direction m_direction;
 
 	// Computation variables
 	int m_goalIndex;
 	float m_goalParam;
+	bool m_stabilize;
 	bool m_goalReached;
 
 	// Path following tunings

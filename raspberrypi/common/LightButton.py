@@ -1,14 +1,63 @@
 import RPi.GPIO as GPIO
+import time
 #10 GPIO.BOARD
 
-class LightButton:
+class Device:
 	list_pin = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-	def __init__(self,pininput,pinLight,function,*args):
-		if LightButton.list_pin[pininput]==0 and LightButton.list_pin[pinLight]==0:
+
+class Switch(Device):
+	def __init__(self,pininput,function,*args):
+		if Device.list_pin[pininput]==0 :
 			self.Function = function
 			self.state = False
-			LightButton.list_pin[pininput] =1
-			LightButton.list_pin[pinLight]=1
+			Device.list_pin[pininput] =1
+			self.Args =args
+			self.PinInput = pininput
+			if(GPIO.getmode()!=10):
+				GPIO.setmode(GPIO.BOARD)
+			GPIO.setup(self.PinInput,GPIO.IN,pull_up_down=GPIO.PUD_UP)
+
+			
+			try:
+				GPIO.add_event_detect(self.PinInput,GPIO.BOTH,callback=self.LaunchFunction,bouncetime=5)
+			except  RuntimeError :
+				print("error")
+            if(GPIO.input(self.PinInput)==0):
+                self.state = True
+            else:
+                self.state = False
+		else:
+			print("Error pin already used")
+			
+
+	def LaunchFunction(self,a):
+		time.sleep(0.001)
+		if(GPIO.input(self.PinInput)==0):
+			self.state = True
+		else:
+			self.state = False
+		self.Function(*self.Args)
+
+
+	def SetFunction(self,function,*args):
+		self.Function = function
+		self.Args = args
+
+	def Close(self):
+		Device.list_pin[self.PinInput] =0
+		GPIO.remove_event_detect(self.PinInput)
+		GPIO.cleanup(self.PinInput)
+
+ 
+
+class LightButton(Device):
+	
+	def __init__(self,pininput,pinLight,function,*args):
+		if Device.list_pin[pininput]==0 and Device.list_pin[pinLight]==0:
+			self.Function = function
+			self.state = False
+			Device.list_pin[pininput] =1
+			Device.list_pin[pinLight]=1
 			self.AutoSwitch = False
 			self.Args =args
 			self.PinInput = pininput
@@ -52,8 +101,8 @@ class LightButton:
 		self.Args = args
 
 	def Close(self):
-		LightButton.list_pin[self.PinInput] =0
-		LightButton.list_pin[self.PinLight]=0
+		Device.list_pin[self.PinInput] =0
+		Device.list_pin[self.PinLight]=0
 		GPIO.remove_event_detect(self.PinInput)
 		GPIO.cleanup(self.PinLight)
 		GPIO.cleanup(self.PinInput)

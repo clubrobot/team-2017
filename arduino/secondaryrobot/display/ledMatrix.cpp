@@ -211,14 +211,14 @@ void Pattern::setPattern()
 		_patternToDisplay[i] = _patternToDisplay[i]>>((8-_patternWidth[_currentPattern])/2);	// Centering of the pattern
 
 	}
-	_currentPattern = ++_currentPattern % (_nbPatterns);
+	_currentPattern = (_currentPattern+1) % (_nbPatterns);
 }
 
 
 void Pattern::slidePattern() 
 {
 	if(_endOfPreviousPattern-(8-_patternWidth[_currentPattern])<0){
-		_currentPattern = ++_currentPattern % (_nbPatterns);
+		_currentPattern = (_currentPattern+1) % (_nbPatterns);
 		_endOfPreviousPattern = 7;
 	}
 	_endOfPreviousPattern--;	

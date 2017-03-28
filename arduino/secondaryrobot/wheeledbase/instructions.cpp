@@ -10,7 +10,9 @@
 #include "../../common/VelocityController.h"
 #include "../../common/PositionController.h"
 #include "../../common/PurePursuit.h"
-#include "../../common/TurnOnTheSpot.h"
+#include "../../common/SmoothTrajectory.h"
+
+#include <math.h>
 
 // Global variables
 
@@ -30,8 +32,8 @@ extern PID angVelPID;
 
 extern PositionController positionControl;
 
-extern PurePursuit   purePursuit;
-extern TurnOnTheSpot turnOnTheSpot;
+extern PurePursuit      purePursuit;
+extern SmoothTrajectory smoothTrajectory;
 
 // Instructions
 
@@ -66,17 +68,27 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 
 void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
+	// Setup PurePursuit controller
 	purePursuit.reset();
-	purePursuit.addWaypoint(odometry.getPosition());
+	switch (input.read<byte>())
+	{
+	case 0: purePursuit.setDirection(PurePursuit::FORWARD); break;
+	case 1: purePursuit.setDirection(PurePursuit::BACKWARD); break;
+	}
 	int numWaypoints = input.read<int>();
 	for (int i = 0; i < numWaypoints; i++)
 	{
 		float x = input.read<float>();
 		float y = input.read<float>();
 		purePursuit.addWaypoint(PurePursuit::Waypoint(x, y));
-		if (i == numWaypoints-1)
-			positionControl.setPosSetpoint(Position(x, y, 0));
 	}
+
+	// Compute final setpoint
+	const PurePursuit::Waypoint wp0 = purePursuit.getWaypoint(purePursuit.getNumWaypoints() - 2);
+	const PurePursuit::Waypoint wp1 = purePursuit.getWaypoint(purePursuit.getNumWaypoints() - 1);
+	positionControl.setPosSetpoint(Position(wp1.x, wp1.y, atan2(wp1.y - wp0.y, wp1.x - wp0.x)));
+
+	// Enable PurePursuit controller
 	velocityControl.enable();
 	positionControl.setMoveStrategy(purePursuit);
 	positionControl.enable();
@@ -84,10 +96,11 @@ void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& outp
 
 void START_TURNONTHESPOT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
+	smoothTrajectory.reset();
 	float theta = input.read<float>();
 	velocityControl.enable();
 	positionControl.setThetaSetpoint(theta);
-	positionControl.setMoveStrategy(turnOnTheSpot);
+	positionControl.setMoveStrategy(smoothTrajectory);
 	positionControl.enable();
 }
 
@@ -261,6 +274,11 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		purePursuit.setLookAhead(input.read<float>());
 		purePursuit.save(PUREPURSUIT_ADDRESS);
 		break;
+	
+	case SMOOTHTRAJECTORY_THRESHOLDRADIUS_ID:
+		smoothTrajectory.setThresholdRadius(input.read<float>());
+		smoothTrajectory.save(SMOOTHTRAJECTORY_ADDRESS);
+		break;
 	}
 }
 
@@ -370,6 +388,10 @@ void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 
 	case PUREPURSUIT_LOOKAHED_ID:
 		output.write<float>(purePursuit.getLookAhead());
+		break;
+	
+	case SMOOTHTRAJECTORY_THRESHOLDRADIUS_ID:
+		output.write<float>(smoothTrajectory.getThresholdRadius());
 		break;
 	}
 }

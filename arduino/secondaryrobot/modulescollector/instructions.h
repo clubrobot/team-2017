@@ -6,7 +6,7 @@
 
 #define _WRITE_DISPENSER_OPCODE     0x04
 #define _WRITE_GRIP_OPCODE          0X05
-#define _OPEN_SLOWLY_OPCODE			0x06
+#define _OPEN_SLOWLY_OPCODE			    0x06
 #define _IS_UP_OPCODE               0x08
 #define _IS_DOWN_OPCODE             0x09
 #define _SET_MOTOR_VELOCITY_OPCODE  0x0C

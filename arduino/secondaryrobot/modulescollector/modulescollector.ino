@@ -1,11 +1,12 @@
 #include <Arduino.h>
 #include <Servo.h>
-#include "../../common/EndStop.h"
 #include "PIN.h"
 #include "instructions.h"
 #include "../../common/DCMotor.h"
 #include "../../common/SerialTalks.h"
 #include "../../common/Clock.h"
+#include "../../common/VelocityServo.h"
+#include "../../common/EndStop.h"
 
 #define MAXMOVINGTIME 4000000
 
@@ -15,7 +16,7 @@ const float BRAKEVELOCITY = 0.16;
 DCMotorsDriver motorDriver;
 DCMotor gripperMotor;
 
-Servo gripper;
+VelocityServo gripper;
 Servo dispenser;
 
 EndStop highStop;
@@ -34,11 +35,15 @@ void setup(){
     talks.bind(_SET_MOTOR_VELOCITY_OPCODE, SET_MOTOR_VELOCITY);    
     
     pinMode(SERVO1, OUTPUT);
-    pinMode(SERVO2, OUTPUT);
     dispenser.attach(SERVO1);
-    gripper.attach(SERVO2);
+    
     highStop.attach(SWITCH4);
     lowStop.attach(SWITCH3);
+
+    pinMode(SERVO2, OUTPUT);
+    gripper.attach(SERVO2);
+    gripper.enable();
+    gripper.setTimestep(0.05);
 
     motorDriver.attach(DRIVER_RESET , A7);
     motorDriver.reset();
@@ -53,7 +58,9 @@ void setup(){
 }
 
 void loop(){
-     talks.execute();   
+     talks.execute();
+     gripper.update();
+     
      if(!MotorIsMoving && (gripperMotor.getVelocity() != 0 || abs(gripperMotor.getVelocity()) != BRAKEVELOCITY)){
          MovingTime.restart();
          MotorIsMoving = true;    
