@@ -1,13 +1,14 @@
 #include "instructions.h"
 #include "../../common/EndStop.h"
 #include "../../common/DCMotor.h"
+#include "../../common/VelocityServo.h"
 #include <Servo.h>
 #include "PIN.h"
 
-#define GRIP_CYLINDER_ANGLE 45
-#define HIGH_OPEN_ANGLE 45
+#define GRIP_CYLINDER_ANGLE 40
+#define GRIP_VELOCITY 360
 
-extern Servo gripper;
+extern VelocityServo gripper;
 extern Servo dispenser;
 extern EndStop highStop;
 extern EndStop lowStop;
@@ -32,15 +33,16 @@ void WRITE_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
 
 void OPEN_SLOWLY(SerialTalks &inst, Deserializer &input, Serializer &output)
 {
-    float o = GRIP_CYLINDER_ANGLE;
-    int res = 200;
-    float t = input.read<float>();
-    while (o <= HIGH_OPEN_ANGLE){
-        gripper.write(o);
-        o+=(HIGH_OPEN_ANGLE - GRIP_CYLINDER_ANGLE)/res;
-        delay(t * 1000/res);
+    int val = input.read<int>();
+    if (val >= 0)
+    {
+        if (!gripper.attached())
+        {
+            gripper.attach(SERVO1);
+        }
+        gripper.write(GRIP_CYLINDER_ANGLE);
+        gripper.Velocitywrite(GRIP_VELOCITY, val);
     }
-    gripper.write(HIGH_OPEN_ANGLE);
 }
 
 void WRITE_DISPENSER(SerialTalks &inst, Deserializer &input, Serializer &output)
@@ -78,15 +80,6 @@ void SET_MOTOR_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &outp
         if (gripper.attached() && gripper.read() > 5)
         {
             gripperMotor.setVelocity(0);
-            gripper.write(5);
-            delay(200);
-        }
-        if (!gripper.attached())
-        {
-            gripperMotor.setVelocity(0);
-            gripper.attach(SERVO2);
-            gripper.write(5);
-            delay(200);
         }
     }
     gripperMotor.setVelocity(vel);
