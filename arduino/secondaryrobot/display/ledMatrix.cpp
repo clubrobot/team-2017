@@ -15,6 +15,7 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation,
 	_pattern.init();
 	switch (idMatrix){
 		case 1:
+		{
 			changeTimeStep((float)EEPROMReadInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS)/1000);
 			char initMessage[EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH];
 			for(int i = 0;i<EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH;i++){
@@ -23,12 +24,32 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation,
 			computeBuffer(initMessage);
 			setMode(EEPROM.read(EEPROM_LEDMATRIX1_DEFAULT_MODE_ADDRESS));
 			break;
+		}
+			
 		case 2:
-			_pattern._timeStep = ((float)EEPROMReadInt(EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS)/1000);
+		{
+			changeTimeStep((float)EEPROMReadInt(EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS)/1000);
+			char initMessage[EEPROM_LEDMATRIX2_MESSAGE_SAVED_LENGTH];
+			for(int i = 0;i<EEPROM_LEDMATRIX2_MESSAGE_SAVED_LENGTH;i++){
+				initMessage[i] = EEPROM.read(EEPROM_LEDMATRIX2_MESSAGE_SAVED_START_ADDRESS+i);
+			}
+			computeBuffer(initMessage);
+			setMode(EEPROM.read(EEPROM_LEDMATRIX2_DEFAULT_MODE_ADDRESS));
 			break;
+		}
+			
 		case 3:
-			_pattern._timeStep = ((float)EEPROMReadInt(EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS)/1000);
+		{
+			changeTimeStep((float)EEPROMReadInt(EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS)/1000);
+			char initMessage[EEPROM_LEDMATRIX3_MESSAGE_SAVED_LENGTH];
+			for(int i = 0;i<EEPROM_LEDMATRIX3_MESSAGE_SAVED_LENGTH;i++){
+				initMessage[i] = EEPROM.read(EEPROM_LEDMATRIX3_MESSAGE_SAVED_START_ADDRESS+i);
+			}
+			computeBuffer(initMessage);
+			setMode(EEPROM.read(EEPROM_LEDMATRIX3_DEFAULT_MODE_ADDRESS));
 			break;
+		}
+			
 		default:
 			_pattern._timeStep = PATTERN_TIMESTEP;
 	}
