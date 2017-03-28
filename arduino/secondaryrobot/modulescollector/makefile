@@ -12,8 +12,8 @@ LOCAL_CPP_SRCS = \
     $(COMMON)/EndStop.cpp \
     $(COMMON)/DCMotor.cpp \
     $(COMMON)/PeriodicProcess.cpp \
-    $(COMMON)/Velocityservo.cpp \
-    $(COMMON)/clock.h
+    $(COMMON)/VelocityServo.cpp \
+    $(COMMON)/Clock.cpp
 
 
 #sketch libraries

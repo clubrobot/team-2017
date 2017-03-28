@@ -32,8 +32,11 @@ void setup(){
     talks.bind(_WRITE_GRIP_OPCODE, WRITE_GRIP);
     talks.bind(_IS_UP_OPCODE, IS_UP);
     talks.bind(_IS_DOWN_OPCODE, IS_DOWN);
-    talks.bind(_SET_MOTOR_VELOCITY_OPCODE, SET_MOTOR_VELOCITY);    
-    
+    talks.bind(_SET_MOTOR_VELOCITY_OPCODE, SET_MOTOR_VELOCITY);
+    talks.bind(_OPEN_GRIP_OPCODE, OPEN_GRIP);   
+    talks.bind(_SET_GRIP_VELOCITY_OPCODE, SET_GRIP_VELOCITY);
+
+
     pinMode(SERVO1, OUTPUT);
     dispenser.attach(SERVO1);
     
@@ -43,7 +46,7 @@ void setup(){
     pinMode(SERVO2, OUTPUT);
     gripper.attach(SERVO2);
     gripper.enable();
-    gripper.setTimestep(0.05);
+    gripper.setTimestep(0.01);
 
     motorDriver.attach(DRIVER_RESET , A7);
     motorDriver.reset();

@@ -1,37 +1,40 @@
-VelocityServo::Velocitywrite(int vel, int setpoint){
-	m_velocity = vel;
+#include "VelocityServo.h" 
+#include "PeriodicProcess.h"
+#include "SerialTalks.h"
+
+void VelocityServo::Velocitywrite(int setpoint){
 	m_setpoint = setpoint;
 	m_clock.restart();
 	m_startpoint = m_servo.read();
-	m_arrived() = false;
-	if(setpoint>startpoint){
-		m_dir = 1
+	m_arrived = false;
+	if(setpoint>m_startpoint){
+		m_dir = 1;
 	}
-	else if(setpoint<startpoint){
-		m_dir = -1
+	else if(setpoint<m_startpoint){
+		m_dir = -1;
 	}
 }
 
-VelocityServo::process(float timestep){
+void VelocityServo::process(float timestep){
 	if(!m_arrived){
-		m_servo.write(m_clock.getelapsedtime() * m_vel * m_dir + m_startpoint);
+		m_servo.write((int) (m_clock.getElapsedTime() * m_velocity * m_dir + m_startpoint));
 	
-		if(m_dir == -1 && m_clock.getelapsedtime() * m_vel * m_dir+ m_startpoint >= m_setpoint){
+		if(m_dir == -1 && m_servo.read() <= m_setpoint){
 			m_arrived = true;
 			m_servo.write(m_setpoint);
 		}
-		else if(m_dir == 1 && m_clock.getelapsedtime() * m_vel * m_dir+ m_startpoint <= m_setpoint){
+		else if(m_dir == 1 && m_servo.read() >= m_setpoint){
 			m_arrived = true;
 			m_servo.write(m_setpoint);
 		}
 	}
 }
 
-VelocityServo::attach(int pin){
+void VelocityServo::attach(int pin){
 	m_servo.attach(pin);
 	m_arrived = true;
 }
 
-VelocityServo::detach(){
+void VelocityServo::detach(){
 	m_servo.detach();
 }
