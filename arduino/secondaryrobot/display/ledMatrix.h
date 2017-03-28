@@ -28,6 +28,8 @@ private:
 	byte _nbPatterns;							// Number of patterns having to be displayed
 	byte _mode;									// mode of the matrix {SLIDE_MODE, ANIMATION_MODE}
 	byte _patternWidth[NB_PATTERNS_MAX];		// The width of each pattern
+	int _rotation;								// rotation of the pattern {0,90,180,270}
+	int _defaultRotation;						// The default rotation of the pattern
 	float _timeStep;
 
 	virtual void process(float timestep);
@@ -59,7 +61,6 @@ class LedMatrix : public PeriodicProcess
 	int _maskColumns;				// Mask to identify Columns into _data
 	byte _actualColumn;				// Column to be updated
 	Pattern _pattern;
-	int _rotation;					// rotation of the matrix {0,90,180,270}
 	
 
     virtual void process(float timestep);

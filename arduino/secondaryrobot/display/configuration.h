@@ -69,7 +69,7 @@ const byte DISP[4][8] = {{1, 128, 16, 4, 2, 64, 32, 8},
 #define ROTATION_MATRIX_2 90
 #define ROTATION_MATRIX_3 90
 #define NB_PATTERNS_MAX 20
-enum {SLIDE_MODE,ANIMATION_MODE};
+enum {SLIDE_MODE,ANIMATION_MODE,RIGHT_ROTATION_MODE,LEFT_ROTATION_MODE,UPSIDEDOWN_MODE};
 
 // Weight of each dot
 const unsigned int rows[] = {4, 16384, 8, 32768, 128, 1, 512, 16}; //Row1,Row2,...,Row8
