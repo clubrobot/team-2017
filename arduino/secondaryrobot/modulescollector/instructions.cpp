@@ -2,11 +2,11 @@
 #include "../../common/EndStop.h"
 #include "../../common/DCMotor.h"
 #include "../../common/VelocityServo.h"
+#include "../../common/SerialTalks.h"
 #include <Servo.h>
 #include "PIN.h"
 
 #define GRIP_CYLINDER_ANGLE 40
-#define GRIP_VELOCITY 360
 
 extern VelocityServo gripper;
 extern Servo dispenser;
@@ -15,7 +15,8 @@ extern EndStop lowStop;
 extern DCMotor gripperMotor;
 
 void WRITE_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
-{
+{   
+    
     int val = input.read<int>();
     if (val >= 0)
     {
@@ -31,18 +32,22 @@ void WRITE_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
     }
 }
 
-void OPEN_SLOWLY(SerialTalks &inst, Deserializer &input, Serializer &output)
+void OPEN_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
 {
     int val = input.read<int>();
     if (val >= 0)
     {
         if (!gripper.attached())
         {
-            gripper.attach(SERVO1);
+            gripper.attach(SERVO2);
         }
-        gripper.write(GRIP_CYLINDER_ANGLE);
-        gripper.Velocitywrite(GRIP_VELOCITY, val);
+        //gripper.write(GRIP_CYLINDER_ANGLE);
+        gripper.Velocitywrite(val);
     }
+}
+
+void SET_GRIP_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output){
+    gripper.setVelocity(input.read<float>());
 }
 
 void WRITE_DISPENSER(SerialTalks &inst, Deserializer &input, Serializer &output)
@@ -74,9 +79,17 @@ void IS_DOWN(SerialTalks &inst, Deserializer &input, Serializer &output)
 
 void SET_MOTOR_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output)
 {
+    float vel = input.read<float>();
     if (!((highStop.getState() || lowStop.getState()) && gripper.attached() && (gripper.read() > 5)))
     {
-       gripperMotor.setVelocity(input.read<float>());
+       gripperMotor.setVelocity(vel);
+    }
+    if(vel > 0){
+        gripper.detach();
     }
     
+}
+
+void GET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output){
+    output.write<float>(gripperMotor.getVelocity());
 }

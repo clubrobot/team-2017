@@ -65,11 +65,13 @@ SMOOTHTRAJECTORY_THRESHOLDRADIUS_ID = 0xF0
 
 # Modules collector instructions
 
-_WRITE_DISPENSER_OPCODE     = 0x04
-_WRITE_GRIP_OPCODE          = 0X05
-_OPEN_SLOWLY_OPCODE			= 0x06
-_IS_UP_OPCODE			    = 0x08
-_IS_DOWN_OPCODE			    = 0x09
+_WRITE_DISPENSER_OPCODE    	= 0x04
+_WRITE_GRIP_OPCODE      	= 0X05
+_OPEN_GRIP_OPCODE			= 0x06
+_SET_GRIP_VELOCITY_OPCODE	= 0X07
+_IS_UP_OPCODE               = 0x08
+_IS_DOWN_OPCODE             = 0x09
+_GET_MOTOR_VELOCITY_OPCODE	= 0x0B
 _SET_MOTOR_VELOCITY_OPCODE  = 0x0C
 
 # Ultrasonic sensors instructions
@@ -162,19 +164,18 @@ class WheeledBase(Module):
 class ModulesGripper(Module):	
 	def __init__(self, parent, uuid='modulescollector'):
 		Module.__init__(self, parent, uuid)
-		self.high_open_angle = 147
+		self.high_open_angle = 142
 		self.low_open_angle = 80
 		self.close_angle = 5
-		self.grip_cylinder_angle = 45
 
 	def set_position(self,a):
 		self.send(_WRITE_GRIP_OPCODE, INT(a))
-
-	def open_up(self, t):
-		self.send(_OPEN_SLOWLY_OPCODE, FLOAT(t))
+	
+	def set_velocity(self, a):
+		self.send(_SET_GRIP_VELOCITY_OPCODE, FLOAT(a))
 
 	def open_up(self):
-		self.set_position(self.high_open_angle)
+		self.send(_OPEN_GRIP_OPCODE, INT(self.high_open_angle))
 
 	def open_low(self):
 		self.set_position(self.low_open_angle)
@@ -220,15 +221,20 @@ class ModulesElevator(Module):
 	
 	def set_velocity(self, a):
 		self.send(_SET_MOTOR_VELOCITY_OPCODE, FLOAT(a))
+	
+	def get_velocity(self):
+		output = self.execute(_GET_MOTOR_VELOCITY_OPCODE)
+		velo = output.read(FLOAT)
+		return float(velo)
 
 	def go_up(self):
 		self.set_velocity(self.climbing_Velocity)
-		while not self.isup():
+		while ((not self.isup()) and (self.get_velocity() !=0)):
 			time.sleep(0.1)
 
 	def go_down(self):
 		self.set_velocity(self.going_down_velocity)
-		while not self.isdown():
+		while ((not self.isdown()) and (self.get_velocity() !=0):
 			time.sleep(0.1)
 
 

@@ -11,21 +11,29 @@ private :
 
 	Servo m_servo;
 	int m_setpoint;
-	int m_velocity;
+	float m_velocity;
 	int m_startpoint;
 	int m_dir;
 	bool m_arrived; 
 	Clock m_clock;
 
-public :
+public : 
+	
+	VelocityServo(){m_velocity = 360;}
+
+	void setVelocity(float vel){m_velocity = vel;}
+	void Velocitywrite(int setpoint);
+	
 
 	void attach(int pin);
 	void detach();
-	void process(float timestep);
-	void Velocitywrite(int vel, int setpoint);
-	void write(int setpoint){m_servo.write(setpoint);}
+	void write(int setpoint){m_arrived = true; m_servo.write(setpoint); }
 	bool attached(){return m_servo.attached();}
 	int read(){return m_servo.read();}
+
+protected:
+	
+	virtual void process(float timestep);
 	
 };
 
