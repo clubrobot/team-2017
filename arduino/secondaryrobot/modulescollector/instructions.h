@@ -10,6 +10,7 @@
 #define _SET_GRIP_VELOCITY_OPCODE	0X07
 #define _IS_UP_OPCODE               0x08
 #define _IS_DOWN_OPCODE             0x09
+#define _GET_MOTOR_VELOCITY_OPCODE	0x0B
 #define _SET_MOTOR_VELOCITY_OPCODE  0x0C
 
 void SET_GRIP_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output);
@@ -21,6 +22,8 @@ void WRITE_DISPENSER(SerialTalks& inst, Deserializer& input, Serializer& output)
 void IS_UP(SerialTalks& inst, Deserializer& input, Serializer& output);
 
 void IS_DOWN(SerialTalks& inst, Deserializer& input, Serializer& output);
+
+void GET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output);
 
 void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output);
 

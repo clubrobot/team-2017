@@ -35,6 +35,7 @@ void setup(){
     talks.bind(_SET_MOTOR_VELOCITY_OPCODE, SET_MOTOR_VELOCITY);
     talks.bind(_OPEN_GRIP_OPCODE, OPEN_GRIP);   
     talks.bind(_SET_GRIP_VELOCITY_OPCODE, SET_GRIP_VELOCITY);
+    talks.bind(_GET_MOTOR_VELOCITY_OPCODE,GET_MOTOR_VELOCITY);
 
 
     pinMode(SERVO1, OUTPUT);

@@ -17,9 +17,9 @@ private :
 	bool m_arrived; 
 	Clock m_clock;
 
-public :
+public : 
 	
-	VelocityServo(){m_velocity = 100 ;}
+	VelocityServo(){m_velocity = 360;}
 
 	void setVelocity(float vel){m_velocity = vel;}
 	void Velocitywrite(int setpoint);
