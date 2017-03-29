@@ -6,7 +6,8 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation,
 	_DATAPIN = dataPin;
 	_CLOCKPIN = clockPin;
 	_LATCHPIN = latchPin;
-	_rotation = rotation;
+	_pattern._rotation = rotation;
+	_pattern._defaultRotation = rotation;
 	pinMode(_DATAPIN, OUTPUT);
 	pinMode(_CLOCKPIN, OUTPUT);
 	pinMode(_LATCHPIN, OUTPUT);
@@ -15,6 +16,7 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation,
 	_pattern.init();
 	switch (idMatrix){
 		case 1:
+		{
 			changeTimeStep((float)EEPROMReadInt(EEPROM_LEDMATRIX1_TIMESTEP_START_ADDRESS)/1000);
 			char initMessage[EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH];
 			for(int i = 0;i<EEPROM_LEDMATRIX1_MESSAGE_SAVED_LENGTH;i++){
@@ -23,12 +25,32 @@ void LedMatrix::attach(byte dataPin, byte clockPin, byte latchPin, int rotation,
 			computeBuffer(initMessage);
 			setMode(EEPROM.read(EEPROM_LEDMATRIX1_DEFAULT_MODE_ADDRESS));
 			break;
+		}
+			
 		case 2:
-			_pattern._timeStep = ((float)EEPROMReadInt(EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS)/1000);
+		{
+			changeTimeStep((float)EEPROMReadInt(EEPROM_LEDMATRIX2_TIMESTEP_START_ADDRESS)/1000);
+			char initMessage[EEPROM_LEDMATRIX2_MESSAGE_SAVED_LENGTH];
+			for(int i = 0;i<EEPROM_LEDMATRIX2_MESSAGE_SAVED_LENGTH;i++){
+				initMessage[i] = EEPROM.read(EEPROM_LEDMATRIX2_MESSAGE_SAVED_START_ADDRESS+i);
+			}
+			computeBuffer(initMessage);
+			setMode(EEPROM.read(EEPROM_LEDMATRIX2_DEFAULT_MODE_ADDRESS));
 			break;
+		}
+			
 		case 3:
-			_pattern._timeStep = ((float)EEPROMReadInt(EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS)/1000);
+		{
+			changeTimeStep((float)EEPROMReadInt(EEPROM_LEDMATRIX3_TIMESTEP_START_ADDRESS)/1000);
+			char initMessage[EEPROM_LEDMATRIX3_MESSAGE_SAVED_LENGTH];
+			for(int i = 0;i<EEPROM_LEDMATRIX3_MESSAGE_SAVED_LENGTH;i++){
+				initMessage[i] = EEPROM.read(EEPROM_LEDMATRIX3_MESSAGE_SAVED_START_ADDRESS+i);
+			}
+			computeBuffer(initMessage);
+			setMode(EEPROM.read(EEPROM_LEDMATRIX3_DEFAULT_MODE_ADDRESS));
 			break;
+		}
+			
 		default:
 			_pattern._timeStep = PATTERN_TIMESTEP;
 	}
@@ -60,6 +82,7 @@ void LedMatrix::update()
 void LedMatrix::setMode(byte mode)
 {
 	_pattern._mode = mode;
+	_pattern._rotation = _pattern._defaultRotation;		// Reset of the rotation 
 }
 
 void LedMatrix::process(float timestep)
@@ -70,7 +93,7 @@ void LedMatrix::process(float timestep)
 	if (_actualColumn >= 8) {
 		_actualColumn = 0;
 	}
-	switch(_rotation){
+	switch(_pattern._rotation){
 		case 90 : 				// 90° rotation
 					for (int row = 0; row < 8; row++) {
 						if (_pattern._patternToDisplay[_actualColumn]&(0x01<<(row))) {
@@ -214,6 +237,25 @@ void Pattern::process(float timestep)
 			break;
 		case ANIMATION_MODE:
 			setPattern();
+			break;
+		case RIGHT_ROTATION_MODE:
+			_rotation+=90;
+			if(_rotation>270)
+				_rotation = 0;
+			setPattern();
+			break;
+		case LEFT_ROTATION_MODE:
+			_rotation-=90;
+			if(_rotation<0)
+				_rotation = 270;
+			setPattern();
+			break;
+		case UPSIDEDOWN_MODE:
+			_rotation+=180;
+			if(_rotation>270)
+				_rotation = _defaultRotation%180;
+			setPattern();
+			break;
 	}
 }
 

@@ -15,10 +15,6 @@ extern LedMatrix ledmatrix3;
 // Instructions
 void SET_MATRIX_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &output)
 {
-	// parametres a recuperer : 
-	// numero de la matrice
-	// type d'affichage (continu, défilement)
-	// chaine de caractère a afficher
 	byte matrixID = input.read<byte>();			// ID of the matrix to be updates. Set to 0 to send the data to all the matrix
 	byte mode = input.read<byte>();				// Mode of the matrix {SLIDE_MODE, ANIMATION_MODE}
 	char buffer[NB_PATTERNS_MAX] = "";
@@ -50,7 +46,7 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
 	}
 
 	int nbDigits = 0;
-	int shift = 0;
+	
 	for (int i = 0; i < IP_DISPLAY_BUFFER_SIZE && buffer[i]!='\0'; i++)
     {
         if (buffer[i] >= START_CHAR && buffer[i] <= END_CHAR)
@@ -65,15 +61,14 @@ void SET_IPDISPLAY_MESSAGE(SerialTalks &talks, Deserializer &input, Serializer &
 			}
         }
     }
-	shift = (12 - nbDigits) / 2;
-	ipdisplay.computeBuffer(buffer, shift);
+	ipdisplay.computeBuffer(buffer, nbDigits);
 }
 
 
 void SET_EEPROM_CHAR_IPDISPLAY(SerialTalks &talks, Deserializer &input, Serializer &output)
 {
 	char character = input.read<char>();		// The char to change
-	char data = input.read<char>();				// The segments to display
+	byte data = input.read<byte>();				// The segments to display
 	EEPROM.write(EEPROM_IPDISPLAY_START_ADDRESS + character - START_CHAR,data);
 }
 

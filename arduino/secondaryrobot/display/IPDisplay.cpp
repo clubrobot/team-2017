@@ -53,9 +53,11 @@ void Ipdisplay::clearDisplay()
 	}
 }
 
-void Ipdisplay::computeBuffer(char buffer[], byte shift)
+void Ipdisplay::computeBuffer(char buffer[], byte nbDigits)
 {
 	int cpt = 0;
+	int shift = (12 - nbDigits) / 2;
+	clearDisplay();
 	for (int display = 0; display < 4; display++)
 	{
 		for (int i = 0; i < 3; i++)
@@ -63,7 +65,7 @@ void Ipdisplay::computeBuffer(char buffer[], byte shift)
 			m_toSend[display][i] = 0;
 			if ((display)*3 + i + 1 > shift)
 			{
-				if ((buffer[cpt] >= START_CHAR) && (buffer[cpt] <= END_CHAR))
+				if ((buffer[cpt] >= START_CHAR) && (buffer[cpt] <= END_CHAR) && (display*3+i < shift + nbDigits))
 				{
 					for (int j = 0; j < 8; j++)
 					{
@@ -73,7 +75,7 @@ void Ipdisplay::computeBuffer(char buffer[], byte shift)
 
 				cpt++;
 
-				if (buffer[cpt] == '.' && buffer[cpt-1] != '.')
+				if (buffer[cpt] == '.' && buffer[cpt-1] != '.' && (display*3+i < shift + nbDigits))
 				{
 					m_toSend[display][i] += DISP[display][7];
 					cpt++;

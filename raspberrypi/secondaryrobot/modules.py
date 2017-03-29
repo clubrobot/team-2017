@@ -58,6 +58,7 @@ POSITIONCONTROL_ANGVELMAX_ID    = 0xD3
 POSITIONCONTROL_LINPOSTHRESHOLD_ID  = 0xD4
 POSITIONCONTROL_ANGPOSTHRESHOLD_ID  = 0xD5
 PUREPURSUIT_LOOKAHEAD_ID        = 0xE0
+SMOOTHTRAJECTORY_THRESHOLDRADIUS_ID = 0xF0
 
 # Modules collector instructions
 
@@ -91,7 +92,7 @@ class WheeledBase(Module):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
 	def purepursuit(self, waypoints, direction='forward'):
-		args = BYTE({'forward':0, 'backward':1}[direction])
+		args = [BYTE({'forward':0, 'backward':1}[direction])]
 		args += [INT(len(waypoints))]
 		args += [FLOAT(x) + FLOAT(y) for x, y in waypoints]
 		self.send(START_PUREPURSUIT_OPCODE, *args)

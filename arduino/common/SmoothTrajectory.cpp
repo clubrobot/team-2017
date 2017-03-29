@@ -41,13 +41,13 @@ void SmoothTrajectory::computeVelSetpoints(float timestep)
 	float angPosSetpoint;
 	if (underThresholdRadius || sin(delta - theta) == 0)
 	{
-		float circArcAngle = inrange(2 * (delta - theta), -M_PI, M_PI);
-		linPosSetpoint = chord * circArcAngle / (2 * sin(delta - theta));
+		linPosSetpoint = du;
 		angPosSetpoint = inrange(theta, -M_PI, M_PI);
 	}
 	else
 	{
-		linPosSetpoint = du;
+		float circArcAngle = inrange(2 * (delta - theta), -M_PI, M_PI);
+		linPosSetpoint = chord * circArcAngle / (2 * sin(delta - theta));
 		angPosSetpoint = inrange(theta + 2 * (delta - theta), -M_PI, M_PI);
 	}
 
