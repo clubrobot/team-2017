@@ -66,21 +66,18 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 	velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 }
 
+void RESET_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
+{
+	purePursuit.reset();
+}
+
 void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	// Setup PurePursuit controller
-	purePursuit.reset();
+	// Setup PurePursuit
 	switch (input.read<byte>())
 	{
 	case 0: purePursuit.setDirection(PurePursuit::FORWARD); break;
 	case 1: purePursuit.setDirection(PurePursuit::BACKWARD); break;
-	}
-	int numWaypoints = input.read<int>();
-	for (int i = 0; i < numWaypoints; i++)
-	{
-		float x = input.read<float>();
-		float y = input.read<float>();
-		purePursuit.addWaypoint(PurePursuit::Waypoint(x, y));
 	}
 
 	// Compute final setpoint
@@ -92,6 +89,14 @@ void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& outp
 	velocityControl.enable();
 	positionControl.setMoveStrategy(purePursuit);
 	positionControl.enable();
+}
+
+void ADD_PUREPURSUIT_WAYPOINT(SerialTalks& talks, Deserializer& input, Serializer& output)
+{
+	// Queue waypoint
+	float x = input.read<float>();
+	float y = input.read<float>();
+	purePursuit.addWaypoint(PurePursuit::Waypoint(x, y));
 }
 
 void START_TURNONTHESPOT(SerialTalks& talks, Deserializer& input, Serializer& output)
