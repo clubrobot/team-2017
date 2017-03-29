@@ -136,7 +136,6 @@ bool SerialTalks::execute()
 		case SERIALTALKS_INSTRUCTION_STARTING_STATE:
 			m_bytesNumber  = inc;
 			m_bytesCounter = 0;
-			talks.out << m_bytesNumber << "\n";
 			m_state = (m_bytesNumber <= SERIALTALKS_INPUT_BUFFER_SIZE) ?
 				SERIALTALKS_INSTRUCTION_RECEIVING_STATE :
 				SERIALTALKS_WAITING_STATE;
