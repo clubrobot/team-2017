@@ -3,13 +3,14 @@
 #include "../../common/DCMotor.h"
 #include "../../common/VelocityServo.h"
 #include "../../common/SerialTalks.h"
+#include "../../common/FullSpeedServo.h"
 #include <Servo.h>
 #include "PIN.h"
 
 #define GRIP_CYLINDER_ANGLE 40
 
 extern VelocityServo gripper;
-extern Servo dispenser;
+extern FullSpeedServo dispenser;
 extern EndStop highStop;
 extern EndStop lowStop;
 extern DCMotor gripperMotor;
@@ -53,13 +54,14 @@ void SET_GRIP_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &outpu
 void WRITE_DISPENSER(SerialTalks &inst, Deserializer &input, Serializer &output)
 {
     int val = input.read<int>();
+    float t = input.read<float>();
     if (val >= 0)
     {
         if (!dispenser.attached())
         {
             dispenser.attach(SERVO1);
         }
-        dispenser.write(val);
+        dispenser.SpeedWrite(val,t);
     }
     else if (val < 0)
     {
