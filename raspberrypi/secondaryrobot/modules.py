@@ -231,7 +231,7 @@ class ModulesElevator(Module):
 
 	def go_down(self):
 		self.set_velocity(self.going_down_velocity)
-		while ((not self.isdown()) and (self.get_velocity() !=0):
+		while ((not self.isdown()) and (self.get_velocity() !=0)):
 			time.sleep(0.1)
 
 
