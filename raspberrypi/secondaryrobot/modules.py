@@ -194,7 +194,7 @@ class ModulesDispenser(Module):
 		self.send(_WRITE_DISPENSER_OPCODE, INT(a), FLOAT(t))
 
 	def open(self):
-		self.set_position(self.open_dispenser_angle, 20)
+		self.set_position(self.open_dispenser_angle, 2)
 
 	def close(self):
 		self.set_position(self.close_dispenser_angle, 2)
