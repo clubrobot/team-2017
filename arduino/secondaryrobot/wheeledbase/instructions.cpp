@@ -70,6 +70,7 @@ void RESET_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& outp
 {
 	purePursuit.reset();
 	purePursuit.addWaypoint(PurePursuit::Waypoint(odometry.getPosition()));
+	positionControl.disable();
 }
 
 void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
