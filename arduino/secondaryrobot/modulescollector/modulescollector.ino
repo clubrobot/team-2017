@@ -7,6 +7,7 @@
 #include "../../common/Clock.h"
 #include "../../common/VelocityServo.h"
 #include "../../common/EndStop.h"
+#include "../../common/FullSpeedServo.h"
 
 #define MAXMOVINGTIME 4000000
 
@@ -17,7 +18,7 @@ DCMotorsDriver motorDriver;
 DCMotor gripperMotor;
 
 VelocityServo gripper;
-Servo dispenser;
+FullSpeedServo dispenser;
 
 EndStop highStop;
 EndStop lowStop;
@@ -40,6 +41,8 @@ void setup(){
 
     pinMode(SERVO1, OUTPUT);
     dispenser.attach(SERVO1);
+    dispenser.enable();
+    dispenser.setTimestep(0.1);
     
     highStop.attach(SWITCH4);
     lowStop.attach(SWITCH3);
@@ -64,6 +67,7 @@ void setup(){
 void loop(){
      talks.execute();
      gripper.update();
+     dispenser.update();
      
      if(!MotorIsMoving && (gripperMotor.getVelocity() != 0 || abs(gripperMotor.getVelocity()) != BRAKEVELOCITY)){
          MovingTime.restart();

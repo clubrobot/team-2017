@@ -13,6 +13,7 @@ LOCAL_CPP_SRCS = \
     $(COMMON)/DCMotor.cpp \
     $(COMMON)/PeriodicProcess.cpp \
     $(COMMON)/VelocityServo.cpp \
+    $(COMMON)/FullSpeedServo.cpp \
     $(COMMON)/Clock.cpp
 
 
