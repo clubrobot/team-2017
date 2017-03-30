@@ -69,6 +69,7 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 void RESET_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	purePursuit.reset();
+	purePursuit.addWaypoint(PurePursuit::Waypoint(odometry.getPosition()));
 }
 
 void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
