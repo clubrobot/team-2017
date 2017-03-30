@@ -23,6 +23,9 @@
 #define SET_PARAMETER_VALUE_OPCODE      0x0E
 #define GET_PARAMETER_VALUE_OPCODE      0x0F
 
+#define RESET_PUREPURSUIT_OPCODE        0x10
+#define ADD_PUREPURSUIT_WAYPOINT_OPCODE 0x11
+
 // Parameters identifiers
 
 #define LEFTWHEEL_RADIUS_ID             0x10
@@ -65,6 +68,10 @@ void SET_OPENLOOP_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer
 void GET_CODEWHEELS_COUNTERS(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output);
+
+void RESET_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output);
+
+void ADD_PUREPURSUIT_WAYPOINT(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output);
 

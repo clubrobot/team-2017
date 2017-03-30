@@ -27,6 +27,9 @@ GET_VELOCITIES_OPCODE           = 0x0C
 SET_PARAMETER_VALUE_OPCODE      = 0x0E
 GET_PARAMETER_VALUE_OPCODE      = 0x0F
 
+RESET_PUREPURSUIT_OPCODE        = 0x10
+ADD_PUREPURSUIT_WAYPOINT_OPCODE = 0x11
+
 LEFTWHEEL_RADIUS_ID	            = 0x10
 LEFTWHEEL_CONSTANT_ID           = 0x11
 RIGHTWHEEL_RADIUS_ID            = 0x20
@@ -92,10 +95,10 @@ class WheeledBase(Module):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
 	def purepursuit(self, waypoints, direction='forward'):
-		args = [BYTE({'forward':0, 'backward':1}[direction])]
-		args += [INT(len(waypoints))]
-		args += [FLOAT(x) + FLOAT(y) for x, y in waypoints]
-		self.send(START_PUREPURSUIT_OPCODE, *args)
+		self.send(RESET_PUREPURSUIT_OPCODE)
+		for x, y in waypoints:
+			self.send(ADD_PUREPURSUIT_WAYPOINT_OPCODE, FLOAT(x), FLOAT(y))
+		self.send(START_PUREPURSUIT_OPCODE, BYTE({'forward':0, 'backward':1}[direction]))
 
 	def turnonthespot(self, theta):
 		self.send(START_TURNONTHESPOT_OPCODE, FLOAT(theta))
