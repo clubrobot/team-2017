@@ -93,7 +93,7 @@ void SET_MOTOR_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &outp
         gripperMotor.setVelocity(vel);
         ok = true;
     }
-    if(vel > 0){
+    if(vel > 0 && ok){
         gripper.detach();
     }
     output.write<bool>(ok);
