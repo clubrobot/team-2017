@@ -205,7 +205,7 @@ class ModulesDispenser(Module):
 class ModulesElevator(Module):
 	def __init__(self, parent, uuid='modulescollector'):
 		Module.__init__(self, parent, uuid)
-		self.climbing_Velocity = -11.1 
+		self.climbing_velocity = -11.1 
 		self.going_down_velocity = 8
 	
 	def isup(self):
@@ -219,7 +219,9 @@ class ModulesElevator(Module):
 		return bool(isdown)
 	
 	def set_velocity(self, a):
-		self.send(_SET_MOTOR_VELOCITY_OPCODE, FLOAT(a))
+		output = self.execute(_SET_MOTOR_VELOCITY_OPCODE, FLOAT(a))
+		moving = output.read(BYTE)
+		return bool(moving)
 	
 	def get_velocity(self):
 		output = self.execute(_GET_MOTOR_VELOCITY_OPCODE)
@@ -227,15 +229,16 @@ class ModulesElevator(Module):
 		return float(velo)
 
 	def go_up(self):
-		self.set_velocity(self.climbing_Velocity)
-		while ((not self.isup()) and (self.get_velocity() !=0)):
+		if not self.set_velocity(self.climbing_velocity):
+			raise RuntimeError("gripper is not closed")
+		while not self.isup():
 			time.sleep(0.1)
 
 	def go_down(self):
-		self.set_velocity(self.going_down_velocity)
-		while ((not self.isdown()) and (self.get_velocity() !=0)):
+		if not self.set_velocity(self.going_down_velocity):
+			raise RuntimeError('gripper is not closed')
+		while not self.isdown():
 			time.sleep(0.1)
-
 
 class UltrasonicSensor(Module):
 	def __init__(self, parent, uuid='sensors'):

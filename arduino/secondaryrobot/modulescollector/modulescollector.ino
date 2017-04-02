@@ -9,9 +9,7 @@
 #include "../../common/EndStop.h"
 #include "../../common/FullSpeedServo.h"
 
-#define MAXMOVINGTIME 4000000
-
-const float BRAKEVELOCITY = 0.16;
+const float BRAKEVELOCITY = 2;
 
 
 DCMotorsDriver motorDriver;
@@ -22,9 +20,6 @@ FullSpeedServo dispenser;
 
 EndStop highStop;
 EndStop lowStop;
-
-Clock MovingTime;
-bool MotorIsMoving = false;
 
 void setup(){
     Serial.begin(SERIALTALKS_BAUDRATE);
@@ -68,20 +63,6 @@ void loop(){
      talks.execute();
      gripper.update();
      dispenser.update();
-     
-     if(!MotorIsMoving && (gripperMotor.getVelocity() != 0 || abs(gripperMotor.getVelocity()) != BRAKEVELOCITY)){
-         MovingTime.restart();
-         MotorIsMoving = true;    
-     }
-     
-     else if(MotorIsMoving){
-        if(gripperMotor.getVelocity() == 0 || abs(gripperMotor.getVelocity()) == BRAKEVELOCITY){ 
-            MotorIsMoving = false;
-        }
-         else if(MovingTime.getElapsedTime() > MAXMOVINGTIME){
-            gripperMotor.setVelocity(0);
-        }
-     }
 
      if(highStop.getState() && gripperMotor.getVelocity()<BRAKEVELOCITY*(-1)){
         gripperMotor.setVelocity(BRAKEVELOCITY*(-1));

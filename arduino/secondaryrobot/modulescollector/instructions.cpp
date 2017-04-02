@@ -42,7 +42,6 @@ void OPEN_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
         {
             gripper.attach(SERVO2);
         }
-        //gripper.write(GRIP_CYLINDER_ANGLE);
         gripper.Velocitywrite(val);
     }
 }
@@ -82,13 +81,22 @@ void IS_DOWN(SerialTalks &inst, Deserializer &input, Serializer &output)
 void SET_MOTOR_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output)
 {
     float vel = input.read<float>();
-    if (!((highStop.getState() || lowStop.getState()) && gripper.attached() && (gripper.read() > 5)))
+    bool ok = false;
+    if (gripper.attached())
     {
-       gripperMotor.setVelocity(vel);
+        if(gripper.read() <= 5){
+            gripperMotor.setVelocity(vel);
+            ok = true;
+        }
+    }
+    else{
+        gripperMotor.setVelocity(vel);
+        ok = true;
     }
     if(vel > 0){
         gripper.detach();
     }
+    output.write<bool>(ok);
     
 }
 
