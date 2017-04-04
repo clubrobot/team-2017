@@ -267,8 +267,8 @@ class TCPTalks:
 			pass
 	
 	def execute(self, opcode, *args, timeout=1, **kwargs):
-		retcode = self.send(opcode, *args, **kwargs)
 		self.flush(retcode)
+		retcode = self.send(opcode, *args, **kwargs)
 		output = self.poll(retcode, timeout=timeout)
 		try:
 			etype, value, tb = output
