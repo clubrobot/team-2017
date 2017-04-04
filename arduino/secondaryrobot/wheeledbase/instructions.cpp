@@ -104,9 +104,10 @@ void ADD_PUREPURSUIT_WAYPOINT(SerialTalks& talks, Deserializer& input, Serialize
 void START_TURNONTHESPOT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	smoothTrajectory.reset();
-	float theta = input.read<float>();
+	Position posSetpoint = odometry.getPosition();
+	posSetpoint.theta = input.read<float>();
 	velocityControl.enable();
-	positionControl.setThetaSetpoint(theta);
+	positionControl.setPosSetpoint(posSetpoint);
 	positionControl.setMoveStrategy(smoothTrajectory);
 	positionControl.enable();
 }

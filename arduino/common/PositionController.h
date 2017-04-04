@@ -42,6 +42,7 @@ public:
 private:
 
 	virtual void process(float timestep);
+	virtual void onProcessEnabling();
 
 	// IO
 	Position m_posInput;
