@@ -86,6 +86,7 @@ class TCPTalks:
 		self.ip   = ip
 		self.port = port
 		self.is_connected = False
+		self.socket_lock = RLock()
 
 		# Password
 		self.password = password
@@ -171,12 +172,14 @@ class TCPTalks:
 
 	def rawsend(self, rawbytes):
 		try:
+			self.socket_lock.acquire()
 			if hasattr(self, 'socket'):
 				sentbytes = 0
 				while(sentbytes < len(rawbytes)):
 					sentbytes += self.socket.send(rawbytes[sentbytes:])
 				return sentbytes
-		except AttributeError: pass
+		finally:
+			self.socket_lock.release()
 		raise NotConnectedError('not connected') from None
 
 	def send(self, opcode, *args, **kwargs):
