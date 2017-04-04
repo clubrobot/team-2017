@@ -311,16 +311,18 @@ class TCPListener(Thread):
 				self.parent.disconnect()
 				break
 			
-			# Try to decode the message using the pickle protocol
 			buffer += inc
 			try:
-				message, buffer = _loads(buffer)
+				while True:
+					# Process the above message
+					message, buffer = _loads(buffer)
+
+					# Try to decode the message using the pickle protocol
+					self.parent.process(message)
+
 			except (EOFError, pickle.UnpicklingError, AttributeError):
 				continue # The message is not complete
-			
-			# Process the above message
-			try:
-				self.parent.process(message)
+				
 			except NotConnectedError:
 				self.parent.disconnect()
 				break
