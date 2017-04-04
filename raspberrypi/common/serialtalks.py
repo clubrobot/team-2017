@@ -174,7 +174,6 @@ class SerialTalks:
 
 	def execute(self, opcode, *args, timeout=1):
 		retcode = self.send(opcode, *args)
-		self.flush(retcode)
 		output = self.poll(retcode, timeout)
 		return output
 

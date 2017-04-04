@@ -86,6 +86,7 @@ class TCPTalks:
 		self.ip   = ip
 		self.port = port
 		self.is_connected = False
+		self.socket_lock = RLock()
 
 		# Password
 		self.password = password
@@ -171,12 +172,14 @@ class TCPTalks:
 
 	def rawsend(self, rawbytes):
 		try:
+			self.socket_lock.acquire()
 			if hasattr(self, 'socket'):
 				sentbytes = 0
 				while(sentbytes < len(rawbytes)):
 					sentbytes += self.socket.send(rawbytes[sentbytes:])
 				return sentbytes
-		except AttributeError: pass
+		finally:
+			self.socket_lock.release()
 		raise NotConnectedError('not connected') from None
 
 	def send(self, opcode, *args, **kwargs):
@@ -265,7 +268,6 @@ class TCPTalks:
 	
 	def execute(self, opcode, *args, timeout=1, **kwargs):
 		retcode = self.send(opcode, *args, **kwargs)
-		self.flush(retcode)
 		output = self.poll(retcode, timeout=timeout)
 		try:
 			etype, value, tb = output
@@ -309,16 +311,18 @@ class TCPListener(Thread):
 				self.parent.disconnect()
 				break
 			
-			# Try to decode the message using the pickle protocol
 			buffer += inc
 			try:
-				message, buffer = _loads(buffer)
+				while True:
+					# Process the above message
+					message, buffer = _loads(buffer)
+
+					# Try to decode the message using the pickle protocol
+					self.parent.process(message)
+
 			except (EOFError, pickle.UnpicklingError, AttributeError):
 				continue # The message is not complete
-			
-			# Process the above message
-			try:
-				self.parent.process(message)
+				
 			except NotConnectedError:
 				self.parent.disconnect()
 				break

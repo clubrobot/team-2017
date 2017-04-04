@@ -17,6 +17,11 @@ void PositionController::process(float timestep)
 		m_moveStrategy->computeVelSetpoints(timestep);
 }
 
+void PositionController::onProcessEnabling()
+{
+	//m_posSetpoint = m_posInput;
+}
+
 bool PositionController::getPositionReached()
 {
 	if (m_moveStrategy != 0)
