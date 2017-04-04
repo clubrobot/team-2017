@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 /*
-Pin arduino carte actionneurs
+Pin arduino carte actionneurs PROTO
 
 -----------------------------------------
 INTER	1	2	3	4	5
@@ -23,8 +23,46 @@ SERVO	1	2	3	4
 pin	A5	A4	A3	A2
 */
 
-// DC motors driver
+/* 
+Carte V1.0
 
+Servo : 
+SERVO_1 A5
+SERVO_2 A4
+SERVO_3 A3
+SERVO_4 A2
+
+Serial : 
+RX 		A0
+TX 		A1
+DATA_CONTROL	13
+
+EndStop : 
+INTER_1		2
+INTER_2		4
+
+Driver : 
+RESET_DRIVER	12
+
+
+Moteur: 
+PWN_MOTEUR_1 	3
+SELECT_MOTEUR_1 5
+EN_MOTEUR_1 	6
+
+PWN_MOTEUR_2	9
+SELECT_MOTEUR_2 10
+PWM_MOTEUR_2	11
+
+TOR: 
+TOR_1 		7
+TOR_2 		8
+
+*/
+
+//Proto
+// DC motors driver
+/*
 #define MOTOR2_EN       6
 #define MOTOR2_PWM      3
 #define MOTOR2_DIR      5
@@ -41,11 +79,44 @@ pin	A5	A4	A3	A2
 #define SWITCH4 8
 #define SWITCH5 13
 
+*/
 // Servos
 
 #define SERVO1 A4
 #define SERVO2 A5
 #define SERVO3 A3
 #define SERVO4 A2
+
+
+
+
+//V1.0
+//Serial : 
+#define RX 		A0
+#define TX 		A1
+#define DATA_CONTROL	13
+
+//EndStop : 
+#define SWITCH_1		2
+#define SWITCH_2		4
+
+//Driver : 
+#define RESET_DRIVER	12
+
+
+//Moteur: 
+#define PWN_MOTEUR_1 	3
+#define SELECT_MOTEUR_1 5
+#define EN_MOTEUR_1 	6
+
+#define PWN_MOTEUR_2	9
+#define SELECT_MOTEUR_2 10
+#define PWM_MOTEUR_2	11
+
+//TOR: 
+#define TOR_1 		7
+#define TOR_2 		8
+
+
 
 #endif // __PIN_H__
