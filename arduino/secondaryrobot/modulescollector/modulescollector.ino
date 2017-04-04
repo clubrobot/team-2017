@@ -34,29 +34,29 @@ void setup(){
     talks.bind(_GET_MOTOR_VELOCITY_OPCODE,GET_MOTOR_VELOCITY);
 
 
-    pinMode(SERVO1, OUTPUT);
-    dispenser.attach(SERVO1);
+    pinMode(SERVO2, OUTPUT);
+    dispenser.attach(SERVO2);
     dispenser.enable();
     dispenser.setTimestep(0.1);
     
-    highStop.attach(SWITCH4);
-    lowStop.attach(SWITCH3);
+    highStop.attach(SWITCH1);
+    lowStop.attach(SWITCH2);
 
-    pinMode(SERVO2, OUTPUT);
-    gripper.attach(SERVO2);
+    pinMode(SERVO3, OUTPUT);
+    gripper.attach(SERVO3);
     gripper.enable();
     gripper.setTimestep(0.01);
 
     motorDriver.attach(DRIVER_RESET , A7);
     motorDriver.reset();
     
-    gripperMotor.attach(MOTOR2_EN, MOTOR2_PWM, MOTOR2_DIR);
+    gripperMotor.attach(MOTOR1_EN, MOTOR1_PWM, MOTOR1_DIR);
     gripperMotor.setConstant(1/11.1);
 
     // Miscellanous
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
     gripper.detach();   //Empeche les deux servos de forcer pour garder leur position au démarrage de l'arduino
-    dispenser.detach();
+    dispenser.detach(   );
 }
 
 void loop(){

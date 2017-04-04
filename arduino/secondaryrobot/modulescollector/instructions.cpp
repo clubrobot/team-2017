@@ -23,7 +23,7 @@ void WRITE_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
     {
         if (!gripper.attached())
         {
-            gripper.attach(SERVO2);
+            gripper.attach(SERVO3);
         }
         gripper.write(val);
     }
@@ -40,7 +40,7 @@ void OPEN_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
     {
         if (!gripper.attached())
         {
-            gripper.attach(SERVO2);
+            gripper.attach(SERVO3);
         }
         gripper.Velocitywrite(val);
     }
@@ -58,7 +58,7 @@ void WRITE_DISPENSER(SerialTalks &inst, Deserializer &input, Serializer &output)
     {
         if (!dispenser.attached())
         {
-            dispenser.attach(SERVO1);
+            dispenser.attach(SERVO2);
         }
         dispenser.SpeedWrite(val,t);
     }

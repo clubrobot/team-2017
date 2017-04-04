@@ -97,21 +97,20 @@ TOR_2 		8
 #define DATA_CONTROL	13
 
 //EndStop : 
-#define SWITCH_1		2
-#define SWITCH_2		4
+#define SWITCH1		2
+#define SWITCH2		4
 
 //Driver : 
-#define RESET_DRIVER	12
+#define DRIVER_RESET	12
 
 
 //Moteur: 
-#define PWN_MOTEUR_1 	3
-#define SELECT_MOTEUR_1 5
-#define EN_MOTEUR_1 	6
-
-#define PWN_MOTEUR_2	9
-#define SELECT_MOTEUR_2 10
-#define PWM_MOTEUR_2	11
+#define MOTOR1_EN       6
+#define MOTOR1_PWM      3
+#define MOTOR1_DIR      5
+#define MOTOR2_EN       9
+#define MOTOR2_PWM      11
+#define MOTOR2_DIR      10
 
 //TOR: 
 #define TOR_1 		7

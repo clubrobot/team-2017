@@ -230,13 +230,13 @@ class ModulesElevator(Module):
 
 	def go_up(self):
 		if not self.set_velocity(self.climbing_velocity):
-			raise RuntimeError("gripper is not closed")
+			raise RuntimeError("gripper not closed")
 		while not self.isup():
 			time.sleep(0.1)
 
 	def go_down(self):
 		if not self.set_velocity(self.going_down_velocity):
-			raise RuntimeError('gripper is not closed')
+			raise RuntimeError('gripper not closed')
 		while not self.isdown():
 			time.sleep(0.1)
 
