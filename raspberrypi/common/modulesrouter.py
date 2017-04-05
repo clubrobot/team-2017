@@ -15,12 +15,12 @@ MODULE_EXECUTE_OPCODE = 0x11
 MODULE_GETATTR_OPCODE = 0x12
 MODULE_SETATTR_OPCODE = 0x13
 
-SWITCH_CONNECT_OPCODE = 0x20
+SWITCH_CREATE_OPCODE  = 0x20
 SWITCH_EXECUTE_OPCODE = 0x21
 SWITCH_GETATTR_OPCODE = 0x22
 SWITCH_SETATTR_OPCODE = 0x23
 
-BUTTON_CONNECT_OPCODE = 0x30
+BUTTON_CREATE_OPCODE  = 0x30
 BUTTON_EXECUTE_OPCODE = 0x31
 BUTTON_GETATTR_OPCODE = 0x32
 BUTTON_SETATTR_OPCODE = 0x33
@@ -45,6 +45,14 @@ class ModulesRouter(TCPTalks):
 		self.bind(MODULE_EXECUTE_OPCODE, self.module_execute)
 		self.bind(MODULE_GETATTR_OPCODE, self.module_getattr)
 		self.bind(MODULE_SETATTR_OPCODE, self.module_setattr)
+		self.bind(SWITCH_CREATE_OPCODE,  self.switch_create)
+		self.bind(SWITCH_EXECUTE_OPCODE, self.switch_execute)
+		self.bind(SWITCH_GETATTR_OPCODE, self.switch_getattr)
+		self.bind(SWITCH_SETATTR_OPCODE, self.switch_setattr)
+		self.bind(BUTTON_CREATE_OPCODE,  self.button_create)
+		self.bind(BUTTON_EXECUTE_OPCODE, self.button_execute)
+		self.bind(BUTTON_GETATTR_OPCODE, self.button_getattr)
+		self.bind(BUTTON_SETATTR_OPCODE, self.button_setattr)
 		self.modules  = dict()
 		self.buttons  = dict()
 		self.switches = dict()
@@ -90,52 +98,38 @@ class ModulesRouter(TCPTalks):
 		module = self.module_setup(uuid)
 		return setattr(module, attrname, attrvalue)
 
-	def button_setup(self, butpin, ledpin):
+	def button_create(self, butpin, ledpin):
 		uuid = butpin
-		try:
-			button = self.buttons[uuid]
-		except KeyError:
-			button = LightButton(butpin, ledpin, function=self.send, FUNCTION_EXECUTE_OPCODE, uuid)
-			self.buttons[uuid] = button
-		return button
-
-	def button_connect(self, uuid):
-		self.button_setup(uuid)
+		button = LightButton(butpin, ledpin, self.send, FUNCTION_EXECUTE_OPCODE, uuid)
+		self.buttons[uuid] = button
 
 	def button_execute(self, uuid, methodname, *args, **kwargs):
-		button = self.button_setup(uuid)
+		button = self.buttons[uuid]
 		return getattr(button, methodname)(*args, **kwargs)
 
 	def button_getattr(self, uuid, attrname):
-		button = self.button_setup(uuid)
+		button = self.buttons[uuid]
 		return getattr(button, attrname)
 
 	def button_setattr(self, uuid, attrname, attrvalue):
-		button = self.button_setup(uuid)
+		button = self.buttons[uuid]
 		return setattr(button, attrname, attrvalue)
 
-	def switch_connect(self, uuid):
-		self.switch_setup(uuid)
-
-	def switch_setup(self, pin):
+	def switch_create(self, pin):
 		uuid = pin
-		try:
-			switch = self.switches[uuid]
-		except KeyError:
-			switch = Switch(pin, function=self.send, FUNCTION_EXECUTE_OPCODE, uuid)
-			self.switches[uuid] = switch
-		return switch
+		switch = Switch(pin, self.send, FUNCTION_EXECUTE_OPCODE, uuid)
+		self.switches[uuid] = switch
 
 	def switch_execute(self, uuid, methodname, *args, **kwargs):
-		switch = self.switch_setup(uuid)
+		switch = self.switches[uuid]
 		return getattr(switch, methodname)(*args, **kwargs)
 
 	def switch_getattr(self, uuid, attrname):
-		switch = self.switch_setup(uuid)
+		switch = self.switches[uuid]
 		return getattr(switch, attrname)
 
 	def switch_setattr(self, uuid, attrname, attrvalue):
-		switch = self.switch_setup(uuid)
+		switch = self.switches[uuid]
 		return setattr(switch, attrname, attrvalue)
 
 
@@ -195,7 +189,7 @@ class LightButtonModule:
 	def __init__(self, parent, butpin, ledpin, timeout=2):
 		self.parent = parent
 		self.uuid   = butpin
-		self.parent.execute(BUTTON_CONNECT_OPCODE, uuid, timeout=timeout)
+		self.parent.execute(BUTTON_CONNECT_OPCODE, self.uuid, timeout=timeout)
 	
 	def execmeth(self, methodname, *args, tcptimeout=60, **kwargs):
 		return self.parent.execute(BUTTON_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
