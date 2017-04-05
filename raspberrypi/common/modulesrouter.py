@@ -145,13 +145,13 @@ class ModulesManager(TCPTalks):
 
 	def __init__(self, ip='localhost', port=MODULESROUTER_DEFAULT_PORT, password=None):
 		TCPTalks.__init__(self, ip, port=port, password=password)
-		self.buttons_functions = dict()
-		self.buttons_args      = dict()
+		self.devices_functions = dict()
+		self.devices_args      = dict()
 		self.bind(FUNCTION_EXECUTE_OPCODE, self.execute_function)
 	
 	def execute_function(self, uuid):
 		try:
-			self.buttons_functions[uuid](*self.buttons_args[uuid])
+			self.devices_functions[uuid](*self.devices_args[uuid])
 		except IndexError:
 			pass
 
@@ -200,8 +200,11 @@ class LightButtonModule:
 		self.parent.execute(BUTTON_CREATE_OPCODE, butpin, ledpin, timeout=timeout)
 	
 	def execmeth(self, methodname, *args, tcptimeout=60, **kwargs):
-		return self.parent.execute(BUTTON_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
-	
+		print('execmeth')
+		x = self.parent.execute(BUTTON_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
+		print('execmeth -> ok')
+		return x
+
 	def getattr(self, attrname):
 		return self.parent.execute(BUTTON_GETATTR_OPCODE, self.uuid, attrname)
 	
@@ -209,12 +212,16 @@ class LightButtonModule:
 		return self.parent.execute(BUTTON_SETATTR_OPCODE, self.uuid, attrname, value)
 	
 	def SetFunction(self, function, *args):
-		self.parent.buttons_functions[self.uuid] = function
-		self.parent.buttons_args     [self.uuid] = args
+		self.parent.devices_functions[self.uuid] = function
+		self.parent.devices_args     [self.uuid] = args
 
 	def SetAutoSwitch(self, *args, **kwargs): return self.execmeth('SetAutoSwitch', *args, **kwargs)
 	def On           (self, *args, **kwargs): return self.execmeth('On',            *args, **kwargs)
-	def Off          (self, *args, **kwargs): return self.execmeth('Off',           *args, **kwargs)
+	def Off          (self, *args, **kwargs):
+		print('Off')
+		x = self.execmeth('Off',           *args, **kwargs)
+		print('Off -> ok')
+		return x
 	def Switch       (self, *args, **kwargs): return self.execmeth('Switch',        *args, **kwargs)
 	def Close        (self, *args, **kwargs): return self.execmeth('Close',         *args, **kwargs)
 
@@ -236,7 +243,7 @@ class SwitchModule:
 		return self.parent.execute(SWITCH_SETATTR_OPCODE, self.uuid, attrname, value)
 	
 	def SetFunction(self, function, *args):
-		self.parent.switches_functions[self.uuid] = function
-		self.parent.switches_args     [self.uuid] = args
+		self.parent.devices_functions[self.uuid] = function
+		self.parent.devices_args     [self.uuid] = args
 
 	def Close(self, *args, **kwargs): return self.execmeth('Close', *args, **kwargs)

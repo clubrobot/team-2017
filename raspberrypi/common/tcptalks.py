@@ -186,12 +186,14 @@ class TCPTalks:
 		retcode = random.randint(0, 0xFFFFFFFF)
 		content = (opcode, retcode, args, kwargs)
 		prefix  = (MASTER_BYTE,)
+		print(prefix + content)
 		self.rawsend(pickle.dumps(prefix + content))
 		return retcode
 
 	def sendback(self, retcode, *args):
 		content = (retcode, args)
 		prefix  = (SLAVE_BYTE,)
+		print(prefix + content)
 		self.rawsend(pickle.dumps(prefix + content))
 
 	def get_queue(self, retcode):
@@ -267,9 +269,12 @@ class TCPTalks:
 			pass
 	
 	def execute(self, opcode, *args, timeout=1, **kwargs):
+		print('send')
 		retcode = self.send(opcode, *args, **kwargs)
+		print('poll')
 		output = self.poll(retcode, timeout=timeout)
 		try:
+			print('except')
 			etype, value, tb = output
 			output = ('{2}\n' +
 			'\nThe above exception was first raised by the distant TCPTalks instance:\n\n' +
@@ -278,6 +283,7 @@ class TCPTalks:
 			'{1}: {2}''').format(''.join(traceback.format_list(tb)), etype.__name__, str(value))
 			raise etype(output)
 		except (TypeError, ValueError):
+			print('normal')
 			return output
 
 	def sleep_until_disconnected(self):
@@ -318,6 +324,7 @@ class TCPListener(Thread):
 					message, buffer = _loads(buffer)
 
 					# Try to decode the message using the pickle protocol
+					print(message)
 					self.parent.process(message)
 
 			except (EOFError, pickle.UnpicklingError, AttributeError):
