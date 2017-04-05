@@ -63,7 +63,7 @@ class ModulesRouter(TCPTalks):
 			module.disconnect()
 		for button in self.buttons.values():
 			button.Close()
-		for swicth in self.switches.values():
+		for switch in self.switches.values():
 			switch.Close()
 
 	def module_setup(self, uuid):
@@ -174,10 +174,10 @@ class Module:
 		return self.parent.execute(MODULE_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
 
 	def getattr(self, attrname):
-		return self.parent.execute(MODULE_GETATTR_OPCODE, self.uuid, name)
+		return self.parent.execute(MODULE_GETATTR_OPCODE, self.uuid, attrname)
 
 	def setattr(self, attrname, value):
-		return self.parent.execute(MODULE_SETATTR_OPCODE, self.uuid, name, value)
+		return self.parent.execute(MODULE_SETATTR_OPCODE, self.uuid, attrname, value)
 
 	# Shortcuts
 	def connect   (self, *args, **kwargs): return self.execmeth('connect',    *args, **kwargs)
@@ -203,10 +203,10 @@ class LightButtonModule:
 		return self.parent.execute(BUTTON_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
 	
 	def getattr(self, attrname):
-		return self.parent.execute(BUTTON_GETATTR_OPCODE, self.uuid, name)
+		return self.parent.execute(BUTTON_GETATTR_OPCODE, self.uuid, attrname)
 	
 	def setattr(self, attrname, value):
-		return self.parent.execute(BUTTON_SETATTR_OPCODE, self.uuid, name, value)
+		return self.parent.execute(BUTTON_SETATTR_OPCODE, self.uuid, attrname, value)
 	
 	def SetFunction(self, function, *args):
 		self.parent.buttons_functions[self.uuid] = function
@@ -230,10 +230,10 @@ class SwitchModule:
 		return self.parent.execute(SWITCH_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
 	
 	def getattr(self, attrname):
-		return self.parent.execute(SWITCH_GETATTR_OPCODE, self.uuid, name)
+		return self.parent.execute(SWITCH_GETATTR_OPCODE, self.uuid, attrname)
 	
 	def setattr(self, attrname, value):
-		return self.parent.execute(SWITCH_SETATTR_OPCODE, self.uuid, name, value)
+		return self.parent.execute(SWITCH_SETATTR_OPCODE, self.uuid, attrname, value)
 	
 	def SetFunction(self, function, *args):
 		self.parent.switches_functions[self.uuid] = function
