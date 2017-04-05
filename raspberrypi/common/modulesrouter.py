@@ -61,6 +61,10 @@ class ModulesRouter(TCPTalks):
 		TCPTalks.disconnect(self)
 		for module in self.modules.values():
 			module.disconnect()
+		for button in self.buttons.values():
+			button.Close()
+		for swicth in self.switches.values():
+			switch.Close()
 
 	def module_setup(self, uuid):
 		# Create the associated physical SerialTalks instance if it doesn't exist yet
@@ -100,8 +104,10 @@ class ModulesRouter(TCPTalks):
 
 	def button_create(self, butpin, ledpin):
 		uuid = butpin
-		button = LightButton(butpin, ledpin, self.send, FUNCTION_EXECUTE_OPCODE, uuid)
-		self.buttons[uuid] = button
+		try:
+			button = LightButton(butpin, ledpin, self.send, FUNCTION_EXECUTE_OPCODE, uuid)
+			self.buttons[uuid] = button
+		except RuntimeError: pass
 
 	def button_execute(self, uuid, methodname, *args, **kwargs):
 		button = self.buttons[uuid]
@@ -117,8 +123,10 @@ class ModulesRouter(TCPTalks):
 
 	def switch_create(self, pin):
 		uuid = pin
-		switch = Switch(pin, self.send, FUNCTION_EXECUTE_OPCODE, uuid)
-		self.switches[uuid] = switch
+		try:
+			switch = Switch(pin, self.send, FUNCTION_EXECUTE_OPCODE, uuid)
+			self.switches[uuid] = switch
+		except RuntimeError: pass
 
 	def switch_execute(self, uuid, methodname, *args, **kwargs):
 		switch = self.switches[uuid]
@@ -189,7 +197,7 @@ class LightButtonModule:
 	def __init__(self, parent, butpin, ledpin, timeout=2):
 		self.parent = parent
 		self.uuid   = butpin
-		self.parent.execute(BUTTON_CONNECT_OPCODE, self.uuid, timeout=timeout)
+		self.parent.execute(BUTTON_CREATE_OPCODE, butpin, ledpin, timeout=timeout)
 	
 	def execmeth(self, methodname, *args, tcptimeout=60, **kwargs):
 		return self.parent.execute(BUTTON_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
@@ -202,7 +210,7 @@ class LightButtonModule:
 	
 	def SetFunction(self, function, *args):
 		self.parent.buttons_functions[self.uuid] = function
-		self.parent.args_functions   [self.uuid] = args
+		self.parent.buttons_args     [self.uuid] = args
 
 	def SetAutoSwitch(self, *args, **kwargs): return self.execmeth('SetAutoSwitch', *args, **kwargs)
 	def On           (self, *args, **kwargs): return self.execmeth('On',            *args, **kwargs)
@@ -210,3 +218,25 @@ class LightButtonModule:
 	def Switch       (self, *args, **kwargs): return self.execmeth('Switch',        *args, **kwargs)
 	def Close        (self, *args, **kwargs): return self.execmeth('Close',         *args, **kwargs)
 
+
+class SwitchModule:
+
+	def __init__(self, parent, pin, timeout=2):
+		self.parent = parent
+		self.uuid   = pin
+		self.parent.execute(SWITCH_CREATE_OPCODE, pin, timeout=timeout)
+	
+	def execmeth(self, methodname, *args, tcptimeout=60, **kwargs):
+		return self.parent.execute(SWITCH_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
+	
+	def getattr(self, attrname):
+		return self.parent.execute(SWITCH_GETATTR_OPCODE, self.uuid, name)
+	
+	def setattr(self, attrname, value):
+		return self.parent.execute(SWITCH_SETATTR_OPCODE, self.uuid, name, value)
+	
+	def SetFunction(self, function, *args):
+		self.parent.switches_functions[self.uuid] = function
+		self.parent.switches_args     [self.uuid] = args
+
+	def Close(self, *args, **kwargs): return self.execmeth('Close', *args, **kwargs)
