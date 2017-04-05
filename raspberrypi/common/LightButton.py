@@ -22,10 +22,10 @@ class Switch(Device):
 				GPIO.add_event_detect(self.PinInput,GPIO.BOTH,callback=self.LaunchFunction,bouncetime=5)
 			except  RuntimeError :
 				print("error")
-            if(GPIO.input(self.PinInput)==0):
-                self.state = True
-            else:
-                self.state = False
+			if(GPIO.input(self.PinInput)==0):
+				self.state = True
+			else:
+				self.state = False
 		else:
 			print("Error pin already used")
 			
