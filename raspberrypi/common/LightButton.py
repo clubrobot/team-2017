@@ -6,7 +6,7 @@ class Device:
 	list_pin = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
 class Switch(Device):
-	def __init__(self,pininput,function,*args):
+	def __init__(self,pininput,function=None,*args):
 		if Device.list_pin[pininput]==0 :
 			self.Function = function
 			self.state = False
@@ -32,11 +32,14 @@ class Switch(Device):
 
 	def LaunchFunction(self,a):
 		time.sleep(0.001)
+
 		if(GPIO.input(self.PinInput)==0):
 			self.state = True
 		else:
 			self.state = False
-		self.Function(*self.Args)
+		
+		if self.Function !=None :
+			self.Function(*self.Args)
 
 
 	def SetFunction(self,function,*args):
@@ -52,7 +55,7 @@ class Switch(Device):
 
 class LightButton(Device):
 	
-	def __init__(self,pininput,pinLight,function,*args):
+	def __init__(self,pininput,pinLight,function=None,*args):
 		if Device.list_pin[pininput]==0 and Device.list_pin[pinLight]==0:
 			self.Function = function
 			self.state = False
@@ -76,9 +79,10 @@ class LightButton(Device):
 			
 
 	def LaunchFunction(self,a):
-		self.Function(*self.Args)
-		if self.AutoSwitch==True :
+		if self.Function!=None:
+			self.Function(*self.Args)
 
+		if self.AutoSwitch==True :
 			self.Switch()
 	
 	def SetAutoSwitch(self,value):
