@@ -200,10 +200,7 @@ class LightButtonModule:
 		self.parent.execute(BUTTON_CREATE_OPCODE, butpin, ledpin, timeout=timeout)
 	
 	def execmeth(self, methodname, *args, tcptimeout=60, **kwargs):
-		print('execmeth')
-		x = self.parent.execute(BUTTON_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
-		print('execmeth -> ok')
-		return x
+		return self.parent.execute(BUTTON_EXECUTE_OPCODE, self.uuid, methodname, *args, **kwargs, timeout=tcptimeout)
 
 	def getattr(self, attrname):
 		return self.parent.execute(BUTTON_GETATTR_OPCODE, self.uuid, attrname)
@@ -217,11 +214,7 @@ class LightButtonModule:
 
 	def SetAutoSwitch(self, *args, **kwargs): return self.execmeth('SetAutoSwitch', *args, **kwargs)
 	def On           (self, *args, **kwargs): return self.execmeth('On',            *args, **kwargs)
-	def Off          (self, *args, **kwargs):
-		print('Off')
-		x = self.execmeth('Off',           *args, **kwargs)
-		print('Off -> ok')
-		return x
+	def Off          (self, *args, **kwargs): return self.execmeth('Off',           *args, **kwargs)
 	def Switch       (self, *args, **kwargs): return self.execmeth('Switch',        *args, **kwargs)
 	def Close        (self, *args, **kwargs): return self.execmeth('Close',         *args, **kwargs)
 
