@@ -9,7 +9,7 @@
 #include "../../common/EndStop.h"
 #include "../../common/FullSpeedServo.h"
 
-const float BRAKEVELOCITY = 2;
+const float BRAKEVELOCITY = 1.5;
 
 
 DCMotorsDriver motorDriver;
@@ -67,8 +67,8 @@ void loop(){
      if(highStop.getState() && gripperMotor.getVelocity()<BRAKEVELOCITY*(-1)){
         gripperMotor.setVelocity(BRAKEVELOCITY*(-1));
      }
-     else if(lowStop.getState() && gripperMotor.getVelocity()>BRAKEVELOCITY){
-        gripperMotor.setVelocity(BRAKEVELOCITY);
+     else if(lowStop.getState() && gripperMotor.getVelocity()>0){
+        gripperMotor.setVelocity(0);
      }
 }
 
