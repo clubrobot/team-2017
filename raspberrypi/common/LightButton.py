@@ -6,7 +6,7 @@ class Device:
 	list_pin = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
 class Switch(Device):
-	def __init__(self,pininput,function,*args):
+	def __init__(self,pininput,function=None,*args):
 		if Device.list_pin[pininput]==0 :
 			self.Function = function
 			self.state = False
@@ -16,27 +16,25 @@ class Switch(Device):
 			if(GPIO.getmode()!=10):
 				GPIO.setmode(GPIO.BOARD)
 			GPIO.setup(self.PinInput,GPIO.IN,pull_up_down=GPIO.PUD_UP)
-
-			
-			try:
-				GPIO.add_event_detect(self.PinInput,GPIO.BOTH,callback=self.LaunchFunction,bouncetime=5)
-			except  RuntimeError :
-				print("error")
-            if(GPIO.input(self.PinInput)==0):
-                self.state = True
-            else:
-                self.state = False
+			GPIO.add_event_detect(self.PinInput,GPIO.BOTH,callback=self.LaunchFunction,bouncetime=5)
+			if(GPIO.input(self.PinInput)==0):
+				self.state = True
+			else:
+				self.state = False
 		else:
-			print("Error pin already used")
-			
+			raise RuntimeError('pin already in use')
+
 
 	def LaunchFunction(self,a):
 		time.sleep(0.001)
+
 		if(GPIO.input(self.PinInput)==0):
 			self.state = True
 		else:
 			self.state = False
-		self.Function(*self.Args)
+		
+		if self.Function !=None :
+			self.Function(*self.Args)
 
 
 	def SetFunction(self,function,*args):
@@ -52,7 +50,7 @@ class Switch(Device):
 
 class LightButton(Device):
 	
-	def __init__(self,pininput,pinLight,function,*args):
+	def __init__(self,pininput,pinLight,function=None,*args):
 		if Device.list_pin[pininput]==0 and Device.list_pin[pinLight]==0:
 			self.Function = function
 			self.state = False
@@ -66,19 +64,16 @@ class LightButton(Device):
 				GPIO.setmode(GPIO.BOARD)
 			GPIO.setup(self.PinInput,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 			GPIO.setup(self.PinLight,GPIO.OUT)
-			
-			try:
-				GPIO.add_event_detect(self.PinInput,GPIO.FALLING,callback=self.LaunchFunction,bouncetime=5)
-			except  RuntimeError :
-				print("error")
+			GPIO.add_event_detect(self.PinInput,GPIO.FALLING,callback=self.LaunchFunction,bouncetime=5)
 		else:
-			print("Error pin already used")
-			
+			raise RuntimeError('pin already in use')
+
 
 	def LaunchFunction(self,a):
-		self.Function(*self.Args)
-		if self.AutoSwitch==True :
+		if self.Function!=None:
+			self.Function(*self.Args)
 
+		if self.AutoSwitch==True :
 			self.Switch()
 	
 	def SetAutoSwitch(self,value):
