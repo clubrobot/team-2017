@@ -252,6 +252,7 @@ class TCPTalks:
 		queue = self.get_queue(retcode)
 		block = (timeout is None or timeout > 0)
 		try:
+			assert(current_thread() is not self.listener)
 			output = queue.get(block, timeout)
 		except Empty:
 			return None
