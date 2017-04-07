@@ -67,7 +67,7 @@ void loop(){
      if(highStop.getState() && gripperMotor.getVelocity()<BRAKEVELOCITY*(-1)){
         gripperMotor.setVelocity(-BRAKEVELOCITY);
      }
-     else if(lowStop.getState() && gripperMotor.getVelocity()>0){
+     else if(lowStop.getState() && gripperMotor.getVelocity()>BRAKEVELOCITY){
         gripperMotor.setVelocity(+BRAKEVELOCITY);
      }
 }
