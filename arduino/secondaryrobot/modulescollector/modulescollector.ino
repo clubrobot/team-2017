@@ -65,10 +65,10 @@ void loop(){
      dispenser.update();
 
      if(highStop.getState() && gripperMotor.getVelocity()<BRAKEVELOCITY*(-1)){
-        gripperMotor.setVelocity(BRAKEVELOCITY*(-1));
+        gripperMotor.setVelocity(-BRAKEVELOCITY);
      }
      else if(lowStop.getState() && gripperMotor.getVelocity()>0){
-        gripperMotor.setVelocity(0);
+        gripperMotor.setVelocity(+BRAKEVELOCITY);
      }
 }
 
