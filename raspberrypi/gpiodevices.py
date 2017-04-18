@@ -1,9 +1,9 @@
-import RPi.GPIO as GPIO
+from RPi import GPIO
 import time
 #10 GPIO.BOARD
 
 class Device:
-	list_pin = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+	list_pin = [0] * 59
 
 class Switch(Device):
 	def __init__(self,pininput,function=None,*args):
@@ -16,7 +16,7 @@ class Switch(Device):
 			if(GPIO.getmode()!=10):
 				GPIO.setmode(GPIO.BOARD)
 			GPIO.setup(self.PinInput,GPIO.IN,pull_up_down=GPIO.PUD_UP)
-			GPIO.add_event_detect(self.PinInput,GPIO.BOTH,callback=self.LaunchFunction,bouncetime=5)
+			GPIO.add_event_detect(self.PinInput,GPIO.BOTH,callback=self.LaunchFunction,bouncetime=100)
 			if(GPIO.input(self.PinInput)==0):
 				self.state = True
 			else:

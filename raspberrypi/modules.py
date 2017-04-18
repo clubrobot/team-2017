@@ -4,8 +4,8 @@
 import time
 import math
 
-from common.serialtalks   import BYTE, INT, LONG, FLOAT
-from common.modulesrouter import Module
+from serialtalks import BYTE, INT, LONG, FLOAT
+from components import SerialTalksProxy
 
 # Wheeled base instructions
 
@@ -79,9 +79,9 @@ _SET_MOTOR_VELOCITY_OPCODE  = 0x0C
 _GET_MESURE_SENSOR_OPCODE   = 0x06
 
 
-class WheeledBase(Module):
+class WheeledBase(SerialTalksProxy):
 	def __init__(self, parent, uuid='wheeledbase'):
-		Module.__init__(self, parent, uuid)
+		SerialTalksProxy.__init__(self, parent, uuid)
 
 	def set_openloop_velocities(self, left, right):
 		self.send(SET_OPENLOOP_VELOCITIES_OPCODE, FLOAT(left), FLOAT(right))
@@ -161,9 +161,9 @@ class WheeledBase(Module):
 
 
 
-class ModulesGripper(Module):	
+class ModulesGripper(SerialTalksProxy):	
 	def __init__(self, parent, uuid='modulescollector'):
-		Module.__init__(self, parent, uuid)
+		SerialTalksProxy.__init__(self, parent, uuid)
 		self.high_open_angle = 142
 		self.low_open_angle = 80
 		self.close_angle = 5
@@ -184,9 +184,9 @@ class ModulesGripper(Module):
 		self.set_position(self.close_angle)
 
 
-class ModulesDispenser(Module):
+class ModulesDispenser(SerialTalksProxy):
 	def __init__(self, parent, uuid='modulescollector'):
-		Module.__init__(self, parent, uuid)
+		SerialTalksProxy.__init__(self, parent, uuid)
 		self.open_dispenser_angle = 180
 		self.close_dispenser_angle = 0
 	
@@ -202,9 +202,9 @@ class ModulesDispenser(Module):
 
 
 
-class ModulesElevator(Module):
+class ModulesElevator(SerialTalksProxy):
 	def __init__(self, parent, uuid='modulescollector'):
-		Module.__init__(self, parent, uuid)
+		SerialTalksProxy.__init__(self, parent, uuid)
 		self.climbing_velocity = -11.1 
 		self.going_down_velocity = 8
 	
@@ -240,9 +240,9 @@ class ModulesElevator(Module):
 		while not self.isdown():
 			time.sleep(0.1)
 
-class UltrasonicSensor(Module):
+class Sensors(SerialTalksProxy):
 	def __init__(self, parent, uuid='sensors'):
-		Module.__init__(self, parent, uuid)
+		SerialTalksProxy.__init__(self, parent, uuid)
 
 	def get_mesure(self,**kwargs):
 		output = self.execute(_GET_MESURE_SENSOR_OPCODE, **kwargs)

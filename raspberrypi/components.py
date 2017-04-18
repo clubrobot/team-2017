@@ -4,7 +4,7 @@
 import os
 from types import MethodType
 
-from common.tcptalks import TCPTalks
+from tcptalks import TCPTalks
 
 COMPONENTS_SERVER_DEFAULT_PORT = 25566
 
@@ -27,7 +27,7 @@ class Component():
 	def _cleanup(self): pass
 
 try:
-	from common.serialtalks import SerialTalks, AlreadyConnectedError
+	from serialtalks import SerialTalks, AlreadyConnectedError
 	
 	class SerialTalksComponent(SerialTalks, Component):
 
@@ -46,7 +46,7 @@ except ImportError:
 	pass
 
 try:
-	from common.LightButton import Switch, LightButton
+	from gpiodevices import Switch, LightButton
 
 	class SwitchComponent(Switch, Component):
 

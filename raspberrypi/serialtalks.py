@@ -9,7 +9,7 @@ import random
 from queue		import Queue, Empty
 from threading	import Thread, RLock, Event, current_thread
 
-from common.serialutils import Deserializer, IntegerType, FloatType, StringType
+from serialutils import Deserializer, IntegerType, FloatType, StringType
 
 BAUDRATE = 115200
 
