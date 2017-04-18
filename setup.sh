@@ -58,7 +58,7 @@ UDEVRULE='KERNEL=="ttyUSB*", PROGRAM="/usr/bin/env PATH='"$PATH"' PYTHONPATH='"$
 echo $UDEVRULE | sudo tee "$UDEVRULES_DIRECTORY/serialtalks.rules" > /dev/null
 sudo udevadm control --reload-rules
 
-# Add the robot command to the user path if it is not alraedy in it
+# Add the robot command to the user path if it is not already in it
 
 if [[ ":$PATH:" != *":$REPOSITORY/raspberrypi:"* ]]; then # if not **/team-2017/raspberrypi in PATH
 	echo export PATH="$REPOSITORY/raspberrypi:\$PATH" >> "$PROFILE"
