@@ -5,16 +5,16 @@
 #include "instructions.h"
 #include "addresses.h"
 
-#include "../../common/SerialTalks.h"
-#include "../../common/DCMotor.h"
-#include "../../common/Codewheel.h"
-#include "../../common/Odometry.h"
-#include "../../common/PID.h"
-#include "../../common/VelocityController.h"
-#include "../../common/PositionController.h"
-#include "../../common/PurePursuit.h"
-#include "../../common/SmoothTrajectory.h"
-#include "../../common/mathutils.h"
+#include "../common/SerialTalks.h"
+#include "../common/DCMotor.h"
+#include "../common/Codewheel.h"
+#include "../common/Odometry.h"
+#include "../common/PID.h"
+#include "../common/VelocityController.h"
+#include "../common/PositionController.h"
+#include "../common/PurePursuit.h"
+#include "../common/SmoothTrajectory.h"
+#include "../common/mathutils.h"
 
 // Load the different modules
 

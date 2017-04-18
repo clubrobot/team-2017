@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "configuration.h"
 #include "instructions.h"
-#include "../../common/SerialTalks.h"
+#include "../common/SerialTalks.h"
 
 float voltage = 0;
 int percentage = 0;

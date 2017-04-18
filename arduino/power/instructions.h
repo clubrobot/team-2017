@@ -1,7 +1,7 @@
 #ifndef __INSTRUCTIONS_H__
 #define __INSTRUCTIONS_H__
 
-#include "../../common/SerialTalks.h"
+#include "../common/SerialTalks.h"
 
 
 #define _GET_EMERGENCY_STOP_STATE_OPCODE     	0x04

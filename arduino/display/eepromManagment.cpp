@@ -1,5 +1,5 @@
 #include "eepromManagment.h"
-#include "../../common/SerialTalks.h"
+#include "../common/SerialTalks.h"
 #include "configuration.h"
 
 extern SerialTalks talks;

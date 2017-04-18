@@ -2,12 +2,12 @@
 #include <Servo.h>
 #include "PIN.h"
 #include "instructions.h"
-#include "../../common/DCMotor.h"
-#include "../../common/SerialTalks.h"
-#include "../../common/Clock.h"
-#include "../../common/VelocityServo.h"
-#include "../../common/EndStop.h"
-#include "../../common/FullSpeedServo.h"
+#include "../common/DCMotor.h"
+#include "../common/SerialTalks.h"
+#include "../common/Clock.h"
+#include "../common/VelocityServo.h"
+#include "../common/EndStop.h"
+#include "../common/FullSpeedServo.h"
 
 const float BRAKEVELOCITY = 1.5;
 

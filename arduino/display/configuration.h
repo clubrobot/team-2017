@@ -1,7 +1,7 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#include "../../common/SerialTalks.h"
+#include "../common/SerialTalks.h"
 
 //************************
 // initialisation EEPROM *

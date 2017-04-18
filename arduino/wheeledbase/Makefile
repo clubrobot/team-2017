@@ -4,7 +4,7 @@ BOARD_TAG  = nano
 BOARD_SUB  = atmega328
 
 # Sketch sources
-COMMON = ../../common
+COMMON = ../common
 LOCAL_INO_SRCS = wheeledbase.ino
 LOCAL_CPP_SRCS = \
 	instructions.cpp \
@@ -30,5 +30,5 @@ ARDUINO_LIBS = EEPROM
 
 # Congratulations! You made a pretty Makefile :)
 # Now let the grown-ups do the hard work :D
-MODULEMK_DIR = ../..
+MODULEMK_DIR = ..
 include $(MODULEMK_DIR)/Module.mk

@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "../../common/PeriodicProcess.h"
+#include "../common/PeriodicProcess.h"
 #include "configuration.h"
 
 #ifndef IPDISPLAY_H

@@ -1,7 +1,7 @@
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
 
-#include "../../common/SerialTalks.h"
+#include "../common/SerialTalks.h"
 #include "configuration.h"
 
 

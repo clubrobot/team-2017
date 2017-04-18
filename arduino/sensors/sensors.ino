@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
-#include "../../common/UltrasonicSensor.h"
-#include "../../common/SerialTalks.h"
+#include "../common/UltrasonicSensor.h"
+#include "../common/SerialTalks.h"
 #include "instructions.h"
 #include "PIN.h"
  

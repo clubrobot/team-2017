@@ -1,9 +1,9 @@
 #include "instructions.h"
-#include "../../common/EndStop.h"
-#include "../../common/DCMotor.h"
-#include "../../common/VelocityServo.h"
-#include "../../common/SerialTalks.h"
-#include "../../common/FullSpeedServo.h"
+#include "../common/EndStop.h"
+#include "../common/DCMotor.h"
+#include "../common/VelocityServo.h"
+#include "../common/SerialTalks.h"
+#include "../common/FullSpeedServo.h"
 #include <Servo.h>
 #include "PIN.h"
 

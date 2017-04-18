@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "IPDisplay.h"
 #include "configuration.h"
-#include "../../common/SerialTalks.h"
+#include "../common/SerialTalks.h"
 #include <EEPROM.h>
 
 extern SerialTalks talks;

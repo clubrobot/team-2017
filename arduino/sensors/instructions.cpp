@@ -1,5 +1,5 @@
 #include "instructions.h"
-#include "../../common/UltrasonicSensor.h"
+#include "../common/UltrasonicSensor.h"
 
 
 // Global variables
