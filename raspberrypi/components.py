@@ -79,7 +79,6 @@ try:
 			self.server = server
 			self.compid = None
 			self.capturing = Event()
-			time.sleep(2)
 		
 		def generate_streams_and_send_their_values(self, server, compid):
 			stream = io.BytesIO()
@@ -89,7 +88,10 @@ try:
 				yield stream
 				# Send the captured stream
 				stream.truncate()
-				server.send(UPDATE_MANAGER_PICAMERA_OPCODE, compid, stream.getvalue())
+				try:
+					server.send(UPDATE_MANAGER_PICAMERA_OPCODE, compid, stream.getvalue())
+				except:
+					break
 
 		def start_capture(self):
 			if not self.capturing.is_set():
@@ -103,7 +105,7 @@ try:
 				thread.start()
 		
 		def stop_capture(self):
-			self.capturing.reset()
+			self.capturing.clear()
 
 		def _cleanup(self):
 			self.stop_capture()
@@ -206,7 +208,7 @@ class Proxy():
 		object.__setattr__(self, '_compid',   compid)
 		object.__setattr__(self, '_attrlist', attrlist)
 		for methodname in methlist:
-			def method(self, *args, tcptimeout=10, **kwargs):
+			def method(self, *args, tcptimeout=10, methodname=methodname, **kwargs):
 				return self._manager.execute(MAKE_COMPONENT_EXECUTE_OPCODE, compid, methodname, args, kwargs, timeout=tcptimeout)
 			object.__setattr__(self, methodname, MethodType(method, self))
 	
