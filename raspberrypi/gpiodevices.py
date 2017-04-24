@@ -16,7 +16,7 @@ class Switch(Device):
 			if(GPIO.getmode()!=10):
 				GPIO.setmode(GPIO.BOARD)
 			GPIO.setup(self.PinInput,GPIO.IN,pull_up_down=GPIO.PUD_UP)
-			GPIO.add_event_detect(self.PinInput,GPIO.BOTH,callback=self.LaunchFunction,bouncetime=100)
+			GPIO.add_event_detect(self.PinInput,GPIO.BOTH,callback=self.LaunchFunction,bouncetime=500)
 			if(GPIO.input(self.PinInput)==0):
 				self.state = True
 			else:
@@ -64,7 +64,7 @@ class LightButton(Device):
 				GPIO.setmode(GPIO.BOARD)
 			GPIO.setup(self.PinInput,GPIO.IN,pull_up_down=GPIO.PUD_UP)
 			GPIO.setup(self.PinLight,GPIO.OUT)
-			GPIO.add_event_detect(self.PinInput,GPIO.FALLING,callback=self.LaunchFunction,bouncetime=5)
+			GPIO.add_event_detect(self.PinInput,GPIO.FALLING,callback=self.LaunchFunction,bouncetime=500)
 		else:
 			raise RuntimeError('pin already in use')
 
