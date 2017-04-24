@@ -199,7 +199,7 @@ class Manager(TCPTalks):
 
 	def MAKE_MANAGER_EXECUTE(self, compid):
 		if compid in self.functions:
-			self.functions[compid](self.args[compid])
+			self.functions[compid](*self.args[compid])
 
 class Proxy():
 
@@ -246,8 +246,8 @@ class SwitchProxy(Proxy):
 
 class LightButtonProxy(Proxy):
 
-	def __init__(self, manager, switchpin):
-		compid = manager.execute(CREATE_SWITCH_COMPONENT_OPCODE, switchpin)
+	def __init__(self, manager, switchpin, ledpin):
+		compid = manager.execute(CREATE_LIGHTBUTTON_COMPONENT_OPCODE, switchpin, ledpin)
 		attrlist = ['state', 'PinInput', 'PinLight']
 		methlist = ['SetAutoSwitch', 'On', 'Off', 'Switch', 'Close']
 		Proxy.__init__(self, manager, compid, attrlist, methlist)
