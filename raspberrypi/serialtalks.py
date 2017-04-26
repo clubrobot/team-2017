@@ -72,7 +72,7 @@ class SerialTalks:
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.disconnect()
 
-	def connect(self, timeout=2):
+	def connect(self, timeout=5):
 		if self.is_connected:
 			raise AlreadyConnectedError('{} is already connected'.format(self.port))
 		
@@ -165,7 +165,7 @@ class SerialTalks:
 			output = queue.get(block, timeout)
 		except Empty:
 			if block:
-				raise TimeoutError('timeout exceeded')
+				raise TimeoutError('timeout exceeded') from None
 			else:
 				return None
 		if queue.qsize() == 0:
@@ -176,12 +176,12 @@ class SerialTalks:
 		while self.poll(retcode) is not None:
 			pass
 
-	def execute(self, opcode, *args, timeout=1):
+	def execute(self, opcode, *args, timeout=5):
 		retcode = self.send(opcode, *args)
 		output = self.poll(retcode, timeout)
 		return output
 
-	def getuuid(self, timeout=1):
+	def getuuid(self, timeout=5):
 		output = self.execute(GETUUID_OPCODE, timeout=timeout)
 		return output.read(STRING)
 		

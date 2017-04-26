@@ -102,7 +102,7 @@ class TCPTalks:
 	def __exit__(self, exc_type, exc_value, traceback):
 		self.disconnect()
 
-	def connect(self, timeout=2):
+	def connect(self, timeout=5):
 		if self.is_connected:
 			raise AlreadyConnectedError('already connected')
 			
@@ -256,7 +256,7 @@ class TCPTalks:
 			output = queue.get(block, timeout)
 		except Empty:
 			if block:
-				raise TimeoutError('timeout exceeded')
+				raise TimeoutError('timeout exceeded') from None
 			else:
 				return None
 		if queue.qsize() == 0:
@@ -270,7 +270,7 @@ class TCPTalks:
 		while self.poll(retcode) is not None:
 			pass
 	
-	def execute(self, opcode, *args, timeout=1, **kwargs):
+	def execute(self, opcode, *args, timeout=5, **kwargs):
 		retcode = self.send(opcode, *args, **kwargs)
 		output = self.poll(retcode, timeout=timeout)
 		try:
