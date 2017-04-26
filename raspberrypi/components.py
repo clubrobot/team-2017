@@ -135,9 +135,9 @@ class Server(TCPTalks):
 		self.components = {}
 
 	def addcomponent(self, comp, compid):
-		comp._setup()
 		if not compid in self.components:
 			self.components[compid] = comp
+		self.components[compid]._setup()
 
 	def MAKE_COMPONENT_EXECUTE(self, compid, methodname, args, kwargs):
 		comp = self.components[compid]
@@ -169,7 +169,7 @@ class Server(TCPTalks):
 
 	def CREATE_LIGHTBUTTON_COMPONENT(self, switchpin, ledpin):
 		comp = LightButtonComponent(switchpin, ledpin)
-		compid = (switchpin,)
+		compid = (switchpin, ledpin)
 		self.addcomponent(comp, compid)
 		comp.SetFunction(self.send, MAKE_MANAGER_EXECUTE_OPCODE, compid)
 		return compid
