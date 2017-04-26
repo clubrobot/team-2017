@@ -134,11 +134,10 @@ class Server(TCPTalks):
 			comp._cleanup()
 		self.components = {}
 
-	def addcomponent(self, comp):
+	def addcomponent(self, comp, compid):
 		comp._setup()
-		compid = id(comp)
-		self.components[compid] = comp
-		return compid
+		if not compid in self.components:
+			self.components[compid] = comp
 
 	def MAKE_COMPONENT_EXECUTE(self, compid, methodname, args, kwargs):
 		comp = self.components[compid]
@@ -157,23 +156,28 @@ class Server(TCPTalks):
 
 	def CREATE_SERIALTALKS_COMPONENT(self, uuid):
 		comp = SerialTalksComponent(uuid)
-		return self.addcomponent(comp)
+		compid = uuid
+		self.addcomponent(comp, compid)
+		return compid
 
 	def CREATE_SWITCH_COMPONENT(self, switchpin):
 		comp = SwitchComponent(switchpin)
-		compid = self.addcomponent(comp)
+		compid = (switchpin,)
+		self.addcomponent(comp, compid)
 		comp.SetFunction(self.send, MAKE_MANAGER_EXECUTE_OPCODE, compid)
 		return compid
 
 	def CREATE_LIGHTBUTTON_COMPONENT(self, switchpin, ledpin):
 		comp = LightButtonComponent(switchpin, ledpin)
-		compid = self.addcomponent(comp)
+		compid = (switchpin,)
+		self.addcomponent(comp, compid)
 		comp.SetFunction(self.send, MAKE_MANAGER_EXECUTE_OPCODE, compid)
 		return compid
 
 	def CREATE_PICAMERA_COMPONENT(self, resolution, framerate):
 		comp = PiCameraComponent(self, resolution, framerate)
-		compid = self.addcomponent(comp)
+		compid = 'camera'
+		self.addcomponent(comp, compid)
 		comp.server = self
 		comp.compid = compid
 		return compid
