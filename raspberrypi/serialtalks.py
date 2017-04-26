@@ -97,6 +97,8 @@ class SerialTalks:
 				if time.time() - startingtime > timeout:
 					self.disconnect()
 					raise MuteError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port)) from None
+				else:
+					continue
 			self.is_connected = True
 			self.reset_queues()
 			
