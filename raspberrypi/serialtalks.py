@@ -163,7 +163,10 @@ class SerialTalks:
 		try:
 			output = queue.get(block, timeout)
 		except Empty:
-			raise TimeoutError('timeout')
+			if block:
+				raise TimeoutError('timeout exceeded')
+			else:
+				return None
 		if queue.qsize() == 0:
 			self.delete_queue(retcode)
 		return output
@@ -179,11 +182,8 @@ class SerialTalks:
 
 	def getuuid(self, timeout=1):
 		output = self.execute(GETUUID_OPCODE, timeout=timeout)
-		if output is not None:
-			return output.read(STRING)
-		else:
-			return None
-
+		return output.read(STRING)
+		
 	def setuuid(self, uuid):
 		return self.send(SETUUID_OPCODE, STRING(uuid))
 
@@ -195,9 +195,10 @@ class SerialTalks:
 				log += output.read(STRING)
 			else:
 				output = self.poll(retcode, timeout)
-				if output is not None:
+				try:
 					log += output.read(STRING)
-				break
+				except TimeoutError:
+					pass
 		return log
 
 	def getout(self, timeout=0):
