@@ -255,7 +255,7 @@ class TCPTalks:
 			assert(current_thread() is not self.listener)
 			output = queue.get(block, timeout)
 		except Empty:
-			return None
+			raise TimeoutError('timeout')
 		if queue.qsize() == 0:
 			self.delete_queue(retcode)
 		if len(output) > 1:

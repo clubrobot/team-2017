@@ -163,7 +163,7 @@ class SerialTalks:
 		try:
 			output = queue.get(block, timeout)
 		except Empty:
-			return None
+			raise TimeoutError('timeout')
 		if queue.qsize() == 0:
 			self.delete_queue(retcode)
 		return output
