@@ -93,14 +93,13 @@ class SerialTalks:
 			try:
 				output = self.execute(PING_OPCODE, timeout=0.1)
 			except NotConnectedError: pass
-			if output is not None:
-				self.is_connected = True
-				self.reset_queues()
-			elif timeout is not None and time.time() - startingtime > timeout:
-				self.disconnect()
-				raise MuteError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port))
+			except TimeoutError:
+				if time.time() - startingtime > timeout:
+					self.disconnect()
+					raise MuteError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port)) from None
+			self.is_connected = True
+			self.reset_queues()
 			
-
 	def disconnect(self):
 		# Stop the listening thread
 		if hasattr(self, 'listener') and self.listener.is_alive():
