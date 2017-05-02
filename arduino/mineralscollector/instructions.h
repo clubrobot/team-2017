@@ -1,7 +1,7 @@
 #ifndef __INSTRUCTIONS_H__
 #define __INSTRUCTIONS_H__
 
-#include "../common/SerialTalks"
+#include "../common/SerialTalks.h"
 
 #define _SET_ROLLER_VELOCITY_OPCODE 			0x03
 #define _SET_FIRING_HAMMER_VELOCITY_OPCODE		0x04

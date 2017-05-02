@@ -3,6 +3,8 @@
 #include "../common/SoftwareSerial.h"
 #include "../common/AX12.h"
 #include "../common/SerialTalks.h"
+#include "../common/DCMotor.h"
+#include "instructions.h"
 
 SoftwareSerial SoftSerial(RX, TX);
 

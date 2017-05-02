@@ -1,5 +1,6 @@
 #include "instructions.h"
-#include "../common/AX12"
+#include "../common/AX12.h"
+#include "../common/DCMotor.h"
 
 extern AX12 servoax;
 
@@ -20,10 +21,10 @@ void SET_AX_POSITION(SerialTalks &inst, Deserializer &input, Serializer &output)
 }
 
 void GET_AX_TORQUE(SerialTalks &inst, Deserializer &input, Serializer &output){
-	int torque = servoax.getTorque();
+	int torque = servoax.readTorque();
 	output.write<int>(torque);
 }
 
 void SET_AX_VELOCITY_MOVE(SerialTalks &inst, Deserializer &input, Serializer &output){
-	servo.moveSpeed(input.read<float>(), input.read<int>());
+	servoax.moveSpeed(input.read<float>(), input.read<int>());
 }
