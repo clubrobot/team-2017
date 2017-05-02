@@ -237,9 +237,9 @@ public:
 	int SavedMove();
 	
 	int readTemperature();
-	int readVoltage();
-	int readPosition();
-	int readSpeed();
+	float readVoltage();
+	float readPosition();
+	float readSpeed();
 	int readTorque();
 	
 	int hold(bool Status);

@@ -964,8 +964,8 @@ int AX12::moveSpeed(float Position, float Speed){
 		setEndlessMode(OFF);
 	}
 	int pos = min(1023,Position/300*1023);
-	int spd = min(1023,Speed / 114*1023);
-	return Dynamixel.moveSpeed(m_id, pos, Speed);
+	int spd = min(1023,Speed / 114 *1023);
+	return Dynamixel.moveSpeed(m_id, pos, spd);
 }
 
 int AX12::setEndlessMode(bool Status){
