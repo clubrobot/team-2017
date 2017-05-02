@@ -55,8 +55,6 @@ class MuteError(TimeoutError): pass
 class SerialTalks:
 
 	def __init__(self, port):
-		Thread.__init__(self)
-
 		# Serial things
 		self.port = port
 		self.is_connected = False

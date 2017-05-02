@@ -77,8 +77,6 @@ def _loads(rawbytes):
 class TCPTalks:
 
 	def __init__(self, ip=None, port=25565, password=None):
-		Thread.__init__(self)
-
 		# Instructions
 		self.instructions = dict()
 
