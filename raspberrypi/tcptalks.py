@@ -19,6 +19,7 @@ AUTHENTIFICATION_OPCODE = 0xAA
 # Exceptions
 
 class ForeverAloneError(TimeoutError): pass
+class AlreadyConnectedError(ConnectionError): pass
 class ConnectionFailedError(ConnectionError): pass
 class NotConnectedError    (ConnectionError): pass
 class AuthentificationError(Exception): pass
