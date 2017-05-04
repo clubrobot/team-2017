@@ -50,8 +50,8 @@ def _clientsocket(ip, port, timeout):
 	clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 	# Connect to the other
-	startingtime = time.time()
-	while timeout is None or time.time() - startingtime < timeout:
+	startingtime = time.monotonic()
+	while timeout is None or time.monotonic() - startingtime < timeout:
 		try:
 			clientsocket.connect((ip, port))
 			return clientsocket

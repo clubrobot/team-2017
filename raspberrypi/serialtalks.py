@@ -86,13 +86,13 @@ class SerialTalks:
 		self.listener.start()
 		
 		# Wait until the Arduino is operational
-		startingtime = time.time()
+		startingtime = time.monotonic()
 		while not self.is_connected:
 			try:
 				output = self.execute(PING_OPCODE, timeout=0.1)
 			except NotConnectedError: pass
 			except TimeoutError:
-				if time.time() - startingtime > timeout:
+				if time.monotonic() - startingtime > timeout:
 					self.disconnect()
 					raise MuteError('\'{}\' is mute. It may not be an Arduino or it\'s sketch may not be correctly loaded.'.format(self.stream.port)) from None
 				else:
