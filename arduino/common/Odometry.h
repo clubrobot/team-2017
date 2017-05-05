@@ -30,6 +30,7 @@ public:
 	void setPosition(float x, float y, float theta){m_pos.x = x; m_pos.y = y; m_pos.theta = theta;}
 
 	void setAxleTrack(float axleTrack){m_axleTrack = axleTrack;}
+	void setSlippage (float slippage) {m_slippage  = slippage;}
 	
 	void setCodewheels(AbstractCodewheel& leftCodewheel, AbstractCodewheel& rightCodewheel){m_leftCodewheel = &leftCodewheel, m_rightCodewheel = &rightCodewheel;}
 
@@ -39,7 +40,8 @@ public:
 	float getAngVel() const {return m_angVel;}
 
 	float getAxleTrack() const {return m_axleTrack;}
-
+	float getSlippage () const {return m_slippage;}
+	
 	void load(int address);
 	void save(int address) const;
 
@@ -51,6 +53,7 @@ protected:
 	float m_linVel;
 	float m_angVel;
 	float m_axleTrack;
+	float m_slippage;
 
 	AbstractCodewheel* m_leftCodewheel;
 	AbstractCodewheel* m_rightCodewheel;

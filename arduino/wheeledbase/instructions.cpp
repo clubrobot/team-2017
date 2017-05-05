@@ -189,6 +189,10 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		odometry.setAxleTrack(input.read<float>());
 		odometry.save(ODOMETRY_ADDRESS);
 		break;
+	case ODOMETRY_SLIPPAGE_ID:
+		odometry.setSlippage(input.read<float>());
+		odometry.save(ODOMETRY_ADDRESS);
+		break;
 	
 	case VELOCITYCONTROL_AXLETRACK_ID:
 		velocityControl.setAxleTrack(input.read<float>());
@@ -325,6 +329,9 @@ void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 	
 	case ODOMETRY_AXLETRACK_ID:
 		output.write<float>(odometry.getAxleTrack());
+		break;
+	case ODOMETRY_SLIPPAGE_ID:
+		output.write<float>(odometry.getSlippage());
 		break;
 	
 	case VELOCITYCONTROL_AXLETRACK_ID:
