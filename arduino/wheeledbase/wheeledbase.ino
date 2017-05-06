@@ -13,7 +13,7 @@
 #include "../common/VelocityController.h"
 #include "../common/PositionController.h"
 #include "../common/PurePursuit.h"
-#include "../common/SmoothTrajectory.h"
+#include "../common/TurnOnTheSpot.h"
 #include "../common/mathutils.h"
 
 // Load the different modules
@@ -34,8 +34,8 @@ PID angVelPID;
 
 PositionController positionControl;
 
-PurePursuit      purePursuit;
-SmoothTrajectory smoothTrajectory;
+PurePursuit   purePursuit;
+TurnOnTheSpot turnOnTheSpot;
 
 // Setup
 
@@ -102,7 +102,6 @@ void setup()
 	positionControl.disable();
 
 	purePursuit.load(PUREPURSUIT_ADDRESS);
-	smoothTrajectory.load(SMOOTHTRAJECTORY_ADDRESS);
 
 	// Miscellanous
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz

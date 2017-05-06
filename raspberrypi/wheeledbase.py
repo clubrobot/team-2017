@@ -62,7 +62,6 @@ POSITIONCONTROL_ANGVELMAX_ID    = 0xD3
 POSITIONCONTROL_LINPOSTHRESHOLD_ID  = 0xD4
 POSITIONCONTROL_ANGPOSTHRESHOLD_ID  = 0xD5
 PUREPURSUIT_LOOKAHEAD_ID        = 0xE0
-SMOOTHTRAJECTORY_THRESHOLDRADIUS_ID = 0xF0
 
 
 class WheeledBase(SerialTalksProxy):
@@ -81,6 +80,8 @@ class WheeledBase(SerialTalksProxy):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
 	def purepursuit(self, waypoints, direction='forward'):
+		if len(waypoints) < 2:
+			raise ValueError('not enough waypoints')
 		self.send(RESET_PUREPURSUIT_OPCODE)
 		for x, y in waypoints:
 			self.send(ADD_PUREPURSUIT_WAYPOINT_OPCODE, FLOAT(x), FLOAT(y))
@@ -110,7 +111,7 @@ class WheeledBase(SerialTalksProxy):
 				direction = 'backward'
 		
 		# Go to the setpoint position
-		self.purepursuit([(x, y)], direction)
+		self.purepursuit([self.get_position()[0:2], (x, y)], direction)
 		self.wait(**kwargs)
 		
 		# Get the setpoint orientation
