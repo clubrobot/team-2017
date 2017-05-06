@@ -24,7 +24,7 @@ class AX12(SerialTalksProxy):
 		self.closed_position = 296
 		self.collecting_position = 80
 
-	def set_position(self, float a):
+	def set_position(self, a):
 		self.send(_SET_AX_POSITION_OPCODE, FLOAT(a))
 
 	def get_position(self):
@@ -53,3 +53,29 @@ class AX12(SerialTalksProxy):
 	
 	def close(self):
 		self.set_position(self.closed_position)
+
+class Hammer(SerialTalksProxy):
+	def __init__(self, parent, uuid='mineralscollector'):
+		self.firing_velocity = 8
+
+	def set_velocity(self, a):
+		self.send(_SET_FIRING_HAMMER_VELOCITY_OPCODE, FLOAT(a))
+
+	def fire(self):
+		self.set_velocity(self.firing_velocity)
+	
+	def stop(self):
+		self.set_velocity(0)
+
+class Roller(SerialTalksProxy):
+	def __init__(self, parent, uuid='mineralscollector'):
+		self.collecting_velocity = 8
+
+	def set_velocity(self, a):
+		self.send(_SET_ROLLER_VELOCITY_OPCODE, FLOAT(a))
+
+	def gather(self):
+		self.set_velocity(self.collecting_velocity)
+	
+	def stop(self):
+		self.set_velocity(0)
