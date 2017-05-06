@@ -4,7 +4,7 @@
 import time
 import math
 
-from serialtalks import BYTE, INT, LONG, FLOAT, STRING
+from serialtalks import BYTE, INT, CHAR, STRING
 from components import SerialTalksProxy
 
 # Instructions
@@ -29,15 +29,18 @@ class LEDMatrix(SerialTalksProxy):
 		SerialTalksProxy.__init__(self, parent, uuid)
 		self.matrix_id = matrix_id
 
-	def set_message(self, message, mode, speed=None):
+	def set_message(self, message, mode=None, speed=None):
 		if not len(message) < 20:
 			raise ValueError('message length must be less than 20 characters')
+		if mode is None and len(message) > 1:
+			mode = SLIDE_MODE
+		elif mode is None:
+			mode = ANIMATION_MODE
 		self.send(SET_MATRIX_MESSAGE_OPCODE, BYTE(self.matrix_id), BYTE(mode), STRING(message))
 		if speed is not None:
 			self.set_speed(speed)
 	
-	def set_speed(self, speed):
-		# `speed` in milliseconds
+	def set_speed(self, speed): # `speed` in milliseconds
 		self.send(SET_SPEED_MATRIX_OPCODE, BYTE(self.matrix_id), INT(speed))
 
 	def set_default_message(self, message, mode, speed):
@@ -45,9 +48,9 @@ class LEDMatrix(SerialTalksProxy):
 			raise ValueError('default message length must be less than 8 characters')
 		self.send(SET_EEPROM_DEFAULT_MESSAGE_OPCODE, BYTE(self.matrix_id), INT(speed), BYTE(mode), STRING(message)) 
 	
-	def set_char_pattern(self, char, pattern):
-		# `pattern` must be a PIL image with black (LED on) and white (LED off) pixels
+	def upload_char_pattern(self, char, pattern):
 		lines = []
+		pattern = pattern.convert('L')
 		for y in range(8):
 			line = 0
 			for x in range(pattern.width):
@@ -55,7 +58,23 @@ class LEDMatrix(SerialTalksProxy):
 				line = (line << 1) | (digit & 1)
 			line <<= 8 - pattern.width
 			lines.append(BYTE(line))
-		self.execute(SET_EEPROM_CHAR_LEDMATRIX_OPCODE, CHAR(ord(char)), *lines, BYTE(pattern.width))
+		self.send(SET_EEPROM_CHAR_LEDMATRIX_OPCODE, CHAR(ord(char)), *lines, BYTE(pattern.width))
+
+	def upload_charset(self, charset):
+		if isinstance(charset, str):
+			from PIL import Image
+			charset = Image.open(charset)
+		charset = charset.convert('L')
+		for i in range(16):
+			for j in range(6):
+				x0, y0 = 8 * i, 8 * j
+				x1, y1 = x0 + 8, y0 + 8
+				while charset.getpixel((x1 - 1, y0)) not in (0, 255): x1 -= 1
+				while charset.getpixel((x0, y1 - 1)) not in (0, 255): y1 -= 1
+				pattern = charset.crop((x0, y0, x1, y1))
+				char = chr(i + 16 * j + ord(' '))
+				self.upload_char_pattern(char, pattern)
+				time.sleep(0.1)
 
 
 class SevenSegments(SerialTalksProxy):
@@ -68,9 +87,21 @@ class SevenSegments(SerialTalksProxy):
 			raise ValueError('message length must 12 characters or less')
 		self.send(SET_IPDISPLAY_MESSAGE_OPCODE, STRING(message))
 
-	def set_char_pattern(self, char, pattern):
+	def upload_char_pattern(self, char, pattern):
 		segments = 0
-		for i, (x, y) in enumerate([(1, 0), (2, 1), (2, 3), (1, 4), (0, 3), (0, 1), (1, 2)])
+		pattern = pattern.convert('L')
+		for i, (x, y) in enumerate([(1, 0), (2, 1), (2, 3), (1, 4), (0, 3), (0, 1), (1, 2)]):
 			digit = ~(pattern.getpixel((x, y)) // 255)
-			segments |= (digit << i)
-		self.execute(SET_EEPROM_CHAR_IPDISPLAY_OPCODE, CHAR(ord(char)), BYTE(segments))
+			segments = (segments << 1) | (digit & 1)
+		segments = (segments << 1) | (char == '.')
+		self.send(SET_EEPROM_CHAR_IPDISPLAY_OPCODE, CHAR(ord(char)), BYTE(segments))
+
+	def upload_charset(self, charset):
+		if isinstance(charset, str):
+			from PIL import Image
+			charset = Image.open(charset)
+		for i in range(16):
+			for j in range(6):
+				pattern = charset.crop((4 * i, 6 * j, 4 * (i + 1), 6 * (j + 1)))
+				char = chr(i + 16 * j + ord(' '))
+				self.upload_char_pattern(char, pattern)
