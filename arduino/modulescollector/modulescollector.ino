@@ -56,7 +56,7 @@ void setup(){
     // Miscellanous
 	TCCR2B = (TCCR2B & 0b11111000) | 1; // Set Timer2 frequency to 16MHz instead of 250kHz
     gripper.detach();   //Empeche les deux servos de forcer pour garder leur position au démarrage de l'arduino
-    dispenser.detach(   );
+    dispenser.detach();
 }
 
 void loop(){
