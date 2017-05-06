@@ -23,10 +23,14 @@ void setup(){
   talks.bind(_SET_AX_POSITION_OPCODE, SET_AX_POSITION);
   talks.bind(_GET_AX_TORQUE_OPCODE, GET_AX_TORQUE);
   talks.bind(_SET_AX_VELOCITY_MOVE_OPCODE,  SET_AX_VELOCITY_MOVE);
+  talks.bind(_PING_AX_OPCODE, PING_AX);
+  talks.bind(_SET_AX_HOLD_OPCODE, SET_AX_HOLD);
+  talks.bind(_GET_AX_POSITION_OPCODE, GET_AX_POSITION);
 
-  AX12::SerialBegin(9600,RX,TX,DATA_CONTROL);  
+  AX12::SerialBegin(9600,RX,TX,DATA_CONTROL);
   servoax.attach(2);
   servoax.setEndlessMode(OFF);
+  servoax.hold(OFF);
 
   motorDriver.attach(DRIVER_RESET , A7);
   motorDriver.reset();
@@ -38,7 +42,7 @@ void setup(){
   hammerMotor.setConstant(1/11.1);
   
    // Miscellanous
-	TCCR2B = (TCCR2B & 0b11111000) | 1;
+	//TCCR2B = (TCCR2B & 0b11111000) | 1;
 }
 
 void loop(){

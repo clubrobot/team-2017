@@ -196,6 +196,7 @@ class AX12 {
 private: 
 	unsigned char m_id;
 	bool m_endlessMode;
+	bool m_holding; 
 
 
 public:
@@ -241,6 +242,8 @@ public:
 	float readPosition();
 	float readSpeed();
 	int readTorque();
+
+	bool isHolding();
 	
 	int hold(bool Status);
 	int led(bool Status);

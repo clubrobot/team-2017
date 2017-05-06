@@ -91,9 +91,9 @@ TOR_2 		8
 
 
 //V1.0
-//Serial : 
-#define RX 		A0
-#define TX 		A1
+//Serial : 	
+#define RX 				A0
+#define TX 				A1
 #define DATA_CONTROL	13
 
 //EndStop : 
