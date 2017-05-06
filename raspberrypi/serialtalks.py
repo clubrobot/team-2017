@@ -162,7 +162,7 @@ class SerialTalks:
 		try:
 			output = queue.get(block, timeout)
 		except Empty:
-			if block:
+			if timeout is not None:
 				raise TimeoutError('timeout exceeded') from None
 			else:
 				return None
