@@ -50,6 +50,9 @@ protected:
 	float m_angSetpoint; // in w/e unit
 	float m_axleTrack; // in mm
 
+	float m_linVelOutput;
+	float m_angVelOutput;
+
 	AbstractMotor* m_leftWheel;
 	AbstractMotor* m_rightWheel;
 	PID* m_linPID;

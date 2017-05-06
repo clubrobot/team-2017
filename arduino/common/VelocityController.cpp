@@ -35,13 +35,24 @@ void VelocityController::process(float timestep)
 	// Compute new setpoints
 	m_rampLinVelSetpoint = genRampSetpoint(m_linSetpoint, m_linInput, m_rampLinVelSetpoint, m_maxLinAcc, m_maxLinDec, timestep);
 	m_rampAngVelSetpoint = genRampSetpoint(m_angSetpoint, m_angInput, m_rampAngVelSetpoint, m_maxAngAcc, m_maxAngDec, timestep);
-//	m_rampAngVelSetpoint = m_angSetpoint;
 
 	// Do the engineering control
 	m_linSetpoint = m_rampLinVelSetpoint;
 	m_angSetpoint = m_rampAngVelSetpoint;
 	DifferentialController::process(timestep);
 
+	// Check for wheels abnormal spin and stop the controller accordingly
+	const bool saturatedLinVelOutput = (m_linVelOutput == m_linPID->getMinOutput() || m_linVelOutput == m_linPID->getMaxOutput());
+	const bool saturatedAngVelOutput = (m_angVelOutput == m_angPID->getMinOutput() || m_angVelOutput == m_angPID->getMaxOutput());
+	const bool linSpinUrgency = saturatedLinVelOutput && abs(m_linInput) <    1; // linear velocity < 1 cm/s
+	const bool angSpinUrgency = saturatedAngVelOutput && abs(m_angInput) < 0.05; // angular velocity < 0.05 rad/s
+	if (linSpinUrgency || angSpinUrgency)
+	{
+		m_leftWheel ->setVelocity(0);
+		m_rightWheel->setVelocity(0);
+		disable();
+	}
+		
 	// Restore setpoints
 	m_linSetpoint = stepLinVelSetpoint;
 	m_angSetpoint = stepAngVelSetpoint;

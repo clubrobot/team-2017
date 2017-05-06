@@ -114,7 +114,10 @@ void START_TURNONTHESPOT(SerialTalks& talks, Deserializer& input, Serializer& ou
 
 void POSITION_REACHED(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	output.write<byte>(positionControl.getPositionReached());
+	bool positionReached = positionControl.getPositionReached();
+	bool spinUrgency = !velocityControl.isEnabled();
+	output.write<byte>(positionReached);
+	output.write<byte>(spinUrgency);
 }
 
 void SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output)
