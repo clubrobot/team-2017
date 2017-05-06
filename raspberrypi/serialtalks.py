@@ -189,15 +189,17 @@ class SerialTalks:
 	def getlog(self, retcode, timeout=0):
 		log = str()
 		while True:
-			output = self.poll(retcode, 0)
-			if output is not None:
+			try:
+				output = self.poll(retcode, 0)
 				log += output.read(STRING)
-			else:
+			except TimeoutError:
+				break
+		if timeout > 0:
+			try:
 				output = self.poll(retcode, timeout)
-				try:
-					log += output.read(STRING)
-				except TimeoutError:
-					pass
+				log += output.read(STRING)
+			except TimeoutError:
+				pass
 		return log
 
 	def getout(self, timeout=0):
