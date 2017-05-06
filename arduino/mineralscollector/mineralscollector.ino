@@ -35,10 +35,10 @@ void setup(){
   motorDriver.attach(DRIVER_RESET , A7);
   motorDriver.reset();
     
-  rollerMotor.attach(MOTOR1_EN, MOTOR1_PWM, MOTOR1_DIR);
+  rollerMotor.attach(MOTOR2_EN, MOTOR2_PWM, MOTOR2_DIR);
   rollerMotor.setConstant(1/11.1);
 
-  hammerMotor.attach(MOTOR2_EN, MOTOR2_PWM, MOTOR2_DIR);
+  hammerMotor.attach(MOTOR1_EN, MOTOR1_PWM, MOTOR1_DIR);
   hammerMotor.setConstant(1/11.1);
   
    // Miscellanous

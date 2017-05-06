@@ -46,7 +46,7 @@ class AX12(SerialTalksProxy):
 		return int(ping)
 	
 	def hold(self, i):
-		self.send(_SET_AX_HOLD_OPCODE, INT(I))
+		self.send(_SET_AX_HOLD_OPCODE, INT(i))
 
 	def gather(self):
 		self.set_position(self.collecting_position)
@@ -56,7 +56,8 @@ class AX12(SerialTalksProxy):
 
 class Hammer(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
-		self.firing_velocity = 8
+		SerialTalksProxy.__init__(self, parent, uuid)
+		self.firing_velocity = 6	
 
 	def set_velocity(self, a):
 		self.send(_SET_FIRING_HAMMER_VELOCITY_OPCODE, FLOAT(a))
@@ -69,6 +70,7 @@ class Hammer(SerialTalksProxy):
 
 class Roller(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
+		SerialTalksProxy.__init__(self, parent, uuid)
 		self.collecting_velocity = 8
 
 	def set_velocity(self, a):

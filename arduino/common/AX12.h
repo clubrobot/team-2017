@@ -235,7 +235,7 @@ public:
 
 	int moving();
 	int lockRegister();
-	int SavedMove();
+	int savedMove();
 	
 	int readTemperature();
 	float readVoltage();
