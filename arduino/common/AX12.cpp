@@ -1,6 +1,7 @@
 #include "AX12.h"	
 #include <Arduino.h>
 #include "SoftwareSerial.h"
+#include "../common/SerialTalks.h"
 
 extern SoftwareSerial SoftSerial; 
 
@@ -9,7 +10,7 @@ extern SoftwareSerial SoftSerial;
 #define sendData(args)  (SoftSerial.write(args))    // Write Over Serial
 #define availableData() (SoftSerial.available())    // Check Serial Data Available
 #define readData()      (SoftSerial.read())         // Read Serial Data
-#define peekData()      (SoftSerial.peek())         // Peek Serial Data
+#define peekData()      ((unsigned byte) SoftSerial.peek())         // Peek Serial Data
 #define beginCom(args)  (SoftSerial.begin(args))    // Begin Serial Comunication
 #define endCom()        (SoftSerial.end())          // End Serial Comunication
 
@@ -35,7 +36,6 @@ int DynamixelClass::read_error(void)
 		Time_Counter++;
 		delayus(1000);
 	}
-	
 	while (availableData() > 0){
 		Incoming_Byte = readData();
 		if ( (Incoming_Byte == 255) & (peekData() == 255) ){
@@ -1081,16 +1081,21 @@ float AX12::readSpeed(){
 
 int AX12::readTorque(){
 	int torque = Dynamixel.readLoad(m_id);
-	if(torque <0){
-		return map(torque, 0, 1023, 0, -100);
+	if(torque <=1023){
+		return map(torque, 0, 1023, 0, -1023);
 	}
 	else{
-		return map(torque, 1024, 2047, 0, 100);
+		return map(torque, 1024, 2047, 0, 1023);
 	}
 }
 	
 int AX12::hold(bool Status){
+	m_holding = Status;
 	return Dynamixel.torqueStatus(m_id, Status);
+}
+
+bool AX12::isHolding(){
+	return m_holding;
 }
 
 int AX12::led(bool Status){

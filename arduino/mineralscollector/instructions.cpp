@@ -26,5 +26,19 @@ void GET_AX_TORQUE(SerialTalks &inst, Deserializer &input, Serializer &output){
 }
 
 void SET_AX_VELOCITY_MOVE(SerialTalks &inst, Deserializer &input, Serializer &output){
-	servoax.moveSpeed(input.read<float>(), input.read<int>());
+	float position = input.read<float>();
+	int velocity = input.read<int>();
+	servoax.moveSpeed(position, velocity);
+}
+
+void PING_AX(SerialTalks &inst, Deserializer &input, Serializer &output){
+	output.write<int>(servoax.ping());
+}
+
+void SET_AX_HOLD(SerialTalks &inst, Deserializer &input, Serializer &output){
+	servoax.hold(input.read<int>());
+}
+
+void GET_AX_POSITION(SerialTalks &inst, Deserializer &input, Serializer &output){
+	output.write<float>(servoax.readPosition());
 }
