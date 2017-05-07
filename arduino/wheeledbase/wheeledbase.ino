@@ -102,6 +102,7 @@ void setup()
 #if ENABLE_CONTROLLER_LOGS
 	controllerLogs.setController(velocityControl);
 	controllerLogs.setTimestep(CONTROLLER_LOGS_TIMESTEP);
+	controllerLogs.enable();
 #endif // ENABLE_CONTROLLER_LOGS
 
 	// Position control
@@ -136,10 +137,11 @@ void loop()
 		velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 	}
 
-#if ENABLE_CONTROLLER_LOGS
-	controllerLogs.update();
-#endif // ENABLE_CONTROLLER_LOGS
-
 	// Integrate engineering control
+#if ENABLE_CONTROLLER_LOGS
+	if (velocityControl.update())
+		controllerLogs.update();
+#else
 	velocityControl.update();
+#endif // ENABLE_CONTROLLER_LOGS
 }
