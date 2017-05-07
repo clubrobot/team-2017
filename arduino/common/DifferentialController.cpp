@@ -11,12 +11,6 @@ void DifferentialController::process(float timestep)
 	m_linVelOutput = m_linPID->compute(m_linSetpoint, m_linInput, timestep);
 	m_angVelOutput = m_angPID->compute(m_angSetpoint, m_angInput, timestep);
 
-#if OUTPUT_CONTROL_VARIABLES
-	talks.out << millis() << "\t";
-	talks.out << m_linSetpoint << "\t" << m_linInput << "\t" << m_linVelOutput << "\t";
-	talks.out << m_angSetpoint << "\t" << m_angInput << "\t" << m_angVelOutput << "\n";
-#endif
-
 	// Convert linear and angular velocities into wheels' velocities
 	m_leftWheel ->setVelocity(m_linVelOutput - m_angVelOutput * m_axleTrack / 2);
 	m_rightWheel->setVelocity(m_linVelOutput + m_angVelOutput * m_axleTrack / 2);
@@ -37,3 +31,12 @@ void DifferentialController::save(int address) const
 {
 	EEPROM.put(address, m_axleTrack); address += sizeof(m_axleTrack);
 }
+
+#if ENABLE_CONTROLLER_LOGS
+void ControllerLogs::process(float timestep)
+{
+	talks.out << millis() << "\t";
+	talks.out << m_controller->m_linSetpoint << "\t" << m_controller->m_linInput << "\t" << m_controller->m_linVelOutput << "\t";
+	talks.out << m_controller->m_angSetpoint << "\t" << m_controller->m_angInput << "\t" << m_controller->m_angVelOutput << "\n";
+};
+#endif // ENABLE_CONTROLLER_LOGS
