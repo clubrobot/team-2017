@@ -243,11 +243,11 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		angVelPID.save(ANGVELPID_ADDRESS);
 		break;
 	case ANGVELPID_KI_ID:
-		angVelPID.setTunings(angVelPID.getKd(), input.read<float>(), angVelPID.getKd());
+		angVelPID.setTunings(angVelPID.getKp(), input.read<float>(), angVelPID.getKd());
 		angVelPID.save(ANGVELPID_ADDRESS);
 		break;
 	case ANGVELPID_KD_ID:
-		angVelPID.setTunings(angVelPID.getKd(), angVelPID.getKi(), input.read<float>());
+		angVelPID.setTunings(angVelPID.getKp(), angVelPID.getKi(), input.read<float>());
 		angVelPID.save(ANGVELPID_ADDRESS);
 		break;
 	case ANGVELPID_MINOUTPUT_ID:
