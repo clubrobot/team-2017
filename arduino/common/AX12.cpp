@@ -964,7 +964,7 @@ int AX12::moveSpeed(float Position, float Speed){
 		setEndlessMode(OFF);
 	}
 	int pos = min(1023,Position/300*1023);
-	int spd = min(1023,Speed / 114 *1023);
+	int spd = min(1023,Speed /114 *1023);
 	return Dynamixel.moveSpeed(m_id, pos, spd);
 }
 
@@ -1054,7 +1054,7 @@ int AX12::lockRegister(){
 	return Dynamixel.lockRegister(m_id);
 }
 	
-int AX12::SavedMove(){
+int AX12::savedMove(){
 	return Dynamixel.RWStatus(m_id);
 }	
 
@@ -1067,7 +1067,8 @@ float AX12::readVoltage(){
 }
 	
 float AX12::readPosition(){
-	return Dynamixel.readPosition(m_id) * 300/1024;
+	float pos = (float)(Dynamixel.readPosition(m_id)) *300 /1023;
+	return pos;
 }
 
 float AX12::readSpeed(){
@@ -1075,7 +1076,7 @@ float AX12::readSpeed(){
 		return Dynamixel.readSpeed(m_id);
 	}
 	else{
-		return Dynamixel.readSpeed(m_id) /1024*114 ;
+		return Dynamixel.readSpeed(m_id) /1023*114 ;
 	}
 }
 
