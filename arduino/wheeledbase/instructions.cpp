@@ -159,6 +159,10 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		leftWheel.setConstant(input.read<float>());
 		leftWheel.save(LEFTWHEEL_ADDRESS);
 		break;
+	case LEFTWHEEL_MAXPWM_ID:
+		leftWheel.setMaxPWM(input.read<float>());
+		leftWheel.save(LEFTWHEEL_ADDRESS);
+		break;
 	
 	case RIGHTWHEEL_RADIUS_ID:
 		rightWheel.setWheelRadius(input.read<float>());
@@ -166,6 +170,10 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		break;
 	case RIGHTWHEEL_CONSTANT_ID:
 		rightWheel.setConstant(input.read<float>());
+		rightWheel.save(RIGHTWHEEL_ADDRESS);
+		break;
+	case RIGHTWHEEL_MAXPWM_ID:
+		rightWheel.setMaxPWM(input.read<float>());
 		rightWheel.save(RIGHTWHEEL_ADDRESS);
 		break;
 
@@ -302,12 +310,18 @@ void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 	case LEFTWHEEL_CONSTANT_ID:
 		output.write<float>(leftWheel.getConstant());
 		break;
+	case LEFTWHEEL_MAXPWM_ID:
+		output.write<float>(leftWheel.getMaxPWM());
+		break;
 	
 	case RIGHTWHEEL_RADIUS_ID:
 		output.write<float>(rightWheel.getWheelRadius());
 		break;
 	case RIGHTWHEEL_CONSTANT_ID:
 		output.write<float>(rightWheel.getConstant());
+		break;
+	case RIGHTWHEEL_MAXPWM_ID:
+		output.write<float>(rightWheel.getMaxPWM());
 		break;
 
 	case LEFTCODEWHEEL_RADIUS_ID:
