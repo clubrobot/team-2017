@@ -21,7 +21,7 @@ _SET_AX_HOLD_OPCODE					=	0X0A
 class AX12(SerialTalksProxy):	
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
-		self.closed_position = 296
+		self.closed_position = 282
 		self.collecting_position = 80
 
 	def set_position(self, a):
@@ -53,6 +53,12 @@ class AX12(SerialTalksProxy):
 	
 	def close(self):
 		self.set_position(self.closed_position)
+
+	def set_closed_position(self, a):
+		self.closed_position = a
+	
+	def set_collecting_position(self, a):
+		self.collecting_position = a
 
 class Hammer(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
