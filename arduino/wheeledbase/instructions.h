@@ -30,8 +30,10 @@
 
 #define LEFTWHEEL_RADIUS_ID             0x10
 #define LEFTWHEEL_CONSTANT_ID           0x11
+#define LEFTWHEEL_MAXPWM_ID             0x12
 #define RIGHTWHEEL_RADIUS_ID            0x20
 #define RIGHTWHEEL_CONSTANT_ID          0x21
+#define RIGHTWHEEL_MAXPWM_ID            0x22
 #define LEFTCODEWHEEL_RADIUS_ID         0x40
 #define LEFTCODEWHEEL_COUNTSPERREV_ID   0x41
 #define RIGHTCODEWHEEL_RADIUS_ID        0x50

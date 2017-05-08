@@ -272,7 +272,7 @@ class TCPTalks:
 	def execute(self, opcode, *args, timeout=5, **kwargs):
 		retcode = self.send(opcode, *args, **kwargs)
 		output = self.poll(retcode, timeout=timeout)
-		try:
+		if isinstance(output, tuple) and isinstance(output[0], Exception):
 			etype, value, tb = output
 			output = ('{2}\n' +
 			'\nThe above exception was first raised by the distant TCPTalks instance:\n\n' +
@@ -280,7 +280,7 @@ class TCPTalks:
 			'{0}' +
 			'{1}: {2}''').format(''.join(traceback.format_list(tb)), etype.__name__, str(value))
 			raise etype(output)
-		except (TypeError, ValueError):
+		else:
 			return output
 
 	def sleep_until_disconnected(self):
