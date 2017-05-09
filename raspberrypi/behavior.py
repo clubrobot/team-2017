@@ -12,7 +12,7 @@ class AccessDenied(RuntimeError): pass
 class Behavior(Manager):
 
 	def __init__(self, *args, **kwargs):
-		Manager.__init__(self, *args, timelimit, **kwargs)
+		Manager.__init__(self, *args, timelimit=None, **kwargs)
 		self.timelimit = timelimit
 		self.whitelist = set()
 		self.blacklist = set()
@@ -20,7 +20,7 @@ class Behavior(Manager):
 	def send(self, *args, **kwargs):
 		thread_id = id(current_thread())
 		elapsed_time = self.get_elapsed_time()
-		if thread_id in self.blacklist or (elapsed_time > self.timelimit and thread_id not in self.whitelist):
+		if thread_id in self.blacklist or (self.timelimit and elapsed_time > self.timelimit and thread_id not in self.whitelist):
 			self.blacklist.remove(thread)
 			raise AccessDenied()
 		else:
