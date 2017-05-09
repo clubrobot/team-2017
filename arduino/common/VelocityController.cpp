@@ -48,6 +48,9 @@ void VelocityController::process(float timestep)
 	const bool angSpinUrgency = saturatedAngVelOutput && abs(m_angInput) < 0.05; // angular velocity < 0.05 rad/s
 	if (linSpinUrgency || angSpinUrgency)
 	{
+		talks.out << linSpinUrgency << ", " << angSpinUrgency << "\n";
+		talks.out << m_linVelOutput << ", " << m_linInput << m_linPID->getMaxOutput() << "\n";
+		talks.out << m_angVelOutput << ", " << m_angInput << m_angPID->getMaxOutput() << "\n";
 		m_leftWheel ->setVelocity(0);
 		m_rightWheel->setVelocity(0);
 		disable();

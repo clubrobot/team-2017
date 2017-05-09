@@ -31,6 +31,7 @@ void setup(){
   servoax.attach(2);
   servoax.setEndlessMode(OFF);
   servoax.hold(OFF);
+  servoax.setShutdownAlarm(0);
 
   motorDriver.attach(DRIVER_RESET , A7);
   motorDriver.reset();

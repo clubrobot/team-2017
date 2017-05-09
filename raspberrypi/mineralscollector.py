@@ -22,7 +22,7 @@ class AX12(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
 		self.closed_position = 282
-		self.collecting_position = 80
+		self.collecting_position = 70
 
 	def set_position(self, a):
 		self.send(_SET_AX_POSITION_OPCODE, FLOAT(a))
