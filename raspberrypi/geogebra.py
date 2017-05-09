@@ -3,6 +3,7 @@
 
 import zipfile
 import xml.etree.ElementTree
+import re
 
 import math
 
@@ -54,8 +55,14 @@ class GeoGebra:
 		elif element.attrib['type'] == 'numeric':
 			return self._parse_numeric(element)
 		else:
-			raise TypeError(element.attrib['type'])
+			raise NotImplementedError("'{}' elements currently not handled".format(element.attrib['type']))
 	
+	def getall(self, pattern):
+		elements = self.root.findall('./construction/element[@label]')
+		all_labels = [element.get('label') for element in elements]
+		labels = [label for label in all_labels if re.match(pattern, label)]
+		return [self.get(label) for label in labels]
+
 	def _parse_point(self, element):
 		coords = element.find('coords')
 		x = float(coords.get('x'))
