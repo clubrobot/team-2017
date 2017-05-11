@@ -35,8 +35,5 @@ void DifferentialController::save(int address) const
 #if ENABLE_CONTROLLER_LOGS
 void ControllerLogs::process(float timestep)
 {
-	talks.out << millis() << "\t";
-	talks.out << m_controller->m_linSetpoint << "\t" << m_controller->m_linInput << "\t" << m_controller->m_linVelOutput << "\t";
-	talks.out << m_controller->m_angSetpoint << "\t" << m_controller->m_angInput << "\t" << m_controller->m_angVelOutput << "\n";
 };
 #endif // ENABLE_CONTROLLER_LOGS
