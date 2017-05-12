@@ -18,9 +18,8 @@ class RoadMap:
 
 	def reset_edges(self):
 		for edge in self.graph.es:
-			x0, y0 = self.graph.vs[edge.source]['coords']
-			x1, y1 = self.graph.vs[edge.target]['coords']
-			edge['weight'] = math.hypot(x1 - x0, y1 - y0)
+			vertex = self.graph.vs[edge.target]['coords']
+			edge['weight'] = self.get_vertex_distance(edge.source, vertex)
 
 	def cut_edges(self, cutline):
 		(xB, yB), (xB2, yB2) = cutline
@@ -35,7 +34,33 @@ class RoadMap:
 				tB = (-dyA * (xB - xA) + dxA * (yB - yA)) / det
 				if tA > 0 and tA < 1 and tB > 0 and tB < 1:
 					edge['weight'] = math.inf
-			
+
+	def get_vertex_distance(self, vid, vertex):
+		x0, y0 = self.graph.vs[vid]['coords']
+		x1, y1 = vertex
+		return math.hypot(x1 - x0, y1 - y0)
+
+	def get_closest_vertex(self, vertex):
+		def key(v): return self.get_vertex_distance(v.index, vertex)
+		return min(self.graph.vs, key=key).index
+
+	def add_vertex(self, vertex):
+		closest = self.get_closest_vertex(vertex)
+		self.graph.add_vertices(1)
+		vid = self.graph.vcount() - 1
+		self.graph.vs[vid]['coords'] = vertex
+		for target in [closest] + self.graph.neighbors(closest):
+			self.graph.add_edge(vid, target, weight=self.get_vertex_distance(target, vertex))
+		return vid
+
+	def get_shortest_path(self, source, target):
+		v = self.add_vertex(source)
+		to = self.add_vertex(target)
+		indexes = self.graph.get_shortest_paths(v, to, weights='weight')
+		path = [self.graph.vs[i]['coords'] for i in indexes]
+		self.graph.delete_vertices([v, to])
+		return path[0]
+
 	@staticmethod # Factory function
 	def load(geogebra, pattern='roadmap_{\s*\d+\s*,\s*\d+\s*}'):
 		# `geogebra` may be a GeoGebra file or a .ggb filename
