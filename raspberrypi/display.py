@@ -75,6 +75,16 @@ class LEDMatrix(SerialTalksProxy):
 				char = chr(i + 16 * j + ord(' '))
 				self.upload_char_pattern(char, pattern)
 				time.sleep(0.1)
+		for i in range(7): # Bad upload for the seven first characters
+			j = 0
+			x0, y0 = 8 * i, 8 * j
+			x1, y1 = x0 + 8, y0 + 8
+			while charset.getpixel((x1 - 1, y0)) not in (0, 255): x1 -= 1
+			while charset.getpixel((x0, y1 - 1)) not in (0, 255): y1 -= 1
+			pattern = charset.crop((x0, y0, x1, y1))
+			char = chr(i + 16 * j + ord(' '))
+			self.upload_char_pattern(char, pattern)
+			time.sleep(0.1)
 
 
 class SevenSegments(SerialTalksProxy):
