@@ -11,13 +11,14 @@ from sensors          import Sensors
 from geogebra import GeoGebra
 from roadmap import RoadMap
 
+import time
 import math
 
 
 class Bornibus(Behavior):
 
 	def __init__(self, *args, **kwargs):
-		Behavior.__init__(self, *args, **kwargs):
+		Behavior.__init__(self, *args, **kwargs)
 
 	def connect(self):
 		try:
@@ -39,6 +40,8 @@ class Bornibus(Behavior):
 		self.roadmap = RoadMap.load(self.geogebra)
 
 	def make_decision(self):
+		import random
+		return (self.simple_action, (), {}, self.geogebra.get(random.choice(['A','B','C','D','E'])) + (None,))
 		return (None, (), {}, None)
 
 	def goto_procedure(self, destination):
@@ -62,30 +65,34 @@ class Bornibus(Behavior):
 		# Wait until destination is reached
 		while True:
 			distance = self.sensors.get_mesure()[{'forward':1, 'backward':0}[direction]]
-			obstacle = False
+			if distance < 100:
+				return False
+
 			try:
-				arrived = self.wheeledbase.isarrived()
-				urgency = False
-			except RuntimeError:
-				arrived = False
-				urgency = True
-			if arrived or urgency or obstacle:
-				break
+				if self.wheeledbase.isarrived():
+					break
+
+			except RuntimeError: # Handle spin urgency
+				linvel = -100 * {'forward':1, 'backward':-1}[direction]
+				self.wheeledbase.set_velocities(linvel, 0)
+				time.sleep(1)
+				self.wheeledbase.purepursuit(path, direction=direction)
+
 			time.sleep(0.1)
 		
 		# Turn on the spot
-		if arrived and theta1 is not None:
-			self.turnonthespot(theta1)
+		if theta1 is not None:
+			self.wheeledbase.turnonthespot(theta1)
 			try:
-				arrived = self.wheeledbase.isarrived()
-				urgency = False
+				self.wheeledbase.wait()
 			except RuntimeError:
-				arrived = False
-				urgency = True
-			if arrived or urgency:
-				break
-			time.sleep(0.1)
+				return False
 		
-		# TODO: handle urgency and obstacle
+		# Everything is fine
+		return True
 
-		return arrived
+	def simple_action(self):
+		self.gripper.close()
+		time.sleep(0.5)
+		self.gripper.open_low()
+		time.sleep(0.5)
