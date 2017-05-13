@@ -17,7 +17,7 @@ class Behavior(Manager):
 		self.whitelist = set()
 		self.blacklist = set()
 		self.outputs = dict()
-		self.stop = Event()
+		self.stop_event = Event()
 
 	def perform(self, procedure, args=(), kwargs={}, timelimit=True):
 		thread = Thread(args=args, kwargs=kwargs, daemon=True)
@@ -52,8 +52,12 @@ class Behavior(Manager):
 
 	def send(self, *args, **kwargs):
 		thread_id = id(current_thread())
-		elapsed_time = self.get_elapsed_time()
-		if thread_id in self.blacklist or (self.timelimit and elapsed_time > self.timelimit and thread_id not in self.whitelist):
+		denyaccess = thread_id in self.blacklist
+		if not thread_id in self.whitelist:
+			if self.timelimit is not None:
+				denyaccess |= (self.get_elapsed_time() > self.timelimit)
+			denyaccess |= self.stop_event.is_set()
+		if denyaccess:
 			raise AccessDenied(thread_id)
 		else:
 			return Manager.send(self, *args, **kwargs)
@@ -68,22 +72,29 @@ class Behavior(Manager):
 		pass
 
 	def start(self):
-		self.starttime = time.monotonic()
-		while (self.timelimit is None or self.get_elapsed_time() < self.timelimit) and not self.stop.is_set():
-			decision = self.make_decision()
-			procedure, args, kwargs, location = decision
-			if procedure is None:
-				time.sleep(1)
-				continue
-			if location is not None:
-				goto = self.perform(self.goto_procedure, args=(location,))
-				success = self.get(goto)
-			else:
-				success = True
-			if success:
-				action = self.perform(procedure, args=args, kwargs=kwargs)
-				self.get(action)
-		self.perform(stop_procedure, timelimit=False)
+		try:
+			self.starttime = time.monotonic()
+			while (self.timelimit is None or self.get_elapsed_time() < self.timelimit) and not self.stop_event.is_set():
+				decision = self.make_decision()
+				procedure, args, kwargs, location = decision
+				if procedure is None:
+					time.sleep(1)
+					continue
+				if location is not None:
+					goto = self.perform(self.goto_procedure, args=(location,))
+					success = self.get(goto)
+				else:
+					success = True
+				if success:
+					action = self.perform(procedure, args=args, kwargs=kwargs)
+					self.get(action)
+		finally:
+			self.stop()
+			self.perform(self.stop_procedure, timelimit=False)
+
+	def stop(self):
+		self.whitelist.clear()
+		self.stop_event.set()
 
 	def get_elapsed_time(self):
 		if hasattr(self, 'starttime'):
