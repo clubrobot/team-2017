@@ -56,10 +56,18 @@ class RoadMap:
 	def get_shortest_path(self, source, target):
 		v = self.add_vertex(source)
 		to = self.add_vertex(target)
-		indexes = self.graph.get_shortest_paths(v, to, weights='weight')
-		path = [self.graph.vs[i]['coords'] for i in indexes]
+		indexes = [v]
+		for eid in self.graph.get_shortest_paths(v, to, weights='weight', output='epath')[0]:
+			edge = self.graph.es[eid]
+			if edge['weight'] == math.inf:
+				raise RuntimeError('path not found')
+			if indexes[-1] != edge.source:
+				indexes.append(edge.source)
+			else:
+				indexes.append(edge.target)
+		path = [self.graph.vs[vid]['coords'] for vid in indexes]
 		self.graph.delete_vertices([v, to])
-		return path[0]
+		return path
 
 	@staticmethod # Factory function
 	def load(geogebra, pattern='roadmap_{\s*\d+\s*,\s*\d+\s*}'):
