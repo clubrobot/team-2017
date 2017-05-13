@@ -81,12 +81,18 @@ class WheeledBase(SerialTalksProxy):
 	def set_velocities(self, linear_velocity, angular_velocity):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
-	def purepursuit(self, waypoints, direction='forward'):
+	def purepursuit(self, waypoints, direction='forward', lookahead=None, linvelmax=None, angvelmax=None):
 		if len(waypoints) < 2:
 			raise ValueError('not enough waypoints')
 		self.send(RESET_PUREPURSUIT_OPCODE)
 		for x, y in waypoints:
 			self.send(ADD_PUREPURSUIT_WAYPOINT_OPCODE, FLOAT(x), FLOAT(y))
+		if lookahead is not None:
+			self.set_parameter_value(PUREPURSUIT_LOOKAHEAD_ID, lookahead, FLOAT)
+		if linvelmax is not None:
+			self.set_parameter_value(POSITIONCONTROL_LINVELMAX_ID, linvelmax, FLOAT)
+		if angvelmax is not None:
+			self.set_parameter_value(POSITIONCONTROL_ANGVELMAX_ID, angvelmax, FLOAT)
 		self.send(START_PUREPURSUIT_OPCODE, BYTE({'forward':0, 'backward':1}[direction]))
 
 	def turnonthespot(self, theta):
