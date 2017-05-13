@@ -41,7 +41,7 @@ class Bornibus(Behavior):
 
 	def make_decision(self):
 		import random
-		return (self.simple_action, (), {}, self.geogebra.get(random.choice(['A','B','C','D','E'])) + (None,))
+		return (self.simple_action, (), {}, self.geogebra.get(random.choice(['E','D'])) + (None,))
 		return (None, (), {}, None)
 
 	def goto_procedure(self, destination):
@@ -90,6 +90,12 @@ class Bornibus(Behavior):
 		
 		# Everything is fine
 		return True
+
+	def stop_procedure(self):
+		self.wheeledbase.stop()
+		self.gripper.set_position(-1)
+		self.elevator.set_velocity(0)
+		self.dispenser.set_position(-1, 1)
 
 	def simple_action(self):
 		self.gripper.close()
