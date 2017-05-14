@@ -72,8 +72,9 @@ class Behavior(Manager):
 		pass
 
 	def start(self):
+		self.starttime = time.monotonic()
+		self.stop_event.clear()
 		try:
-			self.starttime = time.monotonic()
 			while (self.timelimit is None or self.get_elapsed_time() < self.timelimit) and not self.stop_event.is_set():
 				decision = self.make_decision()
 				procedure, args, kwargs, location = decision
@@ -91,6 +92,7 @@ class Behavior(Manager):
 		finally:
 			self.stop()
 			self.perform(self.stop_procedure, timelimit=False)
+			self.whitelist.add(id(current_thread()))
 
 	def stop(self):
 		self.whitelist.clear()
