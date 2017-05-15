@@ -26,9 +26,10 @@ class Behavior(Manager):
 			try:
 				output = procedure(*args, **kwargs)
 				self.outputs[thread_id] = output
-			except AccessDenied:
-				self.outputs[thread_id] = None
+			except AccessDenied: pass
+			except: raise
 			finally:
+				self.outputs[thread_id] = None
 				if thread_id in self.blacklist: self.blacklist.remove(thread_id)
 				if thread_id in self.whitelist: self.whitelist.remove(thread_id)
 		if not timelimit: self.whitelist.add(thread_id)
