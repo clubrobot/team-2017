@@ -31,9 +31,3 @@ void DifferentialController::save(int address) const
 {
 	EEPROM.put(address, m_axleTrack); address += sizeof(m_axleTrack);
 }
-
-#if ENABLE_CONTROLLER_LOGS
-void ControllerLogs::process(float timestep)
-{
-};
-#endif // ENABLE_CONTROLLER_LOGS

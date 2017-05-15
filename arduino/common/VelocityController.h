@@ -5,6 +5,9 @@
 
 #include <math.h>
 
+#define ENABLE_VELOCITYCONTROLLER_LOGS 1 // for debug purposes
+#define VELOCITYCONTROLLER_LOGS_TIMESTEP 50e-3 // mm
+
 
 class VelocityController : public DifferentialController
 {
@@ -36,6 +39,25 @@ protected:
 	float m_maxLinDec; // always positive, in mm/s^2
 	float m_maxAngAcc; // always positive, in rad/s^2
 	float m_maxAngDec; // always positive, in rad/s^2
+
+#if ENABLE_VELOCITYCONTROLLER_LOGS
+	friend class VelocityControllerLogs;
+#endif // ENABLE_VELOCITYCONTROLLER_LOGS
 };
+
+#if ENABLE_VELOCITYCONTROLLER_LOGS
+class VelocityControllerLogs : public PeriodicProcess
+{
+public:
+
+	void setController(const VelocityController& controller){m_controller = &controller;}
+
+protected:
+
+	virtual void process(float timestep);
+
+	const VelocityController* m_controller;
+};
+#endif // ENABLE_VELOCITYCONTROLLER_LOGS
 
 #endif // __VELOCITYCONTROLLER_H__

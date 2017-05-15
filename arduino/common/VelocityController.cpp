@@ -48,10 +48,10 @@ void VelocityController::process(float timestep)
 	const bool angSpinUrgency = saturatedAngVelOutput && abs(m_angInput) < 0.05; // angular velocity < 0.05 rad/s
 	if (linSpinUrgency || angSpinUrgency)
 	{
-		talks.out << linSpinUrgency << ", " << angSpinUrgency << "\n";
+/*		talks.out << linSpinUrgency << ", " << angSpinUrgency << "\n";
 		talks.out << m_linVelOutput << ", " << m_linInput << ", " << m_linPID->getMaxOutput() << "\n";
 		talks.out << m_angVelOutput << ", " << m_angInput << ", " << m_angPID->getMaxOutput() << "\n";
-		m_leftWheel ->setVelocity(0);
+*/		m_leftWheel ->setVelocity(0);
 		m_rightWheel->setVelocity(0);
 		disable();
 	}
@@ -85,3 +85,12 @@ void VelocityController::save(int address) const
 	EEPROM.put(address, m_maxAngAcc); address += sizeof(m_maxAngAcc);
 	EEPROM.put(address, m_maxAngDec); address += sizeof(m_maxAngDec);
 }
+
+#if ENABLE_VELOCITYCONTROLLER_LOGS
+void VelocityControllerLogs::process(float timestep)
+{
+	talks.out << millis() << "\t";
+	talks.out << m_controller->m_rampLinVelSetpoint << "\t" << m_controller->m_linInput << "\t" << m_controller->m_linVelOutput << "\t";
+	talks.out << m_controller->m_rampAngVelSetpoint << "\t" << m_controller->m_angInput << "\t" << m_controller->m_angVelOutput << "\n";
+};
+#endif // ENABLE_VELOCITYCONTROLLER_LOGS

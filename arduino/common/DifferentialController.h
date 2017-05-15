@@ -4,8 +4,6 @@
 #include "PeriodicProcess.h"
 #include "PID.h"
 
-#define ENABLE_CONTROLLER_LOGS 0 // for debug purposes
-#define CONTROLLER_LOGS_TIMESTEP 50e-3 // mm
 
 
 class AbstractMotor
@@ -58,26 +56,6 @@ protected:
 	AbstractMotor* m_rightWheel;
 	PID* m_linPID;
 	PID* m_angPID;
-
-#if ENABLE_CONTROLLER_LOGS
-	friend class ControllerLogs;
-#endif // ENABLE_CONTROLLER_LOGS
 };
-
-
-#if ENABLE_CONTROLLER_LOGS
-class ControllerLogs : public PeriodicProcess
-{
-public:
-
-	void setController(const DifferentialController& controller){m_controller = &controller;}
-
-protected:
-
-	virtual void process(float timestep);
-
-	const DifferentialController* m_controller;
-};
-#endif // ENABLE_CONTROLLER_LOGS
 
 #endif // __DIFFERENTIALCONTROLLER_H__

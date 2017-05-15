@@ -28,9 +28,9 @@ Codewheel rightCodewheel;
 Odometry odometry;
 
 VelocityController velocityControl;
-#if ENABLE_CONTROLLER_LOGS
-ControllerLogs controllerLogs;
-#endif // ENABLE_CONTROLLER_LOGS
+#if ENABLE_VELOCITYCONTROLLER_LOGS
+VelocityControllerLogs controllerLogs;
+#endif // ENABLE_VELOCITYCONTROLLER_LOGS
 
 PID linVelPID;
 PID angVelPID;
@@ -99,11 +99,11 @@ void setup()
 	linVelPID.setOutputLimits(-maxLinVel, maxLinVel);
 	angVelPID.setOutputLimits(-maxAngVel, maxAngVel);
 
-#if ENABLE_CONTROLLER_LOGS
+#if ENABLE_VELOCITYCONTROLLER_LOGS
 	controllerLogs.setController(velocityControl);
-	controllerLogs.setTimestep(CONTROLLER_LOGS_TIMESTEP);
+	controllerLogs.setTimestep(VELOCITYCONTROLLER_LOGS_TIMESTEP);
 	controllerLogs.enable();
-#endif // ENABLE_CONTROLLER_LOGS
+#endif // VELOCITYENABLE_CONTROLLER_LOGS
 
 	// Position control
 	positionControl.load(POSITIONCONTROL_ADDRESS);
@@ -138,10 +138,10 @@ void loop()
 	}
 
 	// Integrate engineering control
-#if ENABLE_CONTROLLER_LOGS
+#if ENABLE_VELOCITYCONTROLLER_LOGS
 	if (velocityControl.update())
 		controllerLogs.update();
 #else
 	velocityControl.update();
-#endif // ENABLE_CONTROLLER_LOGS
+#endif // ENABLE_VELOCITYCONTROLLER_LOGS
 }
