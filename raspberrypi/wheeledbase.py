@@ -64,6 +64,7 @@ POSITIONCONTROL_ANGVELMAX_ID    = 0xD3
 POSITIONCONTROL_LINPOSTHRESHOLD_ID  = 0xD4
 POSITIONCONTROL_ANGPOSTHRESHOLD_ID  = 0xD5
 PUREPURSUIT_LOOKAHEAD_ID        = 0xE0
+PUREPURSUIT_ENDINGMODE_ID       = 0xE1
 
 
 class WheeledBase(SerialTalksProxy):
@@ -119,7 +120,8 @@ class WheeledBase(SerialTalksProxy):
 		self.linpos_threshold = WheeledBase.Parameter(self, POSITIONCONTROL_LINPOSTHRESHOLD_ID, FLOAT)
 		self.angpos_threshold = WheeledBase.Parameter(self, POSITIONCONTROL_ANGPOSTHRESHOLD_ID, FLOAT)
 		
-		self.lookahead = WheeledBase.Parameter(self, PUREPURSUIT_LOOKAHEAD_ID, FLOAT)
+		self.lookahead  = WheeledBase.Parameter(self, PUREPURSUIT_LOOKAHEAD_ID, FLOAT)
+		self.endingmode = WheeledBase.Parameter(self, PUREPURSUIT_ENDINGMODE_ID, BYTE)
 
 	def set_openloop_velocities(self, left, right):
 		self.send(SET_OPENLOOP_VELOCITIES_OPCODE, FLOAT(left), FLOAT(right))

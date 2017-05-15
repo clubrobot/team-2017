@@ -27,7 +27,6 @@ void PurePursuit::reset()
 	m_direction = FORWARD;
 	m_goalIndex = 0;
 	m_goalParam = 0;
-	m_stabilize = false;
 	m_goalReached = false;
 }
 
@@ -59,17 +58,24 @@ bool PurePursuit::checkLookAheadGoal(const float x, const float y)
 		// There is two intersection points between the circle and the line but we only consider
 		// the one ahead of the robot: if it is beyond the second endpoint (so it's not on the
 		// segment), then we go to the next.
-		t += sqrt(m_lookAhead * m_lookAhead - h * h) / edgeLength;
+		float t1 = t - sqrt(m_lookAhead * m_lookAhead - h * h) / edgeLength;
+		float t2 = t + sqrt(m_lookAhead * m_lookAhead - h * h) / edgeLength;
 		
 		// Skip if the intersection point is beyond the second endpoint (see above).
-		if (t < 0 || (t > 1 && i+1 < m_numWaypoints-1))
+		if (t2 < 0)
 			continue;
-		
+		else if (t2 > 1 && i+1 < m_numWaypoints-1)
+			continue;
+		else if (t1 > 1 && i+1 == m_numWaypoints-1 && m_endingMode == ANGLE_ENDING_MODE)
+			continue;
+		else if (t2 > 1 && m_endingMode == POSITION_ENDING_MODE)
+			t2 = 1;
+			
 		// Save the new goal.
-		if (i > m_goalIndex || t > m_goalParam || t > 1)
+		if (i > m_goalIndex || t2 > m_goalParam)
 		{
 			m_goalIndex = i;
-			m_goalParam = t;
+			m_goalParam = t2;
 		}
 		return true;
 	}
@@ -94,7 +100,14 @@ void PurePursuit::checkProjectionGoal(const float x, const float y)
 		if (t > 1 && i+1 < m_numWaypoints-1)
 			continue;
 		
-		if (t <= 0) // The closest point of the segment is its first endpoint.
+		if (t > 1) // The closest point of the segment is its second endpoint.
+		{
+			float dx2 = x - m_waypoints[i+1].x;
+			float dy2 = y - m_waypoints[i+1].y;
+			h = sqrt(dx2 * dx2 + dy2 * dy2);
+			t = 1;
+		}
+		else if (t <= 0) // The closest point of the segment is its first endpoint.
 		{
 			h = sqrt(dx * dx + dy * dy);
 			t = 0;
@@ -108,7 +121,7 @@ void PurePursuit::checkProjectionGoal(const float x, const float y)
 		if (h < hmin)
 		{
 			hmin = h;
-			if (i > m_goalIndex || t > m_goalParam || t > 1)
+			if (i > m_goalIndex || t > m_goalParam)
 			{
 				m_goalIndex = i;
 				m_goalParam = t;
@@ -200,10 +213,12 @@ bool PurePursuit::getPositionReached()
 
 void PurePursuit::load(int address)
 {
-	EEPROM.get(address, m_lookAhead); address += sizeof(m_lookAhead);
+	EEPROM.get(address, m_lookAhead);  address += sizeof(m_lookAhead);
+	EEPROM.get(address, m_endingMode); address += sizeof(m_endingMode);
 }
 
 void PurePursuit::save(int address) const
 {
-	EEPROM.put(address, m_lookAhead); address += sizeof(m_lookAhead);
+	EEPROM.put(address, m_lookAhead);  address += sizeof(m_lookAhead);
+	EEPROM.put(address, m_endingMode); address += sizeof(m_endingMode);
 }

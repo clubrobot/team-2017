@@ -296,6 +296,10 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		purePursuit.setLookAhead(input.read<float>());
 		purePursuit.save(PUREPURSUIT_ADDRESS);
 		break;
+	case PUREPURSUIT_ENDINGMODE_ID:
+		purePursuit.setEndingMode(PurePursuit::EndingMode(input.read<byte>()));
+		purePursuit.save(PUREPURSUIT_ADDRESS);
+		break;
 	}
 }
 
@@ -414,6 +418,10 @@ void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 
 	case PUREPURSUIT_LOOKAHED_ID:
 		output.write<float>(purePursuit.getLookAhead());
+		break;
+	case PUREPURSUIT_ENDINGMODE_ID:
+		output.write<byte>(byte(purePursuit.getEndingMode()));
+		output.write<byte>(purePursuit.getEndingMode());
 		break;
 	}
 }
