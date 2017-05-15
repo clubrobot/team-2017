@@ -44,13 +44,13 @@ void VelocityController::process(float timestep)
 	// Check for wheels abnormal spin and stop the controller accordingly
 	const bool saturatedLinVelOutput = (m_linVelOutput == m_linPID->getMinOutput() || m_linVelOutput == m_linPID->getMaxOutput());
 	const bool saturatedAngVelOutput = (m_angVelOutput == m_angPID->getMinOutput() || m_angVelOutput == m_angPID->getMaxOutput());
-	const bool linSpinUrgency = saturatedLinVelOutput && abs(m_linInput) <    1; // linear velocity < 1 cm/s
+	const bool linSpinUrgency = saturatedLinVelOutput && abs(m_linInput) <    1; // linear velocity < 1 mm/s
 	const bool angSpinUrgency = saturatedAngVelOutput && abs(m_angInput) < 0.05; // angular velocity < 0.05 rad/s
 	if (linSpinUrgency || angSpinUrgency)
 	{
 		talks.out << linSpinUrgency << ", " << angSpinUrgency << "\n";
-		talks.out << m_linVelOutput << ", " << m_linInput << m_linPID->getMaxOutput() << "\n";
-		talks.out << m_angVelOutput << ", " << m_angInput << m_angPID->getMaxOutput() << "\n";
+		talks.out << m_linVelOutput << ", " << m_linInput << ", " << m_linPID->getMaxOutput() << "\n";
+		talks.out << m_angVelOutput << ", " << m_angInput << ", " << m_angPID->getMaxOutput() << "\n";
 		m_leftWheel ->setVelocity(0);
 		m_rightWheel->setVelocity(0);
 		disable();
