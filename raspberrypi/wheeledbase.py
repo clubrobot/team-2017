@@ -69,8 +69,6 @@ PUREPURSUIT_ENDINGMODE_ID       = 0xE1
 
 class WheeledBase(SerialTalksProxy):
 
-	class Namespace(): pass
-
 	class Parameter():
 		def __init__(self, parent, id, type):
 			self.parent = parent
