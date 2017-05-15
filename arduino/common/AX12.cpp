@@ -959,7 +959,7 @@ int AX12::move(float Position){
 	return Dynamixel.move(m_id, pos);
 }
 
-int AX12::moveSpeed(float Position, float Speed){
+int AX12::moveSpeed(float Position, float speed){
 	if(m_endlessMode){
 		setEndlessMode(OFF);
 	}

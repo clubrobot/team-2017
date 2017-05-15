@@ -5,10 +5,14 @@
 #include "../common/SerialTalks.h"
 #include "../common/DCMotor.h"
 #include "instructions.h"
+#include "../common/AxError.h"
+#include "../common/PeriodicProcess.h"
 
 SoftwareSerial SoftSerial(RX, TX);
 
 AX12 servoax;
+
+AxError ax12(servoax); 
 
 DCMotorsDriver motorDriver;
 
@@ -28,10 +32,6 @@ void setup(){
   talks.bind(_GET_AX_POSITION_OPCODE, GET_AX_POSITION);
 
   AX12::SerialBegin(9600,RX,TX,DATA_CONTROL);
-  servoax.attach(2);
-  servoax.setEndlessMode(OFF);
-  servoax.hold(OFF);
-  servoax.setShutdownAlarm(0);
 
   motorDriver.attach(DRIVER_RESET , A7);
   motorDriver.reset();
@@ -41,11 +41,21 @@ void setup(){
 
   hammerMotor.attach(MOTOR1_EN, MOTOR1_PWM, MOTOR1_DIR);
   hammerMotor.setConstant(1/11.1);
+
+  ax12.setTimestep(0.5);
+  ax12.enable();
   
    // Miscellanous
 	//TCCR2B = (TCCR2B & 0b11111000) | 1;
+
+  servoax.attach(2);
+  servoax.setShutdownAlarm(0);
+  servoax.setMaxTorque(1023);
+  servoax.setEndlessMode(OFF);
+  servoax.hold(OFF);
 }
 
 void loop(){
   talks.execute();
+  ax12.update();
 }

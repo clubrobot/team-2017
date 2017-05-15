@@ -11,8 +11,11 @@ LOCAL_CPP_SRCS = \
     instructions.cpp \
     $(COMMON)/AX12.cpp \
     $(COMMON)/SoftwareSerial.cpp \
+    $(COMMON)/PeriodicProcess.cpp \
     $(COMMON)/SerialTalks.cpp \
     $(COMMON)/DCMotor.cpp \
+    $(COMMON)/AxError.cpp \ 
+
 
 
 #sketch libraries
