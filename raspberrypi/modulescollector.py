@@ -17,6 +17,8 @@ _IS_UP_OPCODE               = 0x08
 _IS_DOWN_OPCODE             = 0x09
 _GET_MOTOR_VELOCITY_OPCODE	= 0x0B
 _SET_MOTOR_VELOCITY_OPCODE  = 0x0C
+_GET_LEFT_MUSTACHE_OPCODE	= 0X0D
+_GET_RIGHT_MUSTACHE_OPCODE	= 0X0E
 
 
 class ModulesGripper(SerialTalksProxy):	
@@ -95,3 +97,17 @@ class ModulesElevator(SerialTalksProxy):
 			raise RuntimeError('gripper not closed')
 		while not self.isdown():
 			time.sleep(0.1)
+
+class Mustaches(SerialTalksProxy):
+	def __init__(self, parent, uuid='modulescollector'):
+		SerialTalksProxy.__init__(self, parent, uuid)
+	
+	def get_left_mustache(self):
+		output = self.execute(_GET_LEFT_MUSTACHE_OPCODE)
+		isdown = output.read(BYTE)
+		return bool(isdown)
+	
+	def get_right_mustache(self):
+		output = self.execute(_GET_RIGHT_MUSTACHE_OPCODE)
+		isdown = output.read(BYTE)
+		return bool(isdown)

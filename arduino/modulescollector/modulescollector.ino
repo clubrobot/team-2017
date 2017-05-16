@@ -20,6 +20,8 @@ FullSpeedServo dispenser;
 
 EndStop highStop;
 EndStop lowStop;
+EndStop leftmustache;
+EndStop rightmustache;
 
 void setup(){
     Serial.begin(SERIALTALKS_BAUDRATE);
@@ -32,7 +34,8 @@ void setup(){
     talks.bind(_OPEN_GRIP_OPCODE, OPEN_GRIP);   
     talks.bind(_SET_GRIP_VELOCITY_OPCODE, SET_GRIP_VELOCITY);
     talks.bind(_GET_MOTOR_VELOCITY_OPCODE,GET_MOTOR_VELOCITY);
-
+    talks.bind(_GET_LEFT_MUSTACHE_OPCODE, GET_LEFT_MUSTACHE);
+    talks.bind(_GET_RIGHT_MUSTACHE_OPCODE, GET_RIGHT_MUSTACHE);
 
     pinMode(SERVO2, OUTPUT);
     dispenser.attach(SERVO2);
@@ -41,6 +44,9 @@ void setup(){
     
     highStop.attach(SWITCH1);
     lowStop.attach(SWITCH2);
+
+    leftmustache.attach(SERVO1);
+    rightmustache.attach(SERVO4);
 
     pinMode(SERVO3, OUTPUT);
     gripper.attach(SERVO3);

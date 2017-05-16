@@ -13,6 +13,8 @@ extern VelocityServo gripper;
 extern FullSpeedServo dispenser;
 extern EndStop highStop;
 extern EndStop lowStop;
+extern EndStop leftmustache;
+extern EndStop rightmustache;
 extern DCMotor gripperMotor;
 
 void WRITE_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
@@ -102,4 +104,12 @@ void SET_MOTOR_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &outp
 
 void GET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& output){
     output.write<float>(gripperMotor.getVelocity());
+}
+
+void GET_LEFT_MUSTACHE(SerialTalks &inst, Deserializer &input, Serializer &output){
+    output.write<bool>(leftmustache.getState());
+}
+
+void GET_RIGHT_MUSTACHE(SerialTalks &inst, Deserializer &input, Serializer &output){
+    output.write<bool>(rightmustache.getState());
 }

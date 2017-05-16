@@ -4,6 +4,7 @@
 #include "../common/SerialTalks.h"
 
 
+
 #define _WRITE_DISPENSER_OPCODE     0x04
 #define _WRITE_GRIP_OPCODE          0X05
 #define _OPEN_GRIP_OPCODE			0x06	
@@ -12,6 +13,8 @@
 #define _IS_DOWN_OPCODE             0x09
 #define _GET_MOTOR_VELOCITY_OPCODE	0x0B
 #define _SET_MOTOR_VELOCITY_OPCODE  0x0C
+#define _GET_LEFT_MUSTACHE_OPCODE	0X0D
+#define _GET_RIGHT_MUSTACHE_OPCODE	0X0E
 
 void SET_GRIP_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output);
 
@@ -29,8 +32,8 @@ void SET_MOTOR_VELOCITY(SerialTalks& inst, Deserializer& input, Serializer& outp
 
 void OPEN_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output); 
 
-// position ouverte gripper = 142
-// position fermée gripper = 4
- 
+void GET_LEFT_MUSTACHE(SerialTalks &inst, Deserializer &input, Serializer &output); 
 
+void GET_RIGHT_MUSTACHE(SerialTalks &inst, Deserializer &input, Serializer &output);
+ 
 #endif
