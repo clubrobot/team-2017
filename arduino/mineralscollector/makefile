@@ -9,12 +9,12 @@ COMMON = ../common
 LOCAL_INO_SRCS = mineralscollector.ino 
 LOCAL_CPP_SRCS = \
     instructions.cpp \
+    SafePosition.cpp \
     $(COMMON)/AX12.cpp \
     $(COMMON)/SoftwareSerial.cpp \
     $(COMMON)/PeriodicProcess.cpp \
     $(COMMON)/SerialTalks.cpp \
     $(COMMON)/DCMotor.cpp \
-    $(COMMON)/AxError.cpp \ 
 
 
 

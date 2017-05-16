@@ -17,6 +17,7 @@ _GET_AX_TORQUE_OPCODE				=	0X07
 _SET_AX_VELOCITY_MOVE_OPCODE		=	0X08
 _PING_AX_OPCODE						=	0x09
 _SET_AX_HOLD_OPCODE					=	0X0A
+_CHECK_AX_OPCODE					=	0x0B
 
 class AX12(SerialTalksProxy):	
 	def __init__(self, parent, uuid='mineralscollector'):
@@ -59,11 +60,16 @@ class AX12(SerialTalksProxy):
 	
 	def set_collecting_position(self, a):
 		self.collecting_position = a
+	
+	def ping(self):
+		output = self.execute(_CHECK_AX_OPCODE)
+		ok = output.read(INT)
+		return int(ok)
 
 class Hammer(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
-		self.firing_velocity = 6	
+		self.firing_velocity = 9	
 
 	def set_velocity(self, a):
 		self.send(_SET_FIRING_HAMMER_VELOCITY_OPCODE, FLOAT(a))

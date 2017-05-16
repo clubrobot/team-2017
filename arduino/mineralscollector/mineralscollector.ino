@@ -8,16 +8,18 @@
 #include "../common/AxError.h"
 #include "../common/PeriodicProcess.h"
 
+
+
 SoftwareSerial SoftSerial(RX, TX);
 
 AX12 servoax;
-
-AxError ax12(servoax); 
 
 DCMotorsDriver motorDriver;
 
 DCMotor rollerMotor;
 DCMotor hammerMotor;
+
+
 
 void setup(){
   Serial.begin(SERIALTALKS_BAUDRATE);
@@ -30,6 +32,7 @@ void setup(){
   talks.bind(_PING_AX_OPCODE, PING_AX);
   talks.bind(_SET_AX_HOLD_OPCODE, SET_AX_HOLD);
   talks.bind(_GET_AX_POSITION_OPCODE, GET_AX_POSITION);
+  talks.bind(_CHECK_AX_OPCODE, CHECK_AX);
 
   AX12::SerialBegin(9600,RX,TX,DATA_CONTROL);
 
@@ -42,20 +45,18 @@ void setup(){
   hammerMotor.attach(MOTOR1_EN, MOTOR1_PWM, MOTOR1_DIR);
   hammerMotor.setConstant(1/11.1);
 
-  ax12.setTimestep(0.5);
-  ax12.enable();
-  
    // Miscellanous
 	//TCCR2B = (TCCR2B & 0b11111000) | 1;
 
   servoax.attach(2);
   servoax.setShutdownAlarm(0);
+  servoax.setSRL(1);
   servoax.setMaxTorque(1023);
   servoax.setEndlessMode(OFF);
   servoax.hold(OFF);
+  
 }
 
 void loop(){
   talks.execute();
-  ax12.update();
 }
