@@ -11,6 +11,7 @@ import math
 class GeoGebra:
 	
 	class Point(tuple):   pass
+	class Line(tuple):    pass
 	class Circle(tuple):  pass
 	class Ellipse(tuple): pass
 	class Segment(tuple): pass
@@ -40,6 +41,8 @@ class GeoGebra:
 			raise KeyError(label)
 		if element.attrib['type'] == 'point':
 			return self._parse_point(element)
+		elif element.attrib['type'] == 'line':
+			return self._parse_line(element)
 		elif element.attrib['type'] == 'conic':
 			return self._parse_conic(element)
 		elif element.attrib['type'] == 'segment':
@@ -68,7 +71,18 @@ class GeoGebra:
 		x = float(coords.get('x'))
 		y = float(coords.get('y'))
 		return GeoGebra.Point((x, y))
-	
+
+	def _parse_line(self, element):
+		coords = element.find('coords')
+		a = float(coords.get('x'))
+		b = float(coords.get('y'))
+		c = float(coords.get('z'))
+		try:
+			x, y = -c/a, 0
+		except ZeroDivisionError:
+			x, y = 0, -c/b
+		return GeoGebra.Line((x, y, math.pi - math.atan2(a, b)))
+
 	def _parse_conic(self, element):
 		matrix = element.find('matrix').attrib
 		A =  float(matrix.get('A0'))
@@ -86,7 +100,7 @@ class GeoGebra:
 			return GeoGebra.Circle((xc, yc, radius))
 		else:
 			raise NotImplementedError('ellipses currently not handled')
-	
+
 	def _parse_segment(self, element):
 		label = element.attrib['label']
 		command = self.root.find("./construction/command[@name='Segment']/output[@a0='{}']/..".format(label))
