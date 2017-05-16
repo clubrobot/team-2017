@@ -63,8 +63,6 @@ class Bornibus(Behavior):
 		action = random.choice(actions)
 		if action[0] in (self.take_playfield_module_procedure, self.take_rocket_module_procedure):
 			self.setup_gripper_mandatory = True
-#		if action[0] is not self.drop_module_procedure:
-		self.calibration_required = True
 		return action
 
 	def goto_procedure(self, destination):
@@ -183,21 +181,27 @@ class Bornibus(Behavior):
 		self.store_module_mandatory = True
 
 	def drop_module_procedure(self, major, minor, angle):
-		# Turn 90 degrees to swipe undesirable balls
-		self.wheeledbase.turnonthespot(angle)
-		self.wheeledbase.wait()
-		self.wheeledbase.turnonthespot(angle - math.pi / 2)
-		self.wheeledbase.wait()
+		if self.calibration_required:
+			# Turn 90 degrees to swipe undesirable balls
+			self.wheeledbase.turnonthespot(angle)
+			self.wheeledbase.wait()
+			self.wheeledbase.turnonthespot(angle - math.pi / 2)
+			self.wheeledbase.wait()
 
-		# Do an odometry calibration
-		self.wheeledbase.set_openloop_velocities(300, 300); time.sleep(1)
-		xref, yref = self.geogebra.get('deposit_{{{}}}'.format(major))
-		xthought, ythought, _ = self.wheeledbase.get_position()
-		offset = math.hypot(xref - xthought, yref - ythought) * math.sin(angle- math.atan2(yref - ythought, xref - xthought)) - (40 + 28 + self.geogebra.get('Bornibus_{length}') / 2 - 1)
-		xthought += offset * math.cos(angle - math.pi / 2)
-		ythought += offset * math.sin(angle - math.pi / 2)
-		self.wheeledbase.set_position(xthought, ythought, angle - math.pi / 2)
-		self.wheeledbase.stop()
+			# Do an odometry calibration
+			self.wheeledbase.set_velocities(200, 0)
+			try: self.wheeledbase.wait()
+			except RuntimeError: self.wheeledbase.set_openloop_velocities(500, 500)
+			time.sleep(0.1)
+			xref, yref = self.geogebra.get('deposit_{{{}}}'.format(major))
+			angleref = angle - math.pi / 2
+#			angleref = self.wheeledbase.get_position()[3]
+			xthought, ythought = self.wheeledbase.get_position()[:2]
+			offset = math.hypot(xref - xthought, yref - ythought) * math.cos(angleref - math.atan2(yref - ythought, xref - xthought)) - (40 + 28 + self.geogebra.get('Bornibus_{length}') / 2 - 1)
+			xthought += offset * math.cos(angleref)
+			ythought += offset * math.sin(angleref)
+			self.wheeledbase.set_position(xthought, ythought, angleref)
+			self.wheeledbase.stop()
 
 		# Goto dropping site
 		self.wheeledbase.goto(*self.geogebra.get('deposit_{{{}, action, {}, {}}}'.format(major, minor, 1)), angle)
