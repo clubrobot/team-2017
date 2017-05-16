@@ -22,6 +22,7 @@ class Bornibus(Behavior):
 		Behavior.__init__(self, *args, **kwargs)
 		self.setup_gripper_mandatory = False
 		self.store_module_mandatory = False
+		self.calibration_required = False
 		self.elevator_stucked = False
 
 	def connect(self):
@@ -46,24 +47,23 @@ class Bornibus(Behavior):
 	def make_decision(self):
 		import random
 		actions = [
-			(self.take_playfield_module_procedure, ('module_{01, action, a}',), {}, self.geogebra.get('module_{01, action, a}') + (self.geogebra.get('module_{01, angle, a}'),)),
-			(self.take_playfield_module_procedure, ('module_{03, action, a}',), {}, self.geogebra.get('module_{03, action, a}') + (self.geogebra.get('module_{03, angle, a}'),)),
-			(self.take_rocket_module_procedure, ('module_{06, action, a}',), {}, self.geogebra.get('module_{06, action, a}') + (math.pi,)),
-			(self.drop_module_procedure, (), {}, self.geogebra.get('deposit_{00, action, a}') + (math.pi,)),
-			(self.drop_module_procedure, (), {}, self.geogebra.get('deposit_{01, action, a}') + (math.pi,)),
-			(self.drop_module_procedure, (), {}, self.geogebra.get('deposit_{02, action, a}') + (math.pi,)),
-			(self.drop_module_procedure, (), {}, self.geogebra.get('deposit_{03, action, a}') + (math.pi,)),
-			(self.drop_module_procedure, (), {}, self.geogebra.get('deposit_{04, action, a}') + (-math.pi/4,)),
-			(self.drop_module_procedure, (), {}, self.geogebra.get('deposit_{04, action, b}') + (3*math.pi/4,)),
-			(self.drop_module_procedure, (), {}, self.geogebra.get('deposit_{05, action, a}') + (-math.pi/4,)),
-			(self.drop_module_procedure, (), {}, self.geogebra.get('deposit_{05, action, b}') + (3*math.pi/4,)),
-			(self.drop_module_procedure, (), {}, self.geogebra.get('deposit_{06, action, b}') + (3*math.pi/4,))
+			(self.take_playfield_module_procedure, ('01', 'a'), {}, self.geogebra.get('module_{01, action, a}') + (self.geogebra.get('module_{01, angle, a}'),)),
+			(self.take_playfield_module_procedure, ('03', 'a'), {}, self.geogebra.get('module_{03, action, a}') + (self.geogebra.get('module_{03, angle, a}'),)),
+			(self.take_rocket_module_procedure,    ('06', 'a'), {}, self.geogebra.get('module_{06, action, a}') + (math.pi,)),
+			(self.drop_module_procedure, ('00', 'a',   math.pi),   {}, self.geogebra.get('deposit_{00, action, a}') +    (math.pi/2,)),
+			(self.drop_module_procedure, ('01', 'a',   math.pi),   {}, self.geogebra.get('deposit_{01, action, a}') +    (math.pi/2,)),
+			(self.drop_module_procedure, ('02', 'a',   math.pi),   {}, self.geogebra.get('deposit_{02, action, a}') +    (math.pi/2,)),
+			(self.drop_module_procedure, ('03', 'a',   math.pi),   {}, self.geogebra.get('deposit_{03, action, a}') +    (math.pi/2,)),
+			(self.drop_module_procedure, ('04', 'a',  -math.pi/4), {}, self.geogebra.get('deposit_{04, action, a}') + (-3*math.pi/4,)),
+			(self.drop_module_procedure, ('04', 'b', 3*math.pi/4), {}, self.geogebra.get('deposit_{04, action, b}') +    (math.pi/4,)),
+#			(self.drop_module_procedure, ('05', 'a',  -math.pi/4), {}, self.geogebra.get('deposit_{04, action, a}') + (-3*math.pi/4,)),
+			(self.drop_module_procedure, ('05', 'b', 3*math.pi/4), {}, self.geogebra.get('deposit_{05, action, b}') +    (math.pi/4,)),
+#			(self.drop_module_procedure, ('06', 'b', 3*math.pi/4), {}, self.geogebra.get('deposit_{05, action, b}') +    (math.pi/4,))
 		]
 		action = random.choice(actions)
-		if action[0] == self.take_playfield_module_procedure or action[0] == self.take_rocket_module_procedure:
+		if action[0] in (self.take_playfield_module_procedure, self.take_rocket_module_procedure):
 			self.setup_gripper_mandatory = True
 		return action
-		return (None, (), {}, None)
 
 	def goto_procedure(self, destination):
 		# Pathfinding
@@ -76,12 +76,12 @@ class Bornibus(Behavior):
 			direction = 1
 		else:
 			direction = -1
-		lookahead = 200
-		linvelmax = 400
-		angvelmax = 2
+		self.wheeledbase.lookahead.set(200)
+		self.wheeledbase.max_linvel.set(400)
+		self.wheeledbase.max_angvel.set(3.0)
 
 		# Trajectory
-		self.wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction], lookahead=lookahead, linvelmax=linvelmax, angvelmax=angvelmax)
+		self.wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
 
 		# Do mandatory procedures
 		def mandatory_procedures():		
@@ -137,10 +137,9 @@ class Bornibus(Behavior):
 		self.elevator.set_velocity(0)
 		self.dispenser.set_position(-1, 1)
 
-	def take_playfield_module_procedure(self, label):
+	def take_playfield_module_procedure(self, major, minor):
 		# Go to the taking point
-		module, action = re.match('module_{(\d+), action, ([a-c])}', label).groups()
-		self.wheeledbase.goto(*self.geogebra.get('module_{{{}, action, {}, {}}}'.format(module, action, 1)))
+		self.wheeledbase.goto(*self.geogebra.get('module_{{{}, action, {}, {}}}'.format(major, minor, 1)))
 
 		# Do an adjustment procedure
 		self.wheeledbase.set_velocities(30,  0.0); time.sleep(0.6)
@@ -154,10 +153,9 @@ class Bornibus(Behavior):
 		# Store the module during the next route
 		self.store_module_mandatory = True
 	
-	def take_rocket_module_procedure(self, label):
+	def take_rocket_module_procedure(self, major, minor):
 		# Go to the taking point
-		module, action = re.match('module_{(\d+), action, ([a-c])}', label).groups()
-		self.wheeledbase.goto(*self.geogebra.get('module_{{{}, action, {}, {}}}'.format(module, action, 1)))
+		self.wheeledbase.goto(*self.geogebra.get('module_{{{}, action, {}, {}}}'.format(major, minor, 1)))
 		
 		# Get to the bottom of the rocket
 		self.wheeledbase.set_velocities(45, -0.3); time.sleep(0.2)
@@ -168,7 +166,7 @@ class Bornibus(Behavior):
 		time.sleep(0.4)
 
 		# Go backward
-		self.wheeledbase.goto(*self.geogebra.get(label))
+		self.wheeledbase.goto(*self.geogebra.get('module_{{{}, action, {}}}'.format(major, minor)))
 
 		# Do an adjustment procedure
 		self.gripper.open_low();
@@ -181,6 +179,38 @@ class Bornibus(Behavior):
 
 		# Store the module during the next route
 		self.store_module_mandatory = True
+
+	def drop_module_procedure(self, major, minor, angle):
+		if self.calibration_required:
+			# Turn 90 degrees to swipe undesirable balls
+			self.wheeledbase.turnonthespot(angle)
+			self.wheeledbase.wait()
+			self.wheeledbase.turnonthespot(angle - math.pi / 2)
+			self.wheeledbase.wait()
+
+			# Do an odometry calibration
+			self.wheeledbase.set_velocities(200, 0)
+			try: self.wheeledbase.wait()
+			except RuntimeError: self.wheeledbase.set_openloop_velocities(500, 500)
+			time.sleep(0.1)
+			xref, yref = self.geogebra.get('deposit_{{{}}}'.format(major))
+			angleref = angle - math.pi / 2
+#			angleref = self.wheeledbase.get_position()[3]
+			xthought, ythought = self.wheeledbase.get_position()[:2]
+			offset = math.hypot(xref - xthought, yref - ythought) * math.cos(angleref - math.atan2(yref - ythought, xref - xthought)) - (40 + 28 + self.geogebra.get('Bornibus_{length}') / 2 - 1)
+			xthought += offset * math.cos(angleref)
+			ythought += offset * math.sin(angleref)
+			self.wheeledbase.set_position(xthought, ythought, angleref)
+			self.wheeledbase.stop()
+
+		# Goto dropping site
+		self.wheeledbase.goto(*self.geogebra.get('deposit_{{{}, action, {}, {}}}'.format(major, minor, 1)), angle)
+
+		# Drop module
+		self.dispenser.open()
+		time.sleep(1.2)
+		self.dispenser.close()
+		time.sleep(0.7)
 
 	def store_module_procedure(self, delay=0):
 		try:
@@ -201,9 +231,3 @@ class Bornibus(Behavior):
 		except RuntimeError:
 			self.elevator_stucked = True
 		self.setup_gripper_mandatory = False
-
-	def drop_module_procedure(self):
-		self.dispenser.open()
-		time.sleep(1.2)
-		self.dispenser.close()
-		time.sleep(0.7)
