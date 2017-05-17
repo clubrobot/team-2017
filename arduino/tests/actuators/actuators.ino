@@ -5,20 +5,19 @@
 #include "../common/SerialTalks.h"
 #include "../common/DCMotor.h"
 #include "instructions.h"
+#include "../common/AxError.h"
 #include "../common/PeriodicProcess.h"
-#include "SafePosition.h"
-
 
 SoftwareSerial SoftSerial(RX, TX);
 
 AX12 servoax;
 
+AxError ax12(servoax); 
+
 DCMotorsDriver motorDriver;
 
 DCMotor rollerMotor;
 DCMotor hammerMotor;
-
-SafePosition safeHammer(&hammerMotor);
 
 void setup(){
   Serial.begin(SERIALTALKS_BAUDRATE);
@@ -31,9 +30,6 @@ void setup(){
   talks.bind(_PING_AX_OPCODE, PING_AX);
   talks.bind(_SET_AX_HOLD_OPCODE, SET_AX_HOLD);
   talks.bind(_GET_AX_POSITION_OPCODE, GET_AX_POSITION);
-  talks.bind(_RETURN_TO_SAFE_POSITION_OPCODE, RETURN_TO_SAFE_POSITION);
-  talks.bind(AX12_SEND_INSTRUCTION_PACKET_OPCODE, AX12_SEND_INSTRUCTION_PACKET);
-  talks.bind(AX12_RECEIVE_STATUS_PACKET_OPCODE, AX12_RECEIVE_STATUS_PACKET);
 
   AX12::SerialBegin(9600,RX,TX,DATA_CONTROL);
 
@@ -46,22 +42,20 @@ void setup(){
   hammerMotor.attach(MOTOR1_EN, MOTOR1_PWM, MOTOR1_DIR);
   hammerMotor.setConstant(1/11.1);
 
+  ax12.setTimestep(0.5);
+  ax12.enable();
+  
    // Miscellanous
-	TCCR2B = (TCCR2B & 0b11111000) | 1;
+	//TCCR2B = (TCCR2B & 0b11111000) | 1;
 
   servoax.attach(2);
-  servoax.setSRL(2); // Respond only to READ_DATA instructions
-  servoax.setLEDAlarm(32); // max torque only
-  servoax.setShutdownAlarm(32); // max torque only
+  servoax.setShutdownAlarm(0);
   servoax.setMaxTorque(1023);
   servoax.setEndlessMode(OFF);
   servoax.hold(OFF);
-  
-  safeHammer.setTimestep(3);
-  safeHammer.toSafePosition();
 }
 
 void loop(){
   talks.execute();
-  safeHammer.update();
+  ax12.update();
 }
