@@ -113,6 +113,7 @@ protected: // Protected methods
 	
 	byte        m_bytesNumber;
 	byte        m_bytesCounter;
+	long        m_lastTime;
 
 private:
 
