@@ -24,6 +24,8 @@ class Bornibus(Behavior):
 		self.calibration_required = False
 		self.elevator_stucked = False
 
+		self.automatestep = 0
+
 	def connect(self):
 		try:
 			Behavior.connect(self)
@@ -45,8 +47,8 @@ class Bornibus(Behavior):
 		self.roadmap = RoadMap.load(self.geogebra)
 
 	def make_decision(self):
-		import random
-		actions = [
+#		import random
+#		actions = [
 #			TakePlayfieldModuleAction(self.geogebra, '01', 'a'),
 #			TakePlayfieldModuleAction(self.geogebra, '03', 'a')
 #			TakeRocketModuleAction(self.geogebra, '06', 'a'),
@@ -59,17 +61,33 @@ class Bornibus(Behavior):
 #			DropModuleAction(self.geogebra, '05', 'a'),
 #			DropModuleAction(self.geogebra, '05', 'b'),
 #			DropModuleAction(self.geogebra, '06', 'b'),
-			RecalibrateOdometryAction(self.geogebra, '00', 'a'),
-			RecalibrateOdometryAction(self.geogebra, '00', 'b'),
-			RecalibrateOdometryAction(self.geogebra, '00', 'c'),
-			RecalibrateOdometryAction(self.geogebra, '00', 'd'),
+#			RecalibrateOdometryAction(self.geogebra, '00', 'a'),
+#			RecalibrateOdometryAction(self.geogebra, '00', 'b'),
+#			RecalibrateOdometryAction(self.geogebra, '00', 'c'),
+#			RecalibrateOdometryAction(self.geogebra, '00', 'd'),
+#			RecalibrateOdometryAction(self.geogebra, '01', 'a'),
+#			RecalibrateOdometryAction(self.geogebra, '02', 'a'),
+#			RecalibrateOdometryAction(self.geogebra, '02', 'b')
+#		]
+#		action = random.choice(actions)
+		automate = [
+			TakePlayfieldModuleAction(self.geogebra, '01', 'a'),
+			TakePlayfieldModuleAction(self.geogebra, '03', 'a'),
 			RecalibrateOdometryAction(self.geogebra, '01', 'a'),
-			RecalibrateOdometryAction(self.geogebra, '02', 'a'),
-			RecalibrateOdometryAction(self.geogebra, '02', 'b')
+			DropModuleAction(self.geogebra, '04', 'a'),
+			DropModuleAction(self.geogebra, '05', 'a'),
+			TakeRocketModuleAction(self.geogebra, '06', 'a'),
+			TakeRocketModuleAction(self.geogebra, '06', 'a'),
+			TakeRocketModuleAction(self.geogebra, '06', 'a'),
+			RecalibrateOdometryAction(self.geogebra, '00', 'a'),
+			DropModuleAction(self.geogebra, '00', 'a'),
+			DropModuleAction(self.geogebra, '01', 'a'),
+			DropModuleAction(self.geogebra, '02', 'a')
 		]
-		action = random.choice(actions)
+		action = automate[self.automatestep]
 		if isinstance(action, (TakePlayfieldModuleAction, TakeRocketModuleAction)):
 			self.setup_gripper_mandatory = True
+		self.automatestep += 1
 		return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
 
 	def goto_procedure(self, destination):
@@ -84,8 +102,8 @@ class Bornibus(Behavior):
 		else:
 			direction = -1
 		self.wheeledbase.lookahead.set(200)
-		self.wheeledbase.max_linvel.set(400)
-		self.wheeledbase.max_angvel.set(3.0)
+		self.wheeledbase.max_linvel.set(500)
+		self.wheeledbase.max_angvel.set(6.0)
 		self.wheeledbase.linpos_threshold.set(3)
 		self.wheeledbase.angpos_threshold.set(0.1)
 
@@ -272,7 +290,7 @@ class RecalibrateOdometryAction:
 		wheeledbase.set_velocities(200, 0)
 		try: wheeledbase.wait()
 		except RuntimeError: wheeledbase.set_openloop_velocities(500, 500)
-		time.sleep(0.1)
+		time.sleep(0.5)
 
 		# Check if there is no obstacle on the route
 		if not mustaches.get_left_mustache() or not mustaches.get_right_mustache():
@@ -281,7 +299,7 @@ class RecalibrateOdometryAction:
 			wheeledbase.goto(*self.sweepobstacle)
 
 			# Quickly turn on the spot to sweep the obstacle away
-			wheeledbase.set_velocities(0, 6)
+			wheeledbase.set_velocities(0, 10)
 			time.sleep(1)
 
 			# Run at the wall again
@@ -290,12 +308,12 @@ class RecalibrateOdometryAction:
 			wheeledbase.set_velocities(200, 0)
 			try: wheeledbase.wait()
 			except RuntimeError: wheeledbase.set_openloop_velocities(500, 500)
-			time.sleep(0.1)
+			time.sleep(0.5)
 		
 		# Do an odometry recalibration
 		xref, yref = self.calibration
 		thetaref = self.orientation
-#		thetaref = wheeledbase.get_position()[3]
+#		thetaref = wheeledbase.get_position()[2]
 		xthought, ythought = wheeledbase.get_position()[:2]
 		offset = math.hypot(xref - xthought, yref - ythought) * math.cos(thetaref - math.atan2(yref - ythought, xref - xthought))
 		xthought += offset * math.cos(thetaref)
