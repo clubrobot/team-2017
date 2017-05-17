@@ -50,7 +50,7 @@ void setup(){
 	TCCR2B = (TCCR2B & 0b11111000) | 1;
 
   servoax.attach(2);
-  servoax.setSRL(2); // Respond only to READ_DATA instructions
+  servoax.setSRL(1); // Respond only to READ_DATA instructions
   servoax.setLEDAlarm(32); // max torque only
   servoax.setShutdownAlarm(32); // max torque only
   servoax.setMaxTorque(1023);
