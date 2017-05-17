@@ -30,6 +30,17 @@ void SET_FIRING_HAMMER_VELOCITY(SerialTalks &inst, Deserializer &input, Serializ
 	}
 }
 
+void SETUP_AX(SerialTalks& talks, Deserializer& input, Serializer& output)
+{
+	servoax.attach(2);
+	servoax.setSRL(1); // Respond only to READ_DATA instructions
+	servoax.setLEDAlarm(32); // max torque only
+	servoax.setShutdownAlarm(32); // max torque only
+	servoax.setMaxTorque(1023);
+	servoax.setEndlessMode(OFF);
+	servoax.hold(OFF);
+}
+
 void SET_AX_POSITION(SerialTalks &inst, Deserializer &input, Serializer &output){
 	servoax.hold(1);
 	servoax.setMaxTorqueRAM(1023);

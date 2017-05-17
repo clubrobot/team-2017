@@ -11,15 +11,15 @@ from components import SerialTalksProxy
 
 _SET_ROLLER_VELOCITY_OPCODE 		=	0x03
 _SET_FIRING_HAMMER_VELOCITY_OPCODE	=	0x04
+_RETURN_TO_SAFE_POSITION_OPCODE		= 	0x0B
+_SETUP_AX_OPCODE					=	0x0C
 _SET_AX_POSITION_OPCODE				=	0X05
 _GET_AX_POSITION_OPCODE				=	0X06
 _GET_AX_TORQUE_OPCODE				=	0X07
 _SET_AX_VELOCITY_MOVE_OPCODE		=	0X08
 _PING_AX_OPCODE						=	0x09
 _SET_AX_HOLD_OPCODE					=	0X0A
-_CHECK_AX_OPCODE					=	0x0B
 
-_RETURN_TO_SAFE_POSITION_OPCODE		= 	0x0B
 
 AX12_SEND_INSTRUCTION_PACKET_OPCODE = 0x0E
 AX12_RECEIVE_STATUS_PACKET_OPCODE   = 0x0F
@@ -27,6 +27,7 @@ AX12_RECEIVE_STATUS_PACKET_OPCODE   = 0x0F
 class AX12(SerialTalksProxy):	
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
+		self.send(_SETUP_AX_OPCODE)
 		self.closed_position = 282
 		self.collecting_position = 70
 
