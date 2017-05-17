@@ -70,7 +70,8 @@ class GeoGebra:
 		coords = element.find('coords')
 		x = float(coords.get('x'))
 		y = float(coords.get('y'))
-		return GeoGebra.Point((x, y))
+		z = float(coords.get('z'))
+		return GeoGebra.Point((x/z, y/z))
 
 	def _parse_line(self, element):
 		coords = element.find('coords')
