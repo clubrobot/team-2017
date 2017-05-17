@@ -13,7 +13,6 @@ from roadmap import RoadMap
 
 import time
 import math
-import re
 
 
 class Bornibus(Behavior):
@@ -48,8 +47,8 @@ class Bornibus(Behavior):
 	def make_decision(self):
 		import random
 		actions = [
-			TakePlayfieldModuleAction(self.geogebra, '01', 'a'),
-			TakePlayfieldModuleAction(self.geogebra, '03', 'a')
+#			TakePlayfieldModuleAction(self.geogebra, '01', 'a'),
+#			TakePlayfieldModuleAction(self.geogebra, '03', 'a')
 #			TakeRocketModuleAction(self.geogebra, '06', 'a'),
 #			DropModuleAction(self.geogebra, '00', 'a'),
 #			DropModuleAction(self.geogebra, '01', 'a'),
@@ -59,7 +58,14 @@ class Bornibus(Behavior):
 #			DropModuleAction(self.geogebra, '04', 'b'),
 #			DropModuleAction(self.geogebra, '05', 'a'),
 #			DropModuleAction(self.geogebra, '05', 'b'),
-#			DropModuleAction(self.geogebra, '06', 'b')
+#			DropModuleAction(self.geogebra, '06', 'b'),
+			RecalibrateOdometryAction(self.geogebra, '00', 'a'),
+			RecalibrateOdometryAction(self.geogebra, '00', 'b'),
+			RecalibrateOdometryAction(self.geogebra, '00', 'c'),
+			RecalibrateOdometryAction(self.geogebra, '00', 'd'),
+			RecalibrateOdometryAction(self.geogebra, '01', 'a'),
+			RecalibrateOdometryAction(self.geogebra, '02', 'a'),
+			RecalibrateOdometryAction(self.geogebra, '02', 'b')
 		]
 		action = random.choice(actions)
 		if isinstance(action, (TakePlayfieldModuleAction, TakeRocketModuleAction)):
@@ -253,12 +259,14 @@ class DropModuleAction:
 
 class RecalibrateOdometryAction:
 	def __init__(self, geogebra, major, minor):
-		self.actionpoint = geogebra.get('odometry_{{{}, action, {}}}'.format(major, minor))
-		self.calibrpoint = geogebra.get('odometry_{{{}, action, {}, 1}}'.format(major, minor))
-		self.orientation = math.atan2(self.calibrpoint[1] - self.actionpoint[1], self.calibrpoint[0] - self.actionpoint[0])
+		self.actionpoint   = geogebra.get('odometry_{{{}, action, {}}}'.format(major, minor))
+		self.calibration   = geogebra.get('odometry_{{{}, action, {}, 1}}'.format(major, minor))
+		self.sweepobstacle = geogebra.get('odometry_{{{}, action, {}, 2}}'.format(major, minor))
+		self.orientation = math.atan2(self.calibration[1] - self.actionpoint[1], self.calibration[0] - self.actionpoint[0])
 	
 	def procedure(self, bornibus):
 		wheeledbase = bornibus.wheeledbase
+		mustaches   = bornibus.mustaches
 
 		# Run at the wall
 		wheeledbase.set_velocities(200, 0)
@@ -267,10 +275,25 @@ class RecalibrateOdometryAction:
 		time.sleep(0.1)
 
 		# Check if there is no obstacle on the route
-		#TODO
+		if not mustaches.get_left_mustache() or not mustaches.get_right_mustache():
+			
+			# Go backward a little
+			wheeledbase.goto(*self.sweepobstacle)
+
+			# Quickly turn on the spot to sweep the obstacle away
+			wheeledbase.set_velocities(0, 6)
+			time.sleep(1)
+
+			# Run at the wall again
+			wheeledbase.turnonthespot(self.orientation)
+			wheeledbase.wait()
+			wheeledbase.set_velocities(200, 0)
+			try: wheeledbase.wait()
+			except RuntimeError: wheeledbase.set_openloop_velocities(500, 500)
+			time.sleep(0.1)
 		
 		# Do an odometry recalibration
-		xref, yref = self.calibrpoint
+		xref, yref = self.calibration
 		thetaref = self.orientation
 #		thetaref = wheeledbase.get_position()[3]
 		xthought, ythought = wheeledbase.get_position()[:2]
