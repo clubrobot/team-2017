@@ -167,6 +167,7 @@ public:
 	int setAngleLimit(unsigned char ID, int CWLimit, int CCWLimit);
 	int setVoltageLimit(unsigned char ID, unsigned char DVoltage, unsigned char UVoltage);
 	int setMaxTorque(unsigned char ID, int MaxTorque);
+	int setMaxTorqueRAM(unsigned char ID, int MaxTorque);
 	int setSRL(unsigned char ID, unsigned char SRL);
 	int setRDT(unsigned char ID, unsigned char RDT);
 	int setLEDAlarm(unsigned char ID, unsigned char LEDAlarm);
@@ -225,6 +226,7 @@ public:
 	int setAngleLimit(float CWLimit, float CCWLimit);
 	int setVoltageLimit(unsigned char DVoltage, unsigned char UVoltage);
 	int setMaxTorque(int MaxTorque);
+	int setMaxTorqueRAM(int MaxTorque);
 	int setSRL(unsigned char SRL);
 	int setRDT(unsigned char RDT);
 	int setLEDAlarm(unsigned char LEDAlarm);
