@@ -18,6 +18,9 @@ _SET_AX_VELOCITY_MOVE_OPCODE		=	0X08
 _PING_AX_OPCODE						=	0x09
 _SET_AX_HOLD_OPCODE					=	0X0A
 
+AX12_SEND_INSTRUCTION_PACKET_OPCODE = 0x0E
+AX12_RECEIVE_STATUS_PACKET_OPCODE   = 0x0F
+
 class AX12(SerialTalksProxy):	
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
@@ -59,6 +62,31 @@ class AX12(SerialTalksProxy):
 	
 	def set_collecting_position(self, a):
 		self.collecting_position = a
+
+	def send_instruction_packet(self, packet):
+		self.send(AX12_SEND_INSTRUCTION_PACKET_OPCODE, BYTE(len(packet)), *map(BYTE, packet))
+
+	def receive_status_packet(self):
+		output = self.execute(AX12_RECEIVE_STATUS_PACKET_OPCODE)
+		packet = []
+		for i in range(output.read(BYTE)):
+			packet.append(output.read(BYTE))
+		return packet
+
+	def read_data(self, address, length=1):
+		self.receive_status_packet() # Purge status packets
+		content = [0x02, 0x04, 0x02, address, length]
+		checksum = ~sum(content) & 0xFF
+		packet = [0xFF, 0xFF] + content + [checksum]
+		self.send_instruction_packet(packet)
+		time.sleep(0.1)
+		return self.receive_status_packet()[5:-1]
+
+	def write_data(self, address, data):
+		content = [0x02, 3 + len(data), 0x03, address] + data
+		checksum = ~sum(content) & 0xFF
+		packet = [0xFF, 0xFF] + content + [checksum]
+		self.send_instruction_packet(packet)
 
 class Hammer(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
