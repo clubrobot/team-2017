@@ -77,28 +77,35 @@ class Behavior(Manager):
 	def start(self):
 		self.starttime = time.monotonic()
 		self.stop_event.clear()
+		self.log('start')
 		try:
 			while (self.timelimit is None or self.get_elapsed_time() < self.timelimit) and not self.stop_event.is_set():
 				decision = self.make_decision()
 				procedure, args, kwargs, location = decision
 				if procedure is None:
+					self.log('no decision')
 					time.sleep(1)
 					continue
 				if location is not None:
+					self.log('goto: ({0[0]:.0f}, {0[1]:.0f}, {0[2]:.2f})'.format(location))
 					goto = self.perform(self.goto_procedure, args=(location,))
 					success = self.get(goto)
 				else:
 					success = True
 				if success:
+					self.log('start procedure')
 					action = self.perform(procedure, args=args, kwargs=kwargs)
 					self.get(action)
+				else:
+					self.log('goto failed')
 		finally:
 			self.stop()
-			self.perform(self.stop_procedure, timelimit=False)
 			self.whitelist.add(id(current_thread()))
 
 	def stop(self):
+		self.log('stop')
 		self.whitelist.clear()
+		self.perform(self.stop_procedure, timelimit=False)
 		self.stop_event.set()
 
 	def get_elapsed_time(self):
@@ -106,3 +113,6 @@ class Behavior(Manager):
 			return time.monotonic() - self.starttime
 		else:
 			return 0
+
+	def log(self, message):
+		print('[{:>8.2f}] {}'.format(self.get_elapsed_time(), message))
