@@ -23,6 +23,10 @@ EndStop lowStop;
 EndStop leftmustache;
 EndStop rightmustache;
 
+Clock movingTime;
+bool elevatorMoving = false;
+bool motorError = false;
+
 void setup(){
     Serial.begin(SERIALTALKS_BAUDRATE);
     talks.begin(Serial);
@@ -76,6 +80,14 @@ void loop(){
      else if(lowStop.getState() && gripperMotor.getVelocity()>BRAKEVELOCITY){
         gripperMotor.setVelocity(+BRAKEVELOCITY);
      }
+
+     if(elevatorMoving && movingTime.getElapsedTime() <= 5){
+         gripperMotor.setVelocity(0);
+         motorError = true;
+     }
+
+
+
 }
 
 
