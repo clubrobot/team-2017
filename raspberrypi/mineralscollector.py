@@ -6,6 +6,7 @@ import math
 
 from serialtalks import BYTE, INT, LONG, FLOAT
 from components import SerialTalksProxy
+from threading import RLock
 
 # Instructions
 
@@ -27,33 +28,40 @@ AX12_RECEIVE_STATUS_PACKET_OPCODE   = 0x0F
 class AX12(SerialTalksProxy):	
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
-		self.send(_SETUP_AX_OPCODE)
 		self.closed_position = 282
 		self.collecting_position = 70
+		self.ax_lock = RLock()
+		self.thread_safe_execute(_SETUP_AX_OPCODE)
+
+	def thread_safe_execute(self, *args, **kwargs):
+		self.ax_lock.acquire()
+		try: return self.execute(*args, **kwargs) 
+		except: raise
+		finally: self.ax_lock.release()
 
 	def set_position(self, a):
-		self.send(_SET_AX_POSITION_OPCODE, FLOAT(a))
+		self.thread_safe_execute(_SET_AX_POSITION_OPCODE, FLOAT(a))
 
 	def get_position(self):
-		output = self.execute(_GET_AX_POSITION_OPCODE)
+		output = self.thread_safe_execute(_GET_AX_POSITION_OPCODE)
 		pos = output.read(FLOAT)
 		return float(pos)
 	
 	def get_torque(self):
-		output = self.execute(_GET_AX_TORQUE_OPCODE)
+		output = self.thread_safe_execute(_GET_AX_TORQUE_OPCODE)
 		trq = output.read(INT)
 		return int(trq)
 	
 	def set_position_velocity(self, p, v):
-		self.send(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
+		self.thread_safe_execute(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
 	
 	def ping(self):
-		output = self.execute(_PING_AX_OPCODE)
+		output = self.thread_safe_execute(_PING_AX_OPCODE)
 		ping = output.read(INT)
 		return int(ping)
 	
 	def hold(self, i):
-		self.send(_SET_AX_HOLD_OPCODE, INT(i))
+		self.thread_safe_execute(_SET_AX_HOLD_OPCODE, INT(i))
 
 	def gather(self):
 		self.set_position(self.collecting_position)
@@ -66,11 +74,6 @@ class AX12(SerialTalksProxy):
 	
 	def set_collecting_position(self, a):
 		self.collecting_position = a
-	
-	def ping(self):
-		output = self.execute(_CHECK_AX_OPCODE)
-		ok = output.read(INT)
-		return int(ok)
 
 	def send_instruction_packet(self, packet):
 		self.send(AX12_SEND_INSTRUCTION_PACKET_OPCODE, BYTE(len(packet)), *map(BYTE, packet))
