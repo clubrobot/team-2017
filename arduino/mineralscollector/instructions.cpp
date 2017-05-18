@@ -30,10 +30,23 @@ void SET_FIRING_HAMMER_VELOCITY(SerialTalks &inst, Deserializer &input, Serializ
 	}
 }
 
+void SETUP_AX(SerialTalks& talks, Deserializer& input, Serializer& output)
+{
+	servoax.attach(2);
+	servoax.setSRL(1); // Respond only to READ_DATA instructions
+	servoax.setLEDAlarm(32); // max torque only
+	servoax.setShutdownAlarm(32); // max torque only
+	servoax.setMaxTorque(1023);
+	servoax.setEndlessMode(OFF);
+	servoax.hold(OFF);
+	output.write<int>(true);
+}
+
 void SET_AX_POSITION(SerialTalks &inst, Deserializer &input, Serializer &output){
 	servoax.hold(1);
 	servoax.setMaxTorqueRAM(1023);
 	servoax.move(input.read<float>());
+	output.write<int>(true);
 }
 
 void GET_AX_TORQUE(SerialTalks &inst, Deserializer &input, Serializer &output){
@@ -45,6 +58,7 @@ void SET_AX_VELOCITY_MOVE(SerialTalks &inst, Deserializer &input, Serializer &ou
 	float position = input.read<float>();
 	int velocity = input.read<int>();
 	servoax.moveSpeed(position, velocity);
+	output.write<int>(true);
 }
 
 void PING_AX(SerialTalks &inst, Deserializer &input, Serializer &output){
@@ -53,6 +67,7 @@ void PING_AX(SerialTalks &inst, Deserializer &input, Serializer &output){
 
 void SET_AX_HOLD(SerialTalks &inst, Deserializer &input, Serializer &output){
 	servoax.hold(input.read<int>());
+	output.write<int>(true);
 }
 
 void GET_AX_POSITION(SerialTalks &inst, Deserializer &input, Serializer &output){

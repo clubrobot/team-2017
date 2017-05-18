@@ -6,21 +6,26 @@ import math
 
 from serialtalks import BYTE, INT, LONG, FLOAT
 from components import SerialTalksProxy
+from threading import RLock
 
 # Instructions
 
 _SET_ROLLER_VELOCITY_OPCODE 		=	0x03
 _SET_FIRING_HAMMER_VELOCITY_OPCODE	=	0x04
+_RETURN_TO_SAFE_POSITION_OPCODE		= 	0x0B
+_SETUP_AX_OPCODE					=	0x0C
 _SET_AX_POSITION_OPCODE				=	0X05
 _GET_AX_POSITION_OPCODE				=	0X06
 _GET_AX_TORQUE_OPCODE				=	0X07
 _SET_AX_VELOCITY_MOVE_OPCODE		=	0X08
 _PING_AX_OPCODE						=	0x09
 _SET_AX_HOLD_OPCODE					=	0X0A
+<<<<<<< HEAD
 _GET_AX_VELOCITY_OPCODE				=	0x0C
 _GET_AX_MOVING_OPCODE				=	0x0D
+=======
+>>>>>>> a428445465d6d7505065a63a54fe9301748d4866
 
-_RETURN_TO_SAFE_POSITION_OPCODE		= 	0x0B
 
 AX12_SEND_INSTRUCTION_PACKET_OPCODE = 0x0E
 AX12_RECEIVE_STATUS_PACKET_OPCODE   = 0x0F
@@ -32,17 +37,25 @@ class AX12(SerialTalksProxy):
 		self.closed_position = 300
 		self.collecting_position = 70
 		self.mid_position = 200
+		self.ax_lock = RLock()
+		self.thread_safe_execute(_SETUP_AX_OPCODE)
+
+	def thread_safe_execute(self, *args, **kwargs):
+		self.ax_lock.acquire()
+		try: return self.execute(*args, **kwargs) 
+		except: raise
+		finally: self.ax_lock.release()
 
 	def set_position(self, a):
-		self.send(_SET_AX_POSITION_OPCODE, FLOAT(a))
+		self.thread_safe_execute(_SET_AX_POSITION_OPCODE, FLOAT(a))
 
 	def get_position(self):
-		output = self.execute(_GET_AX_POSITION_OPCODE)
+		output = self.thread_safe_execute(_GET_AX_POSITION_OPCODE)
 		pos = output.read(FLOAT)
 		return float(pos)
 	
 	def get_torque(self):
-		output = self.execute(_GET_AX_TORQUE_OPCODE)
+		output = self.thread_safe_execute(_GET_AX_TORQUE_OPCODE)
 		trq = output.read(INT)
 		return int(trq)
 	
@@ -54,14 +67,15 @@ class AX12(SerialTalksProxy):
 
 	def set_r_position_velocity(self, p, v):
 		self.set_position_velocity(a - self.theorical_high_position + self.closed_position, v)
+		self.thread_safe_execute(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
 	
 	def ping(self):
-		output = self.execute(_PING_AX_OPCODE)
+		output = self.thread_safe_execute(_PING_AX_OPCODE)
 		ping = output.read(INT)
 		return int(ping)
 	
 	def hold(self, i):
-		self.send(_SET_AX_HOLD_OPCODE, INT(i))
+		self.thread_safe_execute(_SET_AX_HOLD_OPCODE, INT(i))
 
 	def gather(self):
 		self.set_r_position_velocity(self.collecting_position self.closed_position, 400)

@@ -3,7 +3,10 @@
 
 #include "../common/SerialTalks.h"
 
-
+#define _SET_ROLLER_VELOCITY_OPCODE 			0x03
+#define _SET_FIRING_HAMMER_VELOCITY_OPCODE		0x04
+#define _RETURN_TO_SAFE_POSITION_OPCODE			0x0B
+#define _SETUP_AX_OPCODE						0x0C
 #define _SET_AX_POSITION_OPCODE					0X05
 #define _GET_AX_POSITION_OPCODE					0X06
 #define _GET_AX_TORQUE_OPCODE					0X07
@@ -23,6 +26,9 @@
 void SET_ROLLER_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output);
 
 void SET_FIRING_HAMMER_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output);
+void RETURN_TO_SAFE_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output);
+
+void SETUP_AX(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 void SET_AX_POSITION(SerialTalks &inst, Deserializer &input, Serializer &output);
 
@@ -39,8 +45,6 @@ void GET_AX_POSITION(SerialTalks &inst, Deserializer &input, Serializer &output)
 void AX12_SEND_INSTRUCTION_PACKET(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 void AX12_RECEIVE_STATUS_PACKET(SerialTalks& talks, Deserializer& input, Serializer& output);
-
-void RETURN_TO_SAFE_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 void GET_AX_VELOCITY(SerialTalks& talks, Deserializer& input, Serializer& output);
 
