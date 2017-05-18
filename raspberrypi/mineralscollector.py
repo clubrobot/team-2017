@@ -17,7 +17,8 @@ _GET_AX_TORQUE_OPCODE				=	0X07
 _SET_AX_VELOCITY_MOVE_OPCODE		=	0X08
 _PING_AX_OPCODE						=	0x09
 _SET_AX_HOLD_OPCODE					=	0X0A
-_CHECK_AX_OPCODE					=	0x0B
+_GET_AX_VELOCITY_OPCODE				=	0x0C
+_GET_AX_MOVING_OPCODE				=	0x0D
 
 _RETURN_TO_SAFE_POSITION_OPCODE		= 	0x0B
 
@@ -27,8 +28,10 @@ AX12_RECEIVE_STATUS_PACKET_OPCODE   = 0x0F
 class AX12(SerialTalksProxy):	
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
-		self.closed_position = 282
+		self.theorical_high_position = 300		
+		self.closed_position = 300
 		self.collecting_position = 70
+		self.mid_position = 200
 
 	def set_position(self, a):
 		self.send(_SET_AX_POSITION_OPCODE, FLOAT(a))
@@ -45,6 +48,12 @@ class AX12(SerialTalksProxy):
 	
 	def set_position_velocity(self, p, v):
 		self.send(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
+
+	def set_r_position(self, p):
+		self.set_position(a - self.theorical_high_position + self.closed_position)
+
+	def set_r_position_velocity(self, p, v):
+		self.set_position_velocity(a - self.theorical_high_position + self.closed_position, v)
 	
 	def ping(self):
 		output = self.execute(_PING_AX_OPCODE)
@@ -55,21 +64,16 @@ class AX12(SerialTalksProxy):
 		self.send(_SET_AX_HOLD_OPCODE, INT(i))
 
 	def gather(self):
-		self.set_position(self.collecting_position)
+		self.set_r_position_velocity(self.collecting_position self.closed_position, 400)
 	
 	def close(self):
-		self.set_position(self.closed_position)
+		self.set_position_velocity(self.closed_position, 400)
 
 	def set_closed_position(self, a):
 		self.closed_position = a
 	
 	def set_collecting_position(self, a):
 		self.collecting_position = a
-	
-	def ping(self):
-		output = self.execute(_CHECK_AX_OPCODE)
-		ok = output.read(INT)
-		return int(ok)
 
 	def send_instruction_packet(self, packet):
 		self.send(AX12_SEND_INSTRUCTION_PACKET_OPCODE, BYTE(len(packet)), *map(BYTE, packet))
@@ -95,6 +99,18 @@ class AX12(SerialTalksProxy):
 		checksum = ~sum(content) & 0xFF
 		packet = [0xFF, 0xFF] + content + [checksum]
 		self.send_instruction_packet(packet)
+	
+	def get_velocity(self):
+		output = self.execute()
+		vel = output.read(INT)
+		return int(vel)
+	
+	def is_Moving(self):
+		output = self.execute()
+		mov = output.read(BYTE)
+		time.sleep(0.1)
+		return bool(mov)
+
 
 class Hammer(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
@@ -110,7 +126,7 @@ class Hammer(SerialTalksProxy):
 	def stop(self):
 		self.set_velocity(0)
 
-	def safePositioning(self):
+	def move_to_safe_position(self):
 		self.send(_RETURN_TO_SAFE_POSITION_OPCODE)
 
 class Roller(SerialTalksProxy):

@@ -86,3 +86,11 @@ void AX12_RECEIVE_STATUS_PACKET(SerialTalks& talks, Deserializer& input, Seriali
 void RETURN_TO_SAFE_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output){
 	safeHammer.toSafePosition();
 }
+
+void GET_AX_VELOCITY(SerialTalks& talks, Deserializer& input, Serializer& output){
+	output.write<int>(servoax.readSpeed());
+}
+
+void GET_AX_MOVING(SerialTalks& talks, Deserializer& input, Serializer& output){
+	output.write<bool>(servoax.moving());
+}
