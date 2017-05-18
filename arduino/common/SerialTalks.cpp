@@ -118,10 +118,19 @@ bool SerialTalks::execute()
 {
 	bool ret = false;
 	int length = m_stream->available();
+
+	long currentTime = millis();
+	if (m_state != SERIALTALKS_WAITING_STATE && currentTime - m_lastTime > 100) // 0.1s timeout
+	{
+		// Abort previous communication
+		m_state = SERIALTALKS_WAITING_STATE;
+	}
+
 	for (int i = 0; i < length; i++)
 	{
 		// Read the incoming byte
 		byte inc = byte(m_stream->read());
+		m_lastTime = currentTime;
 		
 		// Use a state machine to process the above byte
 		switch (m_state)

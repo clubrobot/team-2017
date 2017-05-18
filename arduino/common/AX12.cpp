@@ -599,6 +599,29 @@ int DynamixelClass::setMaxTorque(unsigned char ID, int MaxTorque)
     return (read_error());                 // Return the read error
 }
 
+int DynamixelClass::setMaxTorqueRAM(unsigned char ID, int MaxTorque)
+{
+    char MaxTorque_H,MaxTorque_L;
+    MaxTorque_H = MaxTorque >> 8;           // 16 bits - 2 x 8 bits variables
+    MaxTorque_L = MaxTorque;
+	Checksum = (~(ID + AX_MT_LENGTH + AX_WRITE_DATA + 0x22 + MaxTorque_L + MaxTorque_H))&0xFF;
+    
+	switchCom(Direction_Pin,Tx_MODE);
+    sendData(AX_START);                 // Send Instructions over Serial
+    sendData(AX_START);
+    sendData(ID);
+    sendData(AX_MT_LENGTH);
+    sendData(AX_WRITE_DATA);
+    sendData(0x22);
+    sendData(MaxTorque_L);
+    sendData(MaxTorque_H);
+    sendData(Checksum);
+	delayus(TX_DELAY_TIME);
+	switchCom(Direction_Pin,Rx_MODE);
+	
+    return (read_error());                 // Return the read error
+}
+
 int DynamixelClass::setSRL(unsigned char ID, unsigned char SRL)
 {    
 	Checksum = (~(ID + AX_SRL_LENGTH + AX_WRITE_DATA + AX_RETURN_LEVEL + SRL))&0xFF;
@@ -658,7 +681,7 @@ int DynamixelClass::setLEDAlarm(unsigned char ID, unsigned char LEDAlarm)
 
 int DynamixelClass::setShutdownAlarm(unsigned char ID, unsigned char SALARM)
 {    
-	Checksum = (~(ID + AX_SALARM_LENGTH + AX_ALARM_SHUTDOWN + AX_ALARM_LED + SALARM))&0xFF;
+	Checksum = (~(ID + AX_SALARM_LENGTH + AX_WRITE_DATA + AX_ALARM_SHUTDOWN + SALARM))&0xFF;
 	
 	switchCom(Direction_Pin,Tx_MODE);
     sendData(AX_START);                // Send Instructions over Serial
@@ -1014,6 +1037,10 @@ int AX12::setVoltageLimit(unsigned char DVoltage, unsigned char UVoltage){
 
 int AX12::setMaxTorque(int MaxTorque){
 	return Dynamixel.setMaxTorque(m_id, MaxTorque);
+}
+
+int AX12::setMaxTorqueRAM(int MaxTorque){
+	return Dynamixel.setMaxTorqueRAM(m_id, MaxTorque);
 }
 
 int AX12::setSRL(unsigned char SRL){
