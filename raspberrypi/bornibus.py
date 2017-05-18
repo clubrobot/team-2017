@@ -41,74 +41,73 @@ class Bornibus(Behavior):
 		except:
 			self.disconnect()
 			raise
+		
+		self.gripper.high_open_angle = 145
+		self.gripper.low_open_angle = 80
+		self.gripper.close_angle = 5
+		self.gripper.set_velocity(350)
 
 	def load_roadmap(self, filename):
 		self.geogebra = GeoGebra(filename)
 		self.roadmap = RoadMap.load(self.geogebra)
 
-	def make_decision(self):
-#		import random
-#		actions = [
-#			TakePlayfieldModuleAction(self.geogebra, '01', 'a'),
-#			TakePlayfieldModuleAction(self.geogebra, '03', 'a')
-#			TakeRocketModuleAction(self.geogebra, '06', 'a'),
-#			DropModuleAction(self.geogebra, '00', 'a'),
-#			DropModuleAction(self.geogebra, '01', 'a'),
-#			DropModuleAction(self.geogebra, '02', 'a'),
-#			DropModuleAction(self.geogebra, '03', 'a'),
-#			DropModuleAction(self.geogebra, '04', 'a'),
-#			DropModuleAction(self.geogebra, '04', 'b'),
-#			DropModuleAction(self.geogebra, '05', 'a'),
-#			DropModuleAction(self.geogebra, '05', 'b'),
-#			DropModuleAction(self.geogebra, '06', 'b'),
-#			RecalibrateOdometryAction(self.geogebra, '00', 'a'),
-#			RecalibrateOdometryAction(self.geogebra, '00', 'b'),
-#			RecalibrateOdometryAction(self.geogebra, '00', 'c'),
-#			RecalibrateOdometryAction(self.geogebra, '00', 'd'),
-#			RecalibrateOdometryAction(self.geogebra, '01', 'a'),
-#			RecalibrateOdometryAction(self.geogebra, '02', 'a'),
-#			RecalibrateOdometryAction(self.geogebra, '02', 'b')
-#		]
-#		action = random.choice(actions)
-		automate = [
-			TakePlayfieldModuleAction(self.geogebra, '01', 'a'),
-			TakePlayfieldModuleAction(self.geogebra, '03', 'a'),
-			RecalibrateOdometryAction(self.geogebra, '01', 'a'),
-			DropModuleAction(self.geogebra, '04', 'a'),
-			DropModuleAction(self.geogebra, '05', 'a'),
-			TakeRocketModuleAction(self.geogebra, '06', 'a'),
-			TakeRocketModuleAction(self.geogebra, '06', 'a'),
-			TakeRocketModuleAction(self.geogebra, '06', 'a'),
-			RecalibrateOdometryAction(self.geogebra, '00', 'a'),
-			DropModuleAction(self.geogebra, '00', 'a'),
-			DropModuleAction(self.geogebra, '01', 'a'),
-			DropModuleAction(self.geogebra, '02', 'a')
+		module01 = TakePlayfieldModuleAction(self.geogebra, '01', 'a')
+		module03 = TakePlayfieldModuleAction(self.geogebra, '03', 'a')
+		module06 = TakeRocketModuleAction(self.geogebra, '06', 'a')
+		odometry00 = RecalibrateOdometryAction(self.geogebra, '00', 'c')
+		deposit02 = DropModuleAction(self.geogebra, '02', 'a')
+		deposit01 = DropModuleAction(self.geogebra, '01', 'a')
+		deposit00 = DropModuleAction(self.geogebra, '00', 'a')
+		odometry02 = RecalibrateOdometryAction(self.geogebra, '02', 'a')
+		deposit04 = DropModuleAction(self.geogebra, '04', 'b')
+		deposit05 = DropModuleAction(self.geogebra, '05', 'b')
+		deposit06 = DropModuleAction(self.geogebra, '06', 'b')
+		
+		self.automate = [
+			module06,
+			module01,
+			module03,
+			odometry00,
+			deposit02,
+			deposit01,
+			deposit00,
+			module06,
+			module06,
+			module06,
+			odometry02,
+			deposit04,
+			deposit05,
+			deposit06,
 		]
-		action = automate[self.automatestep]
+
+	def make_decision(self):
+		action = self.automate[self.automatestep]
 		if isinstance(action, (TakePlayfieldModuleAction, TakeRocketModuleAction)):
 			self.setup_gripper_mandatory = True
-		self.automatestep += 1
 		return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
 
 	def goto_procedure(self, destination):
+		wheeledbase = self.wheeledbase
+
 		# Pathfinding
-		x_in, y_in, theta_in = self.wheeledbase.get_position()
+		x_in, y_in, theta_in = wheeledbase.get_position()
 		x_sp, y_sp, theta_sp = destination
 		path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
+		self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
 
 		# Pure Pursuit configuration
 		if math.cos(math.atan2(path[1][1] - path[0][1], path[1][0] - path[0][0]) - theta_in) >= 0:
 			direction = 1
 		else:
 			direction = -1
-		self.wheeledbase.lookahead.set(200)
-		self.wheeledbase.max_linvel.set(500)
-		self.wheeledbase.max_angvel.set(6.0)
-		self.wheeledbase.linpos_threshold.set(3)
-		self.wheeledbase.angpos_threshold.set(0.1)
+		wheeledbase.lookahead.set(200)
+		wheeledbase.max_linvel.set(500)
+		wheeledbase.max_angvel.set(6.0)
+		wheeledbase.linpos_threshold.set(3)
+		wheeledbase.angpos_threshold.set(0.1)
 
 		# Trajectory
-		self.wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
+		wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
 
 		# Do mandatory procedures
 		def mandatory_procedures():		
@@ -130,30 +129,37 @@ class Bornibus(Behavior):
 			
 			# Get trajectory planner situation
 			try:
-				isarrived = self.wheeledbase.isarrived()
+				isarrived = wheeledbase.isarrived()
 			except RuntimeError:
+				self.log('blocked while following path')
 				blocked = True
 			
 			# Handle spin urgency
 			if blocked:
-				self.wheeledbase.set_velocities(-direction * 100, 0)
+				wheeledbase.set_velocities(-direction * 100, 0)
 				time.sleep(1)
-				self.wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
+				self.log('resume path')
+				wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
 				blocked = False
 			
 			# Delay
 			time.sleep(0.1)
+		self.log('path ended at: ({0[0]:.0f}, {0[1]:.0f}, {0[2]:.2f})'.format(wheeledbase.get_position()))
 
 		# Turn on the spot
 		if theta_sp is not None:
-			self.wheeledbase.turnonthespot(theta_sp)		
+			self.log('turn on the spot: {:.2f}'.format(theta_sp))
+			wheeledbase.turnonthespot(theta_sp)		
 			try:
-				self.wheeledbase.wait()
+				wheeledbase.wait()
 			except RuntimeError:
+				self.log('blocked while turning on the spot')
 				return False
+		self.log('rotation ended at: ({0[0]:.0f}, {0[1]:.0f}, {0[2]:.2f})'.format(wheeledbase.get_position()))
 		
 		# Wait for mandatory actions
 		self.get(parallel_actions)
+		self.automatestep += 1
 
 		# Everything is fine
 		return True
@@ -165,22 +171,26 @@ class Bornibus(Behavior):
 		self.dispenser.set_position(-1, 1)
 
 	def store_module_procedure(self, delay=0):
+		self.log('store module')
 		try:
 			self.elevator.go_up()
 			time.sleep(delay)
 			self.gripper.open_up()
 			time.sleep(1)
 		except RuntimeError:
+			self.log('elevator stucked')
 			self.elevator_stucked = True
 		self.store_module_mandatory = False
 
 	def setup_gripper_procedure(self):
+		self.log('setup gripper')
 		self.gripper.close()
 		time.sleep(0.4)
 		try:
 			self.elevator.go_down()
 			self.gripper.open_low()
 		except RuntimeError:
+			self.log('elevator stucked')
 			self.elevator_stucked = True
 		self.setup_gripper_mandatory = False
 
@@ -193,6 +203,7 @@ class TakePlayfieldModuleAction:
 		self.isdone = False
 
 	def procedure(self, bornibus):
+		bornibus.log('take playfield module')
 		wheeledbase = bornibus.wheeledbase
 		gripper     = bornibus.gripper
 
@@ -217,11 +228,13 @@ class TakeRocketModuleAction:
 	def __init__(self, geogebra, major, minor):
 		self.actionpoint = geogebra.get('module_{{{}, action, {}}}'.format(major, minor))
 		self.takingpoint = geogebra.get('module_{{{}, action, {}, 1}}'.format(major, minor))
+		self.stabilizationpoint = geogebra.get('module_{{{}, action, {}, 2}}'.format(major, minor))
 		self.orientation = math.atan2(self.takingpoint[1] - self.actionpoint[1], self.takingpoint[0] - self.actionpoint[0])
 		self.remaining = 4
 		self.isdone = False
 		
 	def procedure(self, bornibus):
+		bornibus.log('take rocket module')
 		wheeledbase = bornibus.wheeledbase
 		gripper     = bornibus.gripper
 
@@ -238,6 +251,10 @@ class TakeRocketModuleAction:
 		self.remaining -= 1
 		if self.remaining == 0:
 			self.isdone = True
+
+		# Stabilize the last module
+		if self.remaining == 1:
+			wheeledbase.goto(*self.stabilizationpoint)
 
 		# Go backward
 		wheeledbase.goto(*self.actionpoint)
@@ -263,6 +280,7 @@ class DropModuleAction:
 		self.isdone = False
 
 	def procedure(self, bornibus):
+		bornibus.log('drop module')
 		dispenser = bornibus.dispenser
 
 		# Drop module
@@ -283,6 +301,7 @@ class RecalibrateOdometryAction:
 		self.orientation = math.atan2(self.calibration[1] - self.actionpoint[1], self.calibration[0] - self.actionpoint[0])
 	
 	def procedure(self, bornibus):
+		bornibus.log('recalibrate odometry')
 		wheeledbase = bornibus.wheeledbase
 		mustaches   = bornibus.mustaches
 
@@ -294,7 +313,8 @@ class RecalibrateOdometryAction:
 
 		# Check if there is no obstacle on the route
 		if not mustaches.get_left_mustache() or not mustaches.get_right_mustache():
-			
+			bornibus.log('found obstacle')
+		
 			# Go backward a little
 			wheeledbase.goto(*self.sweepobstacle)
 
@@ -310,15 +330,21 @@ class RecalibrateOdometryAction:
 			except RuntimeError: wheeledbase.set_openloop_velocities(500, 500)
 			time.sleep(0.5)
 		
-		# Do an odometry recalibration
-		xref, yref = self.calibration
-		thetaref = self.orientation
-#		thetaref = wheeledbase.get_position()[2]
-		xthought, ythought = wheeledbase.get_position()[:2]
-		offset = math.hypot(xref - xthought, yref - ythought) * math.cos(thetaref - math.atan2(yref - ythought, xref - xthought))
-		xthought += offset * math.cos(thetaref)
-		ythought += offset * math.sin(thetaref)
-		wheeledbase.set_position(xthought, ythought, thetaref)
+		# Check if there is still no obstacle on the route
+		if mustaches.get_left_mustache() and mustaches.get_right_mustache():
+			bornibus.log('found no obstacle')
+
+			# Do an odometry recalibration
+			xref, yref = self.calibration
+			thetaref = self.orientation
+	#		thetaref = wheeledbase.get_position()[2]
+			xthought, ythought = wheeledbase.get_position()[:2]
+			offset = math.hypot(xref - xthought, yref - ythought) * math.cos(thetaref - math.atan2(yref - ythought, xref - xthought))
+			xthought += offset * math.cos(thetaref)
+			ythought += offset * math.sin(thetaref)
+			wheeledbase.set_position(xthought, ythought, thetaref)
+		else:
+			bornibus.log('found another obstacle')
 		
 		# Stop running
 		wheeledbase.stop()
