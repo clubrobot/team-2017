@@ -20,11 +20,8 @@ _GET_AX_TORQUE_OPCODE				=	0X07
 _SET_AX_VELOCITY_MOVE_OPCODE		=	0X08
 _PING_AX_OPCODE						=	0x09
 _SET_AX_HOLD_OPCODE					=	0X0A
-<<<<<<< HEAD
-_GET_AX_VELOCITY_OPCODE				=	0x0C
+_GET_AX_VELOCITY_OPCODE				=	0x10
 _GET_AX_MOVING_OPCODE				=	0x0D
-=======
->>>>>>> a428445465d6d7505065a63a54fe9301748d4866
 
 
 AX12_SEND_INSTRUCTION_PACKET_OPCODE = 0x0E
@@ -63,10 +60,10 @@ class AX12(SerialTalksProxy):
 		self.send(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
 
 	def set_r_position(self, p):
-		self.set_position(a - self.theorical_high_position + self.closed_position)
+		self.set_position(p - self.theorical_high_position + self.closed_position)
 
 	def set_r_position_velocity(self, p, v):
-		self.set_position_velocity(a - self.theorical_high_position + self.closed_position, v)
+		self.set_position_velocity(p - self.theorical_high_position + self.closed_position, v)
 		self.thread_safe_execute(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
 	
 	def ping(self):
@@ -78,7 +75,7 @@ class AX12(SerialTalksProxy):
 		self.thread_safe_execute(_SET_AX_HOLD_OPCODE, INT(i))
 
 	def gather(self):
-		self.set_r_position_velocity(self.collecting_position self.closed_position, 400)
+		self.set_r_position_velocity(self.collecting_position, 400)
 	
 	def close(self):
 		self.set_position_velocity(self.closed_position, 400)
@@ -115,15 +112,15 @@ class AX12(SerialTalksProxy):
 		self.send_instruction_packet(packet)
 	
 	def get_velocity(self):
-		output = self.execute()
+		output = self.thread_safe_execute(_GET_AX_VELOCITY_OPCODE)
 		vel = output.read(INT)
 		return int(vel)
 	
 	def is_Moving(self):
-		output = self.execute()
-		mov = output.read(BYTE)
+		output = self.thread_safe_execute(_GET_AX_MOVING_OPCODE)
+		mov = output.read(INT)
 		time.sleep(0.1)
-		return bool(mov)
+		return int(mov)
 
 
 class Hammer(SerialTalksProxy):
