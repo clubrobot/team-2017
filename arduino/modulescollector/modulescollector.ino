@@ -81,7 +81,7 @@ void loop(){
         gripperMotor.setVelocity(+BRAKEVELOCITY);
      }
 
-     if(elevatorMoving && movingTime.getElapsedTime() <= 5){
+     if(elevatorMoving && movingTime.getElapsedTime() >= 5){
          gripperMotor.setVelocity(0);
          motorError = true;
      }

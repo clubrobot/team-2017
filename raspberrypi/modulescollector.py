@@ -69,12 +69,16 @@ class ModulesElevator(SerialTalksProxy):
 	def isup(self):
 		output = self.execute(_IS_UP_OPCODE)
 		isup, error = output.read(BYTE, BYTE)
-		return bool(isup), bool(error)
+		if bool(error):
+			raise RuntimeError('timeout error, elevator stopped')
+		return bool(isup)
 
 	def isdown(self):
 		output = self.execute(_IS_DOWN_OPCODE)
 		isdown, error = output.read(BYTE, BYTE)
-		return bool(isdown), bool(error)
+		if bool(error):
+			raise RuntimeError('timeout error, elevator stopped')
+		return bool(isdown)
 	
 	def set_velocity(self, a):
 		output = self.execute(_SET_MOTOR_VELOCITY_OPCODE, FLOAT(a))
@@ -89,10 +93,14 @@ class ModulesElevator(SerialTalksProxy):
 	def go_up(self):
 		if not self.set_velocity(self.climbing_velocity):
 			raise RuntimeError("gripper not closed")
+		while not self.isup():
+			time.sleep(0.1)
 
 	def go_down(self):
 		if not self.set_velocity(self.going_down_velocity):
 			raise RuntimeError('gripper not closed')
+		while not self.isdown():
+			time.sleep(0.1)
 
 class Mustaches(SerialTalksProxy):
 	def __init__(self, parent, uuid='modulescollector'):
