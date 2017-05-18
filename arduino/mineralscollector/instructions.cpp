@@ -107,5 +107,5 @@ void GET_AX_VELOCITY(SerialTalks& talks, Deserializer& input, Serializer& output
 }
 
 void GET_AX_MOVING(SerialTalks& talks, Deserializer& input, Serializer& output){
-	output.write<bool>(servoax.moving());
+	output.write<int>(servoax.moving());
 }
