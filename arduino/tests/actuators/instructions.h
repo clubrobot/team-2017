@@ -11,12 +11,12 @@
 #define _SET_AX_VELOCITY_MOVE_OPCODE			0X08
 #define _PING_AX_OPCODE							0x09
 #define _SET_AX_HOLD_OPCODE						0X0A
-#define _IS_UP_OPCODE						    0X0A
-#define _IS_DOWN_OPCODE						    0X0B
-#define _SET_SERVO_OPCODE						0X0C
-#define _SET_SERVO_MICROSECONDS_OPCODE			0X0D
-#define _SET_TOR_OPCODE		    				0X0E
-#define _STOP_OPCODE	    					0X0F
+#define _IS_UP_OPCODE						    0X0B
+#define _IS_DOWN_OPCODE						    0X0C
+#define _SET_SERVO_OPCODE						0X0D
+#define _SET_SERVO_MICROSECONDS_OPCODE			0X0E
+#define _SET_TOR_OPCODE		    				0X0F
+#define _STOP_OPCODE	    					0X10
 
 void SET_MOTOR1_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output);
 
@@ -44,6 +44,6 @@ void SET_SERVO_MICROSECONDS(SerialTalks &inst, Deserializer &input, Serializer &
 
 void SET_TOR(SerialTalks &inst, Deserializer &input, Serializer &output);
 
-void STOP(SerialTalks &inst, Deserializer &input, Serializer &output)
+void STOP(SerialTalks &inst, Deserializer &input, Serializer &output);
 
 #endif
