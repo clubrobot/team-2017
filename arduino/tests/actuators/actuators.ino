@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include "PIN.h"
-#include "../common/SoftwareSerial.h"
-#include "../common/AX12.h"
-#include "../common/SerialTalks.h"
-#include "../common/DCMotor.h"
+#include "../../common/SoftwareSerial.h"
+#include "../../common/AX12.h"
+#include "../../common/SerialTalks.h"
+#include "../../common/DCMotor.h"
 #include "instructions.h"
 
 

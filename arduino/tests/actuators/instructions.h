@@ -1,7 +1,7 @@
 #ifndef __INSTRUCTIONS_H__
 #define __INSTRUCTIONS_H__
 
-#include "../common/SerialTalks.h"
+#include "../../common/SerialTalks.h"
 
 #define _SET_MOTOR1_VELOCITY_OPCODE 			0x03
 #define _SET_MOTOR2_VELOCITY_OPCODE		        0x04

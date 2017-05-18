@@ -1,8 +1,10 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include "instructions.h"
-#include "../common/AX12.h"
-#include "../common/DCMotor.h"
+#include "../../common/AX12.h"
+#include "../../common/DCMotor.h"
+#include "../../common/EndStop.h"
+#include "PIN.h"
 
 extern AX12 servoax;
 
@@ -14,16 +16,16 @@ extern Servo servo2;
 extern Servo servo3;
 extern Servo servo4;
 
-EndStop highStop;
-EndStop lowStop;
+extern EndStop highStop;
+extern EndStop lowStop;
 
 //MOTOR
 void SET_MOTOR1_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output){
-	Motor1.setVelocity(input.read<float>());
+	motor1.setVelocity(input.read<float>());
 }
 
 void SET_MOTOR2_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output){
-	Motor2.setVelocity(input.read<float>());
+	motor2.setVelocity(input.read<float>());
 }
 
 //AX12
@@ -68,6 +70,20 @@ void SET_SERVO(SerialTalks &inst, Deserializer &input, Serializer &output){
 	}
 }
 
+//Servo
+void SET_SERVO_MICROSECONDS(SerialTalks &inst, Deserializer &input, Serializer &output){
+	switch(input.read<int>()){
+		default: servo1.writeMicroseconds(input.read<int>());
+				 break;
+		case 2:	servo2.writeMicroseconds(input.read<int>());
+				break;
+		case 3:	servo3.writeMicroseconds(input.read<int>());
+				break;
+		case 4:	servo4.writeMicroseconds(input.read<int>());
+				break;
+	}
+}
+
 //EndStop
 void IS_UP(SerialTalks &inst, Deserializer &input, Serializer &output){
     output.write<int>(highStop.getState());
@@ -75,4 +91,21 @@ void IS_UP(SerialTalks &inst, Deserializer &input, Serializer &output){
 
 void IS_DOWN(SerialTalks &inst, Deserializer &input, Serializer &output){
     output.write<int>(lowStop.getState());
+}
+
+//TOR
+void SET_TOR(SerialTalks &inst, Deserializer &input, Serializer &output){
+	switch(input.read<int>()){
+		default :   digitalWrite(TOR_1, HIGH);
+					break;
+		case 2 :	digitalWrite(TOR_2, HIGH);
+					break;
+	}
+}
+
+void STOP(SerialTalks &inst, Deserializer &input, Serializer &output){
+	digitalWrite(TOR_1, LOW);
+	digitalWrite(TOR_2, LOW);
+	motor1.setVelocity(0);
+	motor2.setVelocity(0);
 }
