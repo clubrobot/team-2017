@@ -9,7 +9,7 @@ from display          import LEDMatrix, SevenSegments
 from sensors          import Sensors
 
 from geogebra import GeoGebra
-from roadmap import RoadMap
+from roadmap import RoadMap, intersect
 
 import time
 import math
@@ -21,7 +21,6 @@ class Bornibus(Behavior):
 		Behavior.__init__(self, *args, **kwargs)
 		self.setup_gripper_mandatory = False
 		self.store_module_mandatory = False
-		self.calibration_required = False
 		self.elevator_stucked = False
 
 		self.automatestep = 0
@@ -29,15 +28,16 @@ class Bornibus(Behavior):
 	def connect(self):
 		try:
 			Behavior.connect(self)
-			self.wheeledbase = WheeledBase(self)
-			self.gripper     = ModulesGripper(self)
-			self.elevator    = ModulesElevator(self)
-			self.dispenser   = ModulesDispenser(self)
-			self.mustaches   = Mustaches(self)
-			self.left_eye    = LEDMatrix(self, 1)
-			self.right_eye   = LEDMatrix(self, 2)
-			self.display     = SevenSegments(self)
-#			self.sensors     = Sensors(self)
+			self.wheeledbase    = WheeledBase(self)
+			self.gripper        = ModulesGripper(self)
+			self.elevator       = ModulesElevator(self)
+			self.dispenser      = ModulesDispenser(self)
+			self.mustaches      = Mustaches(self)
+			self.left_eye       = LEDMatrix(self, 1)
+			self.right_eye      = LEDMatrix(self, 2)
+			self.display        = SevenSegments(self)
+			self.frontsensors   = Sensors(self, 'frontsensors')
+			self.backsensors    = Sensors(self, 'backsensors')
 		except:
 			self.disconnect()
 			raise
@@ -45,7 +45,10 @@ class Bornibus(Behavior):
 		self.gripper.high_open_angle = 145
 		self.gripper.low_open_angle = 80
 		self.gripper.close_angle = 5
-		self.gripper.set_velocity(350)
+		self.gripper.set_velocity(300)
+
+		self.front_sensors_angles = (math.radians( +20), math.radians( -42))
+		self.back_sensors_angles  = (math.radians(-140), math.radians(+163))
 
 	def load_roadmap(self, filename):
 		self.geogebra = GeoGebra(filename)
@@ -53,15 +56,17 @@ class Bornibus(Behavior):
 
 		module01 = TakePlayfieldModuleAction(self.geogebra, '01', 'a')
 		module03 = TakePlayfieldModuleAction(self.geogebra, '03', 'a')
+		module05 = HoldPlayfieldModuleAction(self.geogebra, '05', 'a')
 		module06 = TakeRocketModuleAction(self.geogebra, '06', 'a')
-		odometry00 = RecalibrateOdometryAction(self.geogebra, '00', 'c')
-		deposit02 = DropModuleAction(self.geogebra, '02', 'a')
-		deposit01 = DropModuleAction(self.geogebra, '01', 'a')
 		deposit00 = DropModuleAction(self.geogebra, '00', 'a')
-		odometry02 = RecalibrateOdometryAction(self.geogebra, '02', 'a')
+		deposit01 = DropModuleAction(self.geogebra, '01', 'a')
+		deposit02 = DropModuleAction(self.geogebra, '02', 'a')
 		deposit04 = DropModuleAction(self.geogebra, '04', 'b')
 		deposit05 = DropModuleAction(self.geogebra, '05', 'b')
 		deposit06 = DropModuleAction(self.geogebra, '06', 'b')
+		deposit23 = ReleaseModuleAction(self.geogebra, '23', 'a')
+		odometry00 = RecalibrateOdometryAction(self.geogebra, '00', 'c')
+		odometry02 = RecalibrateOdometryAction(self.geogebra, '02', 'a')
 		
 		self.automate = [
 			module06,
@@ -82,7 +87,7 @@ class Bornibus(Behavior):
 
 	def make_decision(self):
 		action = self.automate[self.automatestep]
-		if isinstance(action, (TakePlayfieldModuleAction, TakeRocketModuleAction)):
+		if isinstance(action, (TakePlayfieldModuleAction, TakeRocketModuleAction, HoldPlayfieldModuleAction)):
 			self.setup_gripper_mandatory = True
 		return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
 
@@ -90,20 +95,34 @@ class Bornibus(Behavior):
 		wheeledbase = self.wheeledbase
 
 		# Pathfinding
+		path_not_found = False
 		x_in, y_in, theta_in = wheeledbase.get_position()
 		x_sp, y_sp, theta_sp = destination
-		path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
-		self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
+		try:
+			path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
+			self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
+		except RuntimeError:
+			path_not_found = True
+
+		# Reset detected obstacles
+		self.log('reset edges')
+		self.roadmap.reset_edges()
+
+		# Return there is no path available		
+		if path_not_found:
+			self.log('no path found')
+			time.sleep(1)
+			return False
 
 		# Pure Pursuit configuration
 		if math.cos(math.atan2(path[1][1] - path[0][1], path[1][0] - path[0][0]) - theta_in) >= 0:
 			direction = 1
 		else:
 			direction = -1
-		wheeledbase.lookahead.set(200)
-		wheeledbase.max_linvel.set(500)
+		wheeledbase.lookahead.set(150)
+		wheeledbase.max_linvel.set(200)
 		wheeledbase.max_angvel.set(6.0)
-		wheeledbase.linpos_threshold.set(3)
+		wheeledbase.linpos_threshold.set(2)
 		wheeledbase.angpos_threshold.set(0.1)
 
 		# Trajectory
@@ -122,11 +141,52 @@ class Bornibus(Behavior):
 		blocked = False
 		while not isarrived:
 
+			# Get current position
+			x, y, theta = wheeledbase.get_position()
+
 			# Manage sensors
-#			distance = self.sensors.get_mesure()[(direction + 1) // 2]
-#			if distance < 200:
-#				return False
-			
+			found_obstacle = False
+			rays = zip(self.frontsensors.get_mesure() + self.backsensors.get_mesure(), self.front_sensors_angles + self.back_sensors_angles)
+			for distance, delta in rays:
+				if distance < 500:
+
+					# Compute the obstacle position
+					obstacle_x = x + distance * math.cos(theta + delta)
+					obstacle_y = y + distance * math.sin(theta + delta)
+					self.log('detect obstacle at: ({:.0f}, {:.0f})'.format(obstacle_x, obstacle_y))
+					self.log('self is at: ({:.0f}, {:.0f}, {:.2f})'.format(x, y, theta))
+					
+					# Ignore the obstacle if it is outside the playfield
+					if obstacle_x < 200 or obstacle_x > 1800 or obstacle_y < 200 or obstacle_y > 2800:
+						self.log('obstacle is outside the playfield')
+						break
+
+					# Compute the obstacle shape
+					obstacle_size = 300
+					obstacle_x1 = obstacle_x + obstacle_size / 2 * math.cos(theta - math.pi / 2)
+					obstacle_y1 = obstacle_y + obstacle_size / 2 * math.sin(theta - math.pi / 2)
+					obstacle_x2 = obstacle_x + obstacle_size / 2 * math.cos(theta + math.pi / 2)
+					obstacle_y2 = obstacle_y + obstacle_size / 2 * math.sin(theta + math.pi / 2)
+					obstacle = (obstacle_x1, obstacle_y1), (obstacle_x2, obstacle_y2)
+					self.log('obstacle shape is: [({:.0f}, {:.0f}), ({:.0f}, {:.0f})]'.format(obstacle_x1, obstacle_y1, obstacle_x2, obstacle_y2))
+					
+					# Check if the obstacle intersect the current path
+					for i in range(len(path) - 1):
+						edge = path[i], path[i+1]
+						if intersect(obstacle, edge):
+							self.log('obstacle is on the path')
+							self.roadmap.cut_edges(obstacle)
+							found_obstacle = True
+							break
+					else:
+						self.log('obstacle is not on the path')
+				
+			# Abort the current action if an obstacle was found
+			if found_obstacle:
+				wheeledbase.stop()
+				self.interrupt(parallel_actions)
+				return False
+
 			# Get trajectory planner situation
 			try:
 				isarrived = wheeledbase.isarrived()
@@ -136,6 +196,7 @@ class Bornibus(Behavior):
 			
 			# Handle spin urgency
 			if blocked:
+				self.log('go backward a little')
 				wheeledbase.set_velocities(-direction * 100, 0)
 				time.sleep(1)
 				self.log('resume path')
@@ -239,7 +300,8 @@ class TakeRocketModuleAction:
 		gripper     = bornibus.gripper
 
 		# Go to the taking point
-		wheeledbase.goto(*self.takingpoint)
+		try: wheeledbase.goto(*self.takingpoint)
+		except RuntimeError: pass
 		
 		# Get to the bottom of the rocket
 		wheeledbase.set_velocities(45, -0.3); time.sleep(0.2)
@@ -348,3 +410,42 @@ class RecalibrateOdometryAction:
 		
 		# Stop running
 		wheeledbase.stop()
+
+
+class HoldPlayfieldModuleAction:
+	def __init__(self, geogebra, major, minor):
+		self.actionpoint = geogebra.get('module_{{{}, action, {}}}'.format(major, minor))
+		self.takingpoint = geogebra.get('module_{{{}, action, {}, 1}}'.format(major, minor))
+		self.orientation = math.atan2(self.takingpoint[1] - self.actionpoint[1], self.takingpoint[0] - self.actionpoint[0])
+		self.isdone = False
+
+	def procedure(self, bornibus):
+		bornibus.log('hold playfield module')
+		wheeledbase = bornibus.wheeledbase
+		gripper     = bornibus.gripper
+
+		# Go to the taking point
+		wheeledbase.goto(*self.takingpoint)
+		
+		# Hold the module
+		gripper.close()
+		time.sleep(0.4)
+		self.isdone = True
+
+
+class ReleaseModuleAction:
+	def __init__(self, geogebra, major, minor):
+		deposit          = geogebra.get('deposit_{{{}}}'.format(major))
+		self.actionpoint = geogebra.get('deposit_{{{}, action, {}}}'.format(major, minor))
+		self.orientation = math.atan2(deposit[1] - self.actionpoint[1], deposit[0] - self.actionpoint[0]) - math.atan2(geogebra.get('BornibusGripper_{xoffset}'), geogebra.get('BornibusGripper_{yoffset}'))
+		self.isdone = False
+
+	def procedure(self, bornibus):
+		bornibus.log('release module')
+		wheeledbase = bornibus.wheeledbase
+		gripper     = bornibus.gripper
+
+		# Release the module
+		gripper.open_low()
+		time.sleep(0.4)
+		self.isdone = True
