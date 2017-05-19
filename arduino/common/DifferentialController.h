@@ -13,6 +13,7 @@ public:
 	virtual ~AbstractMotor(){}
 
 	virtual void setVelocity(float velocity) = 0;
+	virtual float getMaxVelocity() const = 0;
 };
 
 class DifferentialController : public PeriodicProcess

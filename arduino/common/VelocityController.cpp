@@ -42,18 +42,23 @@ void VelocityController::process(float timestep)
 	DifferentialController::process(timestep);
 
 	// Check for wheels abnormal spin and stop the controller accordingly
-	const bool saturatedLinVelOutput = (m_linVelOutput == m_linPID->getMinOutput() || m_linVelOutput == m_linPID->getMaxOutput());
-	const bool saturatedAngVelOutput = (m_angVelOutput == m_angPID->getMinOutput() || m_angVelOutput == m_angPID->getMaxOutput());
-	const bool linSpinUrgency = saturatedLinVelOutput && abs(m_linInput) <    1; // linear velocity < 1 mm/s
-	const bool angSpinUrgency = saturatedAngVelOutput && abs(m_angInput) < 0.05; // angular velocity < 0.05 rad/s
-	if (linSpinUrgency || angSpinUrgency)
+	float leftWheelSetpoint  = m_linVelOutput - m_angVelOutput * m_axleTrack / 2;
+	float rightWheelSetpoint = m_linVelOutput + m_angVelOutput * m_axleTrack / 2;
+	bool leftWheelSpin  = (abs(leftWheelSetpoint)  >= m_leftWheel ->getMaxVelocity());
+	bool rightWheelSpin = (abs(rightWheelSetpoint) >= m_rightWheel->getMaxVelocity());
+	if (leftWheelSpin || rightWheelSpin)
 	{
-/*		talks.out << linSpinUrgency << ", " << angSpinUrgency << "\n";
-		talks.out << m_linVelOutput << ", " << m_linInput << ", " << m_linPID->getMaxOutput() << "\n";
-		talks.out << m_angVelOutput << ", " << m_angInput << ", " << m_angPID->getMaxOutput() << "\n";
-*/		m_leftWheel ->setVelocity(0);
-		m_rightWheel->setVelocity(0);
-		disable();
+		bool abnormalSpin = false;
+		if (leftWheelSetpoint * rightWheelSetpoint > 0)
+			abnormalSpin = abs(m_linInput) < 1; // linear velocity < 1 mm/s
+		else
+			abnormalSpin = abs(m_angInput) < 0.05; // angular velocity < 0.05 rad/s
+		if (abnormalSpin)
+		{
+			m_leftWheel ->setVelocity(0);
+			m_rightWheel->setVelocity(0);
+			disable();
+		}
 	}
 		
 	// Restore setpoints
