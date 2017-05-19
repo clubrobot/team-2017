@@ -7,7 +7,7 @@ from threading import Thread, Event, current_thread
 from components import Manager
 
 
-class AccessDenied(RuntimeError): pass
+class AccessDenied(Exception): pass
 
 class Behavior(Manager):
 
