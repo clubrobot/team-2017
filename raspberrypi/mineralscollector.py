@@ -29,8 +29,7 @@ AX12_RECEIVE_STATUS_PACKET_OPCODE   = 0x0F
 
 class AX12(SerialTalksProxy):	
 	def __init__(self, parent, uuid='mineralscollector'):
-		SerialTalksProxy.__init__(self, parent, uuid)
-		self.theorical_high_position = 300		
+		SerialTalksProxy.__init__(self, parent, uuid)		
 		self.closed_position = 300
 		self.collecting_position = 70
 		self.mid_position = 200
@@ -58,13 +57,6 @@ class AX12(SerialTalksProxy):
 	
 	def set_position_velocity(self, p, v):
 		self.send(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
-
-	def set_r_position(self, p):
-		self.set_position(p - self.theorical_high_position + self.closed_position)
-
-	def set_r_position_velocity(self, p, v):
-		self.set_position_velocity(p - self.theorical_high_position + self.closed_position, v)
-		self.thread_safe_execute(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
 	
 	def ping(self):
 		output = self.thread_safe_execute(_PING_AX_OPCODE)
@@ -75,10 +67,10 @@ class AX12(SerialTalksProxy):
 		self.thread_safe_execute(_SET_AX_HOLD_OPCODE, INT(i))
 
 	def gather(self):
-		self.set_r_position_velocity(self.collecting_position, 400)
+		self.set_position_velocity(self.collecting_position, 300)
 	
 	def close(self):
-		self.set_position_velocity(self.closed_position, 400)
+		self.set_position_velocity(self.closed_position, 300)
 
 	def set_closed_position(self, a):
 		self.closed_position = a
