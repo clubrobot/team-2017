@@ -169,12 +169,18 @@ class Roller(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
 		self.gathering_velocity = 8
+		self.storage_velocity = 3
 
 	def set_velocity(self, a):
 		thread_safe_send(self, _SET_ROLLER_VELOCITY_OPCODE, FLOAT(a))
 
 	def gather(self):
 		self.set_velocity(self.gathering_velocity)
+	
+	def storage(self):
+		self.set_velocity(self.storage_velocity)
+
+	
 	
 	def stop(self):
 		self.set_velocity(0)
