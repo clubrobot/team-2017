@@ -81,22 +81,22 @@ class AX12(SerialTalksProxy):
 
 	def gather(self):
 		self.set_position_velocity(self.gathering_position, 300)
-		while ((abs(self.get_position() - self.gathering_position) <1)):
+		while ((abs(self.get_position() - self.gathering_position) >1)):
 			time.sleep(0.1)
 
 	def store(self):
 		self.set_position_velocity(self.storage_position, 300)
-		while ((abs(self.get_position() - self.gathering_position) <1)):
+		while ((abs(self.get_position() - self.gathering_position) >1)):
 			time.sleep(0.1)
 
 	def enter(self):
 		self.set_position_velocity(self.entry_position, 300)
-		while ((abs(self.get_position() - self.storage_position) <1)):
+		while ((abs(self.get_position() - self.storage_position) >1)):
 			time.sleep(0.1)
 	
 	def close(self):
 		self.set_position_velocity(self.closed_position, 300)
-		while ((abs(self.get_position() - self.closed_position) <1)):
+		while ((abs(self.get_position() - self.closed_position) >1)):
 			time.sleep(0.1)
 
 	def set_closed_position(self, a):
