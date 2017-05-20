@@ -69,7 +69,7 @@ void setup(){
    // Miscellanous
 	//TCCR2B = (TCCR2B & 0b11111000) | 1;
 
-  servoax.attach(2);
+  servoax.attach(1);
   servoax.setShutdownAlarm(0);
   servoax.setMaxTorque(1023);
   servoax.setEndlessMode(OFF);
