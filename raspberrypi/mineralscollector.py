@@ -50,9 +50,10 @@ class AX12(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)		
 		self.closed_position = 300
-		self.gathering_position = 70
+		self.gathering_position = 80
 		self.entry_position = 105
-		self.storage_position = 280
+		self.storage_position = 285
+		self.ax_velocity = 300
 		thread_safe_execute(self, _SETUP_AX_OPCODE)
 
 	def set_position(self, a):
@@ -79,25 +80,29 @@ class AX12(SerialTalksProxy):
 	def hold(self, i):
 		thread_safe_execute(self, _SET_AX_HOLD_OPCODE, INT(i))
 
-	def gather(self):
-		self.set_position_velocity(self.gathering_position, 300)
-		while ((abs(self.get_position() - self.gathering_position) >1)):
+	def goto(self, p, vel=None):
+		if vel = None:
+			self.set_position(p)
+		else:
+			self.set_position_velocity(p,v)
+		time = 0
+		while ((abs(self.get_position() - p) >15)):
 			time.sleep(0.1)
+			time += 0.1
+			if time >= 3:
+				raise RuntimeError('timeout, can\'t reach position')
+
+	def gather(self):
+		self.goto(self.gathering_position, self.ax_velocity)
 
 	def store(self):
-		self.set_position_velocity(self.storage_position, 300)
-		while ((abs(self.get_position() - self.gathering_position) >1)):
-			time.sleep(0.1)
+		self.goto(self.storage_position, self.ax_velocity)
 
 	def enter(self):
-		self.set_position_velocity(self.entry_position, 300)
-		while ((abs(self.get_position() - self.storage_position) >1)):
-			time.sleep(0.1)
+		self.goto(self.entry_position, self.ax_velocity)
 	
 	def close(self):
-		self.set_position_velocity(self.closed_position, 300)
-		while ((abs(self.get_position() - self.closed_position) >1)):
-			time.sleep(0.1)
+		self.goto(self.closed_position, self.ax_velocity)
 
 	def set_closed_position(self, a):
 		self.closed_position = a
@@ -180,7 +185,5 @@ class Roller(SerialTalksProxy):
 	def storage(self):
 		self.set_velocity(self.storage_velocity)
 
-	
-	
 	def stop(self):
 		self.set_velocity(0)
