@@ -68,17 +68,7 @@ class AX12(SerialTalksProxy):
 		return int(trq)
 	
 	def set_position_velocity(self, p, v):
-<<<<<<< HEAD
-		self.send(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
-=======
-		thread_safe_execute(self, _SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
-
-	def set_r_position(self, p):
-		self.set_position(p - self.theorical_high_position + self.closed_position)
-
-	def set_r_position_velocity(self, p, v):
-		self.set_position_velocity(p - self.theorical_high_position + self.closed_position, v)
->>>>>>> 6d3fe650bd5f73469a36ef65baac3bc61bce0779
+		thread_safe_execute(self, _SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v)
 	
 	def ping(self):
 		output = thread_safe_execute(self, _PING_AX_OPCODE)
