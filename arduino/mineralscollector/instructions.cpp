@@ -57,6 +57,7 @@ void GET_AX_TORQUE(SerialTalks &inst, Deserializer &input, Serializer &output){
 void SET_AX_VELOCITY_MOVE(SerialTalks &inst, Deserializer &input, Serializer &output){
 	float position = input.read<float>();
 	int velocity = input.read<int>();
+	servoax.setMaxTorqueRAM(1023);
 	servoax.moveSpeed(position, velocity);
 	output.write<int>(true);
 }

@@ -7,6 +7,17 @@ from geogebra import GeoGebra
 import math
 
 
+def intersect(A, B):
+	(xA, yA), (xA2, yA2) = A
+	(xB, yB), (xB2, yB2) = B
+	dxA, dyA = xA2 - xA, yA2 - yA
+	dxB, dyB = xB2 - xB, yB2 - yB
+	det = dyA * dxB - dxA * dyB
+	if det != 0:
+		tA = (-dyB * (xB - xA) + dxB * (yB - yA)) / det
+		tB = (-dyA * (xB - xA) + dxA * (yB - yA)) / det
+		return tA > 0 and tA < 1 and tB > 0 and tB < 1
+
 class RoadMap:
 
 	def __init__(self, vertices=list(), edges=set()):
@@ -22,18 +33,11 @@ class RoadMap:
 			edge['weight'] = self.get_vertex_distance(edge.source, vertex)
 
 	def cut_edges(self, cutline):
-		(xB, yB), (xB2, yB2) = cutline
-		dxB, dyB = xB2 - xB, yB2 - yB
 		for edge in self.graph.es:
-			xA,  yA  = self.graph.vs[edge.source]['coords']
-			xA2, yA2 = self.graph.vs[edge.target]['coords']
-			dxA, dyA = xA2 - xA, yA2 - yA
-			det = dyA * dxB - dxA * dyB
-			if det != 0:
-				tA = (-dyB * (xB - xA) + dxB * (yB - yA)) / det
-				tB = (-dyA * (xB - xA) + dxA * (yB - yA)) / det
-				if tA > 0 and tA < 1 and tB > 0 and tB < 1:
-					edge['weight'] = math.inf
+			source = self.graph.vs[edge.source]['coords']
+			target = self.graph.vs[edge.target]['coords']
+			if intersect((source, target), cutline):
+				edge['weight'] = math.inf
 
 	def get_vertex_distance(self, vid, vertex):
 		x0, y0 = self.graph.vs[vid]['coords']
@@ -46,10 +50,15 @@ class RoadMap:
 
 	def add_vertex(self, vertex):
 		closest = self.get_closest_vertex(vertex)
+		neighbors = set()
+		for edge in self.graph.es[self.graph.incident(closest)]:
+			if edge['weight'] < math.inf:
+				neighbors.add(edge.source)
+				neighbors.add(edge.target)
 		self.graph.add_vertices(1)
 		vid = self.graph.vcount() - 1
 		self.graph.vs[vid]['coords'] = vertex
-		for target in [closest] + self.graph.neighbors(closest):
+		for target in neighbors:
 			self.graph.add_edge(vid, target, weight=self.get_vertex_distance(target, vertex))
 		return vid
 

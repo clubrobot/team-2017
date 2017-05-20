@@ -80,7 +80,7 @@ class WheeledBase(SerialTalksProxy):
 	def __init__(self, parent, uuid='wheeledbase'):
 		SerialTalksProxy.__init__(self, parent, uuid)
 
-		self.left_wheel_radius   = WheeledBase.Parameter(self, LEFTCODEWHEEL_RADIUS_ID, FLOAT)
+		self.left_wheel_radius   = WheeledBase.Parameter(self, LEFTWHEEL_RADIUS_ID, FLOAT)
 		self.left_wheel_constant = WheeledBase.Parameter(self, LEFTWHEEL_CONSTANT_ID, FLOAT)
 		self.left_wheel_maxPWM   = WheeledBase.Parameter(self, LEFTWHEEL_MAXPWM_ID, FLOAT)
 

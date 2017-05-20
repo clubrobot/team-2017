@@ -5,6 +5,7 @@
 #include "../../common/AX12.h"
 #include "../../common/SerialTalks.h"
 #include "../../common/DCMotor.h"
+#include "../../common/EndStop.h"
 #include "instructions.h"
 
 

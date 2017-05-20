@@ -220,7 +220,7 @@ class Proxy():
 		if attrname in self._attrlist:
 			return self._manager.execute(GET_COMPONENT_ATTRIBUTE_OPCODE, self._compid, attrname, timeout=tcptimeout)
 		else:
-			object.__getattr__(self, attrname)
+			object.__getattribute__(self, attrname)
 
 	def __setattr__(self, attrname, attrvalue, tcptimeout=10):
 		if attrname in self._attrlist:

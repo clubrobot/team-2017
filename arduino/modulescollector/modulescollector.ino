@@ -76,16 +76,17 @@ void loop(){
 
      if(highStop.getState() && gripperMotor.getVelocity()<BRAKEVELOCITY*(-1)){
         gripperMotor.setVelocity(-BRAKEVELOCITY);
+        elevatorMoving = false;
      }
      else if(lowStop.getState() && gripperMotor.getVelocity()>BRAKEVELOCITY){
         gripperMotor.setVelocity(+BRAKEVELOCITY);
+        elevatorMoving = false;
      }
 
      if(elevatorMoving && movingTime.getElapsedTime() >= 5){
          gripperMotor.setVelocity(0);
          motorError = true;
      }
-
 
 
 }

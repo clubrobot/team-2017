@@ -107,7 +107,7 @@ void SET_MOTOR_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &outp
             movingTime.restart();
             motorError = false;
         }
-        if (vel < 0){
+        if (vel > 0){
             gripper.detach();
         }
         if(vel == 0){
