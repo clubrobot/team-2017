@@ -90,7 +90,7 @@ class AX12(SerialTalksProxy):
 			time.sleep(0.1)
 			time += 0.1
 			if time >= 3:
-				raise RuntimeError('timeout, ')
+				raise RuntimeError('timeout, can\'t reach position')
 
 	def gather(self):
 		self.goto(self.gathering_position, self.ax_velocity)
