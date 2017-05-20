@@ -50,8 +50,9 @@ class AX12(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)		
 		self.closed_position = 300
-		self.collecting_position = 70
-		self.mid_position = 200
+		self.gathering_position = 70
+		self.entry_position = 105
+		self.storage_position = 280
 		thread_safe_execute(self, _SETUP_AX_OPCODE)
 
 	def set_position(self, a):
@@ -79,7 +80,13 @@ class AX12(SerialTalksProxy):
 		thread_safe_execute(self, _SET_AX_HOLD_OPCODE, INT(i))
 
 	def gather(self):
-		self.set_position_velocity(self.collecting_position, 300)
+		self.set_position_velocity(self.gathering_position, 300)
+
+	def store(self):
+		self.set_position_velocity(self.storage_position, 300)
+
+	def enter(self):
+		self.set_position_velocity(self.entry_position, 300)
 	
 	def close(self):
 		self.set_position_velocity(self.closed_position, 300)
@@ -87,8 +94,14 @@ class AX12(SerialTalksProxy):
 	def set_closed_position(self, a):
 		self.closed_position = a
 	
-	def set_collecting_position(self, a):
-		self.collecting_position = a
+	def set_gathering_position(self, a):
+		self.gathering_position = a
+
+	def set_entry_position(self, a):
+		self.entry_position = a
+
+	def set_storage_position(self, a):
+		self.storage_position = a
 
 	def send_instruction_packet(self, packet):
 		thread_safe_send(self, AX12_SEND_INSTRUCTION_PACKET_OPCODE, BYTE(len(packet)), *map(BYTE, packet))
@@ -147,13 +160,13 @@ class Hammer(SerialTalksProxy):
 class Roller(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
-		self.collecting_velocity = 8
+		self.gathering_velocity = 8
 
 	def set_velocity(self, a):
 		thread_safe_send(self, _SET_ROLLER_VELOCITY_OPCODE, FLOAT(a))
 
 	def gather(self):
-		self.set_velocity(self.collecting_velocity)
+		self.set_velocity(self.gathering_velocity)
 	
 	def stop(self):
 		self.set_velocity(0)
