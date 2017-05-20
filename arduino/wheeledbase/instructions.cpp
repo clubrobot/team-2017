@@ -224,6 +224,10 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		velocityControl.setMaxDec(velocityControl.getMaxLinDec(), input.read<float>());
 		velocityControl.save(VELOCITYCONTROL_ADDRESS);
 		break;
+	case VELOCITYCONTROL_SPINSHUTDOWN_ID:
+		velocityControl.setSpinShutdown(input.read<byte>());
+		velocityControl.save(VELOCITYCONTROL_ADDRESS);
+		break;
 	
 	case LINVELPID_KP_ID:
 		linVelPID.setTunings(input.read<float>(), linVelPID.getKi(), linVelPID.getKd());
@@ -363,6 +367,9 @@ void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		break;
 	case VELOCITYCONTROL_MAXANGDEC_ID:
 		output.write<float>(velocityControl.getMaxAngDec());
+		break;
+	case VELOCITYCONTROL_SPINSHUTDOWN_ID:
+		output.write<byte>(velocityControl.getSpinShutdown());
 		break;
 	
 	case LINVELPID_KP_ID:

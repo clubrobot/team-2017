@@ -47,6 +47,7 @@ VELOCITYCONTROL_MAXLINACC_ID    = 0x81
 VELOCITYCONTROL_MAXLINDEC_ID    = 0x82
 VELOCITYCONTROL_MAXANGACC_ID    = 0x83
 VELOCITYCONTROL_MAXANGDEC_ID    = 0x84
+VELOCITYCONTROL_SPINSHUTDOWN_ID = 0x85
 LINVELPID_KP_ID                 = 0xA0
 LINVELPID_KI_ID                 = 0xA1
 LINVELPID_KD_ID                 = 0xA2
@@ -102,6 +103,7 @@ class WheeledBase(SerialTalksProxy):
 		self.max_lindec = WheeledBase.Parameter(self, VELOCITYCONTROL_MAXLINDEC_ID, FLOAT)
 		self.max_angacc = WheeledBase.Parameter(self, VELOCITYCONTROL_MAXANGACC_ID, FLOAT)
 		self.max_angdec = WheeledBase.Parameter(self, VELOCITYCONTROL_MAXANGDEC_ID, FLOAT)
+		self.spin_shutdown = WheeledBase.Parameter(self, VELOCITYCONTROL_SPINSHUTDOWN_ID, BYTE)
 		
 		self.linvel_KP = WheeledBase.Parameter(self, LINVELPID_KP_ID, FLOAT)
 		self.linvel_KI = WheeledBase.Parameter(self, LINVELPID_KI_ID, FLOAT)

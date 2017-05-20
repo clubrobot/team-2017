@@ -53,7 +53,7 @@ void VelocityController::process(float timestep)
 			abnormalSpin = abs(m_linInput) < 1; // linear velocity < 1 mm/s
 		else
 			abnormalSpin = abs(m_angInput) < 0.05; // angular velocity < 0.05 rad/s
-		if (abnormalSpin)
+		if (abnormalSpin && m_spinShutdown)
 		{
 			m_leftWheel ->setVelocity(0);
 			m_rightWheel->setVelocity(0);
@@ -75,20 +75,22 @@ void VelocityController::onProcessEnabling()
 
 void VelocityController::load(int address)
 {
-	EEPROM.get(address, m_axleTrack); address += sizeof(m_axleTrack);
-	EEPROM.get(address, m_maxLinAcc); address += sizeof(m_maxLinAcc);
-	EEPROM.get(address, m_maxLinDec); address += sizeof(m_maxLinDec);
-	EEPROM.get(address, m_maxAngAcc); address += sizeof(m_maxAngAcc);
-	EEPROM.get(address, m_maxAngDec); address += sizeof(m_maxAngDec);
+	EEPROM.get(address, m_axleTrack);    address += sizeof(m_axleTrack);
+	EEPROM.get(address, m_maxLinAcc);    address += sizeof(m_maxLinAcc);
+	EEPROM.get(address, m_maxLinDec);    address += sizeof(m_maxLinDec);
+	EEPROM.get(address, m_maxAngAcc);    address += sizeof(m_maxAngAcc);
+	EEPROM.get(address, m_maxAngDec);    address += sizeof(m_maxAngDec);
+	EEPROM.get(address, m_spinShutdown); address += sizeof(m_spinShutdown);
 }
 
 void VelocityController::save(int address) const
 {
-	EEPROM.put(address, m_axleTrack); address += sizeof(m_axleTrack);
-	EEPROM.put(address, m_maxLinAcc); address += sizeof(m_maxLinAcc);
-	EEPROM.put(address, m_maxLinDec); address += sizeof(m_maxLinDec);
-	EEPROM.put(address, m_maxAngAcc); address += sizeof(m_maxAngAcc);
-	EEPROM.put(address, m_maxAngDec); address += sizeof(m_maxAngDec);
+	EEPROM.put(address, m_axleTrack);    address += sizeof(m_axleTrack);
+	EEPROM.put(address, m_maxLinAcc);    address += sizeof(m_maxLinAcc);
+	EEPROM.put(address, m_maxLinDec);    address += sizeof(m_maxLinDec);
+	EEPROM.put(address, m_maxAngAcc);    address += sizeof(m_maxAngAcc);
+	EEPROM.put(address, m_maxAngDec);    address += sizeof(m_maxAngDec);
+	EEPROM.put(address, m_spinShutdown); address += sizeof(m_spinShutdown);
 }
 
 #if ENABLE_VELOCITYCONTROLLER_LOGS
