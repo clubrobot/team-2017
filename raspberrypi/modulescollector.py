@@ -69,14 +69,14 @@ class ModulesElevator(SerialTalksProxy):
 	def isup(self):
 		output = self.execute(_IS_UP_OPCODE)
 		isup, error = output.read(BYTE, BYTE)
-		if bool(error):
+		if bool(error) and not bool(isup):
 			raise RuntimeError('timeout error, elevator stopped')
 		return bool(isup)
 
 	def isdown(self):
 		output = self.execute(_IS_DOWN_OPCODE)
 		isdown, error = output.read(BYTE, BYTE)
-		if bool(error):
+		if bool(error) and not bool(isdown)::
 			raise RuntimeError('timeout error, elevator stopped')
 		return bool(isdown)
 	
