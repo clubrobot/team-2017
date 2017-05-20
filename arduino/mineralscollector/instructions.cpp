@@ -43,7 +43,6 @@ void SETUP_AX(SerialTalks& talks, Deserializer& input, Serializer& output)
 }
 
 void SET_AX_POSITION(SerialTalks &inst, Deserializer &input, Serializer &output){
-	servoax.hold(1);
 	servoax.setMaxTorqueRAM(1023);
 	servoax.move(input.read<float>());
 	output.write<int>(true);
