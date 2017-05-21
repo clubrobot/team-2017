@@ -81,6 +81,7 @@ void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& outp
 	case 0: purePursuit.setDirection(PurePursuit::FORWARD); break;
 	case 1: purePursuit.setDirection(PurePursuit::BACKWARD); break;
 	}
+	purePursuit.setFinalAngle(input.read<float>());
 
 	// Compute final setpoint
 	const PurePursuit::Waypoint wp0 = purePursuit.getWaypoint(purePursuit.getNumWaypoints() - 2);
@@ -300,8 +301,8 @@ void SET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 		purePursuit.setLookAhead(input.read<float>());
 		purePursuit.save(PUREPURSUIT_ADDRESS);
 		break;
-	case PUREPURSUIT_ENDINGMODE_ID:
-		purePursuit.setEndingMode(PurePursuit::EndingMode(input.read<byte>()));
+	case PUREPURSUIT_LOOKAHEADBIS_ID:
+		purePursuit.setLookAheadBis(input.read<float>());
 		purePursuit.save(PUREPURSUIT_ADDRESS);
 		break;
 	}
@@ -426,9 +427,8 @@ void GET_PARAMETER_VALUE(SerialTalks& talks, Deserializer& input, Serializer& ou
 	case PUREPURSUIT_LOOKAHED_ID:
 		output.write<float>(purePursuit.getLookAhead());
 		break;
-	case PUREPURSUIT_ENDINGMODE_ID:
-		output.write<byte>(byte(purePursuit.getEndingMode()));
-		output.write<byte>(purePursuit.getEndingMode());
+	case PUREPURSUIT_LOOKAHEADBIS_ID:
+		output.write<float>(purePursuit.getLookAheadBis());
 		break;
 	}
 }

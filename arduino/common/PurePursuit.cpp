@@ -11,6 +11,11 @@ void PurePursuit::setDirection(Direction direction)
 	m_direction = direction;
 }
 
+void PurePursuit::setFinalAngle(float finalAngle)
+{
+	m_finalAngle = finalAngle;
+}
+
 bool PurePursuit::addWaypoint(const Waypoint& waypoint)
 {
 	if (m_numWaypoints < PUREPURSUIT_MAX_WAYPOINTS)
@@ -36,12 +41,21 @@ bool PurePursuit::checkLookAheadGoal(const float x, const float y)
 	// `m_lookAhead` centered at the robot position and the path. As there may be several of them,
 	// we iterate through the path segments in the order of passing and stop as soon as we find
 	// one.
-	for (int i = m_goalIndex; i < m_numWaypoints-1; i++)
+	for (int i = m_goalIndex; i < m_numWaypoints; i++)
 	{
 		float dx = x - m_waypoints[i].x;
 		float dy = y - m_waypoints[i].y;
-		float edgedx = m_waypoints[i+1].x - m_waypoints[i].x;
-		float edgedy = m_waypoints[i+1].y - m_waypoints[i].y;
+		float edgedx, edgedy;
+		if (i < m_numWaypoints-1)
+		{
+			edgedx = m_waypoints[i+1].x - m_waypoints[i].x;
+			edgedy = m_waypoints[i+1].y - m_waypoints[i].y;	
+		}
+		else
+		{
+			edgedx = cos(m_finalAngle);
+			edgedy = sin(m_finalAngle);
+		}
 		float edgeLength = sqrt(edgedx * edgedx + edgedy * edgedy);
 
 		// `h` is the distance between the robot and the current line (i.e. the current segment but
@@ -64,13 +78,13 @@ bool PurePursuit::checkLookAheadGoal(const float x, const float y)
 		// Skip if the intersection point is beyond the second endpoint (see above).
 		if (t2 < 0)
 			continue;
-		else if (t2 > 1 && i+1 < m_numWaypoints-1)
+		else if (t2 > 1 && i < m_numWaypoints-1)
 			continue;
-		else if (t1 > 1 && i+1 == m_numWaypoints-1 && m_endingMode == ANGLE_ENDING_MODE)
+		else if (t1 > 1 && i == m_numWaypoints-1)
 			continue;
-		else if (t2 > 1 && m_endingMode == POSITION_ENDING_MODE)
-			t2 = 1;
-			
+		else if (t2 > 1 + m_lookAheadBis / edgeLength)
+			t2 = 1 + m_lookAheadBis / edgeLength;
+
 		// Save the new goal.
 		if (i > m_goalIndex || t2 > m_goalParam)
 		{
@@ -135,10 +149,19 @@ float PurePursuit::getDistAfterGoal()
 	// This function computes the remaining distance between the current goal and the last
 	// waypoint. It basically does the sum of all the last segments lengths.
 	float dist = 0;
-	for (int i = m_goalIndex; i < m_numWaypoints-1; i++)
+	for (int i = m_goalIndex; i < m_numWaypoints; i++)
 	{
-		float edgedx = m_waypoints[i+1].x - m_waypoints[i].x;
-		float edgedy = m_waypoints[i+1].y - m_waypoints[i].y;
+		float edgedx, edgedy;
+		if (i < m_numWaypoints - 1)
+		{
+			edgedx = m_waypoints[i+1].x - m_waypoints[i].x;
+			edgedy = m_waypoints[i+1].y - m_waypoints[i].y;
+		}
+		else
+		{
+			edgedx = cos(m_finalAngle);
+			edgedy = sin(m_finalAngle);
+		}
 		float edgeLength = sqrt(edgedx * edgedx + edgedy * edgedy);
 		if (i == m_goalIndex)
 			dist += (1 - m_goalParam) * edgeLength;
@@ -168,8 +191,16 @@ void PurePursuit::computeVelSetpoints(float timestep)
 	int i = m_goalIndex;
 	float t = m_goalParam;
 	Waypoint goal;
-	goal.x = (1-t) * m_waypoints[i].x + t * m_waypoints[i+1].x;
-	goal.y = (1-t) * m_waypoints[i].y + t * m_waypoints[i+1].y;
+	if (i < m_numWaypoints - 1)
+	{
+		goal.x = (1-t) * m_waypoints[i].x + t * m_waypoints[i+1].x;
+		goal.y = (1-t) * m_waypoints[i].y + t * m_waypoints[i+1].y;
+	}
+	else
+	{
+		goal.x = m_waypoints[i].x + t * cos(m_finalAngle);
+		goal.y = m_waypoints[i].y + t * sin(m_finalAngle);
+	}
 
 	// Compute the norm and the argument of the vector going from the robot to its goal.
 	float chord = sqrt((goal.x - x) * (goal.x - x) + (goal.y - y) * (goal.y - y));
@@ -213,12 +244,12 @@ bool PurePursuit::getPositionReached()
 
 void PurePursuit::load(int address)
 {
-	EEPROM.get(address, m_lookAhead);  address += sizeof(m_lookAhead);
-	EEPROM.get(address, m_endingMode); address += sizeof(m_endingMode);
+	EEPROM.get(address, m_lookAhead);    address += sizeof(m_lookAhead);
+	EEPROM.get(address, m_lookAheadBis); address += sizeof(m_lookAheadBis);
 }
 
 void PurePursuit::save(int address) const
 {
-	EEPROM.put(address, m_lookAhead);  address += sizeof(m_lookAhead);
-	EEPROM.put(address, m_endingMode); address += sizeof(m_endingMode);
+	EEPROM.put(address, m_lookAhead);    address += sizeof(m_lookAhead);
+	EEPROM.put(address, m_lookAheadBis); address += sizeof(m_lookAheadBis);
 }
