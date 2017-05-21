@@ -42,11 +42,9 @@ void VelocityController::process(float timestep)
 	DifferentialController::process(timestep);
 
 	// Check for wheels abnormal spin and stop the controller accordingly
-	float leftWheelSetpoint  = m_linVelOutput - m_angVelOutput * m_axleTrack / 2;
-	float rightWheelSetpoint = m_linVelOutput + m_angVelOutput * m_axleTrack / 2;
-	bool leftWheelSpin  = (abs(leftWheelSetpoint)  >= m_leftWheel ->getMaxVelocity());
-	bool rightWheelSpin = (abs(rightWheelSetpoint) >= m_rightWheel->getMaxVelocity());
-	if (leftWheelSpin || rightWheelSpin)
+	bool linVelSpin = (m_linVelOutput <= m_linPID->getMinOutput()) || (m_linVelOutput >= m_linPID->getMaxOutput());
+	bool angVelSpin = (m_angVelOutput <= m_angPID->getMinOutput()) || (m_angVelOutput >= m_angPID->getMaxOutput());
+	if (linVelSpin || angVelSpin)
 	{
 		bool abnormalSpin = (abs(m_linInput) < 1) && (abs(m_angInput) < 0.05);
 		if (abnormalSpin && m_spinShutdown)
