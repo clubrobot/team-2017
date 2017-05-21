@@ -87,7 +87,10 @@ class Behavior(Manager):
 					time.sleep(1)
 					continue
 				if location is not None:
-					self.log('goto: ({0[0]:.0f}, {0[1]:.0f}, {0[2]:.2f})'.format(location))
+					if location[2] is not None:
+						self.log('goto: ({0[0]:.0f}, {0[1]:.0f}, {0[2]:.2f})'.format(location))
+					else:
+						self.log('goto: ({0[0]:.0f}, {0[1]:.0f})'.format(location))
 					goto = self.perform(self.goto_procedure, args=(location,))
 					success = self.get(goto)
 				else:
