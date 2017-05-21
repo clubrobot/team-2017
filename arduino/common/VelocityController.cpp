@@ -48,11 +48,7 @@ void VelocityController::process(float timestep)
 	bool rightWheelSpin = (abs(rightWheelSetpoint) >= m_rightWheel->getMaxVelocity());
 	if (leftWheelSpin || rightWheelSpin)
 	{
-		bool abnormalSpin = false;
-		if (leftWheelSetpoint * rightWheelSetpoint > 0)
-			abnormalSpin = abs(m_linInput) < 1; // linear velocity < 1 mm/s
-		else
-			abnormalSpin = abs(m_angInput) < 0.05; // angular velocity < 0.05 rad/s
+		bool abnormalSpin = (abs(m_linInput) < 1) && (abs(m_angInput) < 0.05);
 		if (abnormalSpin && m_spinShutdown)
 		{
 			m_leftWheel ->setVelocity(0);
