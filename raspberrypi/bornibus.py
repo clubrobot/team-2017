@@ -61,28 +61,32 @@ class Bornibus(Behavior):
 		deposit00 = DropModuleAction(self.geogebra, '00', 'a')
 		deposit01 = DropModuleAction(self.geogebra, '01', 'a')
 		deposit02 = DropModuleAction(self.geogebra, '02', 'a')
+		deposit03 = DropModuleAction(self.geogebra, '03', 'a')
 		deposit04 = DropModuleAction(self.geogebra, '04', 'b')
 		deposit05 = DropModuleAction(self.geogebra, '05', 'b')
 		deposit06 = DropModuleAction(self.geogebra, '06', 'b')
+		shift0406 = DropAndShiftModuleAction(self.geogebra, '04', 'b', '06', 'b')
 		deposit23 = ReleaseModuleAction(self.geogebra, '23', 'a')
-		odometry00 = RecalibrateOdometryAction(self.geogebra, '00', 'c')
-		odometry02 = RecalibrateOdometryAction(self.geogebra, '02', 'a')
+		odometry00b = RecalibrateOdometryAction(self.geogebra, '00', 'b')
+		odometry00c = RecalibrateOdometryAction(self.geogebra, '00', 'c')
+		odometry02a = RecalibrateOdometryAction(self.geogebra, '02', 'a')
+		odometry02b = RecalibrateOdometryAction(self.geogebra, '02', 'b')
 		
 		self.automate = [
-			module06,
-			module01,
 			module03,
-			odometry00,
-			deposit02,
+			module01,
+			odometry00b,
 			deposit01,
 			deposit00,
 			module06,
 			module06,
 			module06,
-			odometry02,
-			deposit04,
+			module06,
+			odometry02b,
 			deposit05,
-			deposit06,
+			shift0406,
+			deposit05,
+			deposit04
 		]
 
 	def make_decision(self):
@@ -120,9 +124,10 @@ class Bornibus(Behavior):
 		else:
 			direction = -1
 		wheeledbase.lookahead.set(150)
-		wheeledbase.max_linvel.set(200)
+		wheeledbase.lookaheadbis.set(150)
+		wheeledbase.max_linvel.set(500)
 		wheeledbase.max_angvel.set(6.0)
-		wheeledbase.linpos_threshold.set(2)
+		wheeledbase.linpos_threshold.set(3)
 		wheeledbase.angpos_threshold.set(0.1)
 
 		# Trajectory
@@ -148,7 +153,7 @@ class Bornibus(Behavior):
 			found_obstacle = False
 			rays = zip(self.frontsensors.get_mesure() + self.backsensors.get_mesure(), self.front_sensors_angles + self.back_sensors_angles)
 			for distance, delta in rays:
-				if distance < 500:
+				if distance < 500 and False:
 
 					# Compute the obstacle position
 					obstacle_x = x + distance * math.cos(theta + delta)
@@ -269,6 +274,7 @@ class TakePlayfieldModuleAction:
 		gripper     = bornibus.gripper
 
 		# Go to the taking point
+		wheeledbase.lookahead.set(70)
 		wheeledbase.goto(*self.takingpoint)
 
 		# Do an adjustment procedure
@@ -349,6 +355,32 @@ class DropModuleAction:
 		dispenser.open()
 		time.sleep(1.2)
 		self.isdone = True
+
+		# Close dispenser
+		dispenser.close()
+		time.sleep(0.7)
+
+
+class DropAndShiftModuleAction:
+	def __init__(self, geogebra, major1, minor1, major2, minor2):
+		deposit          = geogebra.get('deposit_{{{}}}'.format(major1))
+		self.actionpoint = geogebra.get('deposit_{{{}, action, {}}}'.format(major1, minor1))
+		self.shiftpoint  = geogebra.get('deposit_{{{}, action, {}}}'.format(major2, minor2))
+		self.orientation = math.pi / 2 + math.atan2(deposit[1] - self.actionpoint[1], deposit[0] - self.actionpoint[0])
+		self.isdone = False
+
+	def procedure(self, bornibus):
+		bornibus.log('drop and shift module')
+		wheeledbase = bornibus.wheeledbase
+		dispenser   = bornibus.dispenser
+
+		# Drop module
+		dispenser.open()
+		time.sleep(1.2)
+		self.isdone = True
+
+		# Shift module
+		wheeledbase.goto(*self.shiftpoint)
 
 		# Close dispenser
 		dispenser.close()
