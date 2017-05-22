@@ -23,23 +23,21 @@ class BlueTalks(tcptalks.TCPTalks):
 			clientsocket = serversocket.accept()[0]
 			return clientsocket
 		except bluetooth.btcommon.BluetoothError:
-			raise ForeverAloneError('no connection request') from None
+			raise tcptalks.ForeverAloneError('no connection request') from None
 		finally:
 			serversocket.close() # The server is no longer needed
 
 	@staticmethod
 	def _clientsocket(ip, port, timeout):
-		# Create a client
-		clientsocket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-
 		# Connect to the other
 		startingtime = time.monotonic()
 		while timeout is None or time.monotonic() - startingtime < timeout:
 			try:
+				clientsocket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
 				clientsocket.connect((ip, port))
 				return clientsocket
 			except bluetooth.btcommon.BluetoothError:
 				continue
-		raise ForeverAloneError('no server found') from None
+		raise tcptalks.ForeverAloneError('no server found') from None
 
-		_timeouterror = bluetooth.btcommon.BluetoothError
+	_timeouterror = bluetooth.btcommon.BluetoothError
