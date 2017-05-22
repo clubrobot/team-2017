@@ -8,7 +8,7 @@ import time
 
 # Main class
 
-class BlueTalks:
+class BlueTalks(tcptalks.TCPTalks):
 
 	@staticmethod
 	def _serversocket(port, timeout):
@@ -22,7 +22,7 @@ class BlueTalks:
 		try:
 			clientsocket = serversocket.accept()[0]
 			return clientsocket
-		except socket.timeout:
+		except bluetooth.btcommon.BluetoothError:
 			raise ForeverAloneError('no connection request') from None
 		finally:
 			serversocket.close() # The server is no longer needed
@@ -38,6 +38,8 @@ class BlueTalks:
 			try:
 				clientsocket.connect((ip, port))
 				return clientsocket
-			except ConnectionRefusedError:
+			except bluetooth.btcommon.BluetoothError:
 				continue
 		raise ForeverAloneError('no server found') from None
+
+		_timeouterror = bluetooth.btcommon.BluetoothError

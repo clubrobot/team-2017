@@ -74,6 +74,8 @@ class TCPTalks:
 			else:
 				b = i
 		return pickle.loads(rawbytes[:b]), rawbytes[b:]
+	
+	_timeouterror = socket.timeout
 
 	def __init__(self, ip=None, port=25565, password=None):
 		# Instructions
@@ -304,7 +306,7 @@ class TCPListener(Thread):
 				inc = self.parent.socket.recv(256)
 			except (ConnectionResetError, AttributeError):
 				inc = None
-			except socket.timeout:
+			except self.parent._timeouterror:
 				continue
 			
 			# Disconnect if the other is no longer connected
