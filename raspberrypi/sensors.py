@@ -10,6 +10,8 @@ from components import SerialTalksProxy
 # Instructions
 
 _GET_MESURE_SENSOR_OPCODE   = 0x06
+ACTIVATE_SENSORS_OPCODE 	= 0x07
+DESACTIVATE_SENSORS_OPCODE  = 0x08
 
 
 class Sensors(SerialTalksProxy):
@@ -21,3 +23,8 @@ class Sensors(SerialTalksProxy):
 		ar,av=output.read(INT,INT)
 		return ar,av
 
+	def activate(self):
+		self.send(ACTIVATE_SENSORS_OPCODE, BYTE(1))
+
+	def desactivate(self):
+		self.send(DESACTIVATE_SENSORS_OPCODE, BYTE(0))

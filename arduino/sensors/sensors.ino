@@ -6,6 +6,8 @@
 #include "PIN.h"
  
 
+bool activated = true;
+
 UltrasonicSensor SensorAv;
 UltrasonicSensor SensorAr;
 
@@ -24,10 +26,10 @@ void loop() {
   talks.execute(); 
   SensorAv.update();
   SensorAr.update();
-  if (SensorAv.getReady()) {
+  if (SensorAv.getReady() && activated) {
     SensorAv.trig();
   }
-  if (SensorAr.getReady()){
+  if (SensorAr.getReady() && activated){
       SensorAr.trig();
   }
 }
