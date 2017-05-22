@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+#-*- coding: utf-8 -*-
+
+import bluetooth
+import tcptalks
+import time
+
+
+# Main class
+
+class BlueTalks:
+
+	@staticmethod
+	def _serversocket(port, timeout):
+		# Create a server
+		serversocket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+		serversocket.bind(('', port))
+		serversocket.listen(1)
+
+		# Wait for the other to connect
+		serversocket.settimeout(timeout)
+		try:
+			clientsocket = serversocket.accept()[0]
+			return clientsocket
+		except socket.timeout:
+			raise ForeverAloneError('no connection request') from None
+		finally:
+			serversocket.close() # The server is no longer needed
+
+	@staticmethod
+	def _clientsocket(ip, port, timeout):
+		# Create a client
+		clientsocket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+
+		# Connect to the other
+		startingtime = time.monotonic()
+		while timeout is None or time.monotonic() - startingtime < timeout:
+			try:
+				clientsocket.connect((ip, port))
+				return clientsocket
+			except ConnectionRefusedError:
+				continue
+		raise ForeverAloneError('no server found') from None
