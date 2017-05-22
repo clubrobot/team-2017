@@ -4,6 +4,7 @@
 #include "PIN.h"
 #include "../common/SoftwareSerial.h"
 #include "SafePosition.h"
+#include <Servo.h>
 
 extern AX12 servoax;
 
@@ -14,6 +15,8 @@ extern DCMotor hammerMotor;
 extern SafePosition safeHammer;
 
 extern SoftwareSerial SoftSerial;
+
+extern Servo launchPad; 
 
 void SET_ROLLER_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output){
 	rollerMotor.setVelocity(input.read<float>());
@@ -108,4 +111,8 @@ void GET_AX_VELOCITY(SerialTalks& talks, Deserializer& input, Serializer& output
 
 void GET_AX_MOVING(SerialTalks& talks, Deserializer& input, Serializer& output){
 	output.write<int>(servoax.moving());
+}
+
+void LAUNCHPAD_SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output){
+	launchPad.write(input.read<int>());
 }

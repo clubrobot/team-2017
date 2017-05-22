@@ -26,6 +26,8 @@ _GET_AX_MOVING_OPCODE				=	0x0D
 AX12_SEND_INSTRUCTION_PACKET_OPCODE = 0x0E
 AX12_RECEIVE_STATUS_PACKET_OPCODE   = 0x0F
 
+LAUNCHPAD_SET_POSITION_OPCODE 		=	0x11
+
 proxy_locks_array = dict()
 
 def thread_safe_send(proxy, *args, **kwargs):
@@ -81,7 +83,7 @@ class AX12(SerialTalksProxy):
 		thread_safe_execute(self, _SET_AX_HOLD_OPCODE, INT(i))
 
 	def goto(self, p, vel=None):
-		if vel = None:
+		if vel is None:
 			self.set_position(p)
 		else:
 			self.set_position_velocity(p,v)
@@ -187,3 +189,19 @@ class Roller(SerialTalksProxy):
 
 	def stop(self):
 		self.set_velocity(0)
+
+
+class LaunchPad(SerialTalksProxy):
+	def __init__(self, parent, uuid='mineralscollector'):
+		SerialTalksProxy.__init__(self, parent, uuid)
+		self.launch_position = 60
+		self.hold_position = 159
+
+	def set_position(self, pos):
+		thread_safe_send(self, LAUNCHPAD_SET_POSITION_OPCODE, INT(pos))
+
+	def launch(self):
+		self.set_position(self.launch_position)
+	
+	def hold(self):
+		self.set_position(self.hold_position)

@@ -22,6 +22,8 @@
 #define AX12_SEND_INSTRUCTION_PACKET_OPCODE 0x0E
 #define AX12_RECEIVE_STATUS_PACKET_OPCODE   0x0F
 
+#define LAUNCHPAD_SET_POSITION_OPCODE				0x11
+
 void SET_ROLLER_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output);
 
 void SET_FIRING_HAMMER_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output);
@@ -49,5 +51,6 @@ void GET_AX_VELOCITY(SerialTalks& talks, Deserializer& input, Serializer& output
 
 void GET_AX_MOVING(SerialTalks& talks, Deserializer& input, Serializer& output);
 
+void LAUNCHPAD_SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 #endif
