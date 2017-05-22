@@ -42,18 +42,12 @@ void VelocityController::process(float timestep)
 	DifferentialController::process(timestep);
 
 	// Check for wheels abnormal spin and stop the controller accordingly
-	float leftWheelSetpoint  = m_linVelOutput - m_angVelOutput * m_axleTrack / 2;
-	float rightWheelSetpoint = m_linVelOutput + m_angVelOutput * m_axleTrack / 2;
-	bool leftWheelSpin  = (abs(leftWheelSetpoint)  >= m_leftWheel ->getMaxVelocity());
-	bool rightWheelSpin = (abs(rightWheelSetpoint) >= m_rightWheel->getMaxVelocity());
-	if (leftWheelSpin || rightWheelSpin)
+	bool linVelSpin = (m_linVelOutput <= m_linPID->getMinOutput()) || (m_linVelOutput >= m_linPID->getMaxOutput());
+	bool angVelSpin = (m_angVelOutput <= m_angPID->getMinOutput()) || (m_angVelOutput >= m_angPID->getMaxOutput());
+	if (linVelSpin || angVelSpin)
 	{
-		bool abnormalSpin = false;
-		if (leftWheelSetpoint * rightWheelSetpoint > 0)
-			abnormalSpin = abs(m_linInput) < 1; // linear velocity < 1 mm/s
-		else
-			abnormalSpin = abs(m_angInput) < 0.05; // angular velocity < 0.05 rad/s
-		if (abnormalSpin)
+		bool abnormalSpin = (abs(m_linInput) < 1) && (abs(m_angInput) < 0.05);
+		if (abnormalSpin && m_spinShutdown)
 		{
 			m_leftWheel ->setVelocity(0);
 			m_rightWheel->setVelocity(0);
@@ -75,20 +69,22 @@ void VelocityController::onProcessEnabling()
 
 void VelocityController::load(int address)
 {
-	EEPROM.get(address, m_axleTrack); address += sizeof(m_axleTrack);
-	EEPROM.get(address, m_maxLinAcc); address += sizeof(m_maxLinAcc);
-	EEPROM.get(address, m_maxLinDec); address += sizeof(m_maxLinDec);
-	EEPROM.get(address, m_maxAngAcc); address += sizeof(m_maxAngAcc);
-	EEPROM.get(address, m_maxAngDec); address += sizeof(m_maxAngDec);
+	EEPROM.get(address, m_axleTrack);    address += sizeof(m_axleTrack);
+	EEPROM.get(address, m_maxLinAcc);    address += sizeof(m_maxLinAcc);
+	EEPROM.get(address, m_maxLinDec);    address += sizeof(m_maxLinDec);
+	EEPROM.get(address, m_maxAngAcc);    address += sizeof(m_maxAngAcc);
+	EEPROM.get(address, m_maxAngDec);    address += sizeof(m_maxAngDec);
+	EEPROM.get(address, m_spinShutdown); address += sizeof(m_spinShutdown);
 }
 
 void VelocityController::save(int address) const
 {
-	EEPROM.put(address, m_axleTrack); address += sizeof(m_axleTrack);
-	EEPROM.put(address, m_maxLinAcc); address += sizeof(m_maxLinAcc);
-	EEPROM.put(address, m_maxLinDec); address += sizeof(m_maxLinDec);
-	EEPROM.put(address, m_maxAngAcc); address += sizeof(m_maxAngAcc);
-	EEPROM.put(address, m_maxAngDec); address += sizeof(m_maxAngDec);
+	EEPROM.put(address, m_axleTrack);    address += sizeof(m_axleTrack);
+	EEPROM.put(address, m_maxLinAcc);    address += sizeof(m_maxLinAcc);
+	EEPROM.put(address, m_maxLinDec);    address += sizeof(m_maxLinDec);
+	EEPROM.put(address, m_maxAngAcc);    address += sizeof(m_maxAngAcc);
+	EEPROM.put(address, m_maxAngDec);    address += sizeof(m_maxAngDec);
+	EEPROM.put(address, m_spinShutdown); address += sizeof(m_spinShutdown);
 }
 
 #if ENABLE_VELOCITYCONTROLLER_LOGS

@@ -82,17 +82,16 @@ class AX12(SerialTalksProxy):
 	def hold(self, i):
 		thread_safe_execute(self, _SET_AX_HOLD_OPCODE, INT(i))
 
-	def goto(self, p, vel=None):
-		if vel is None:
-			self.set_position(p)
+	def goto(self, pos, vel=None, threshold=15, timeout=3):
+		if vel is not None:
+			self.set_position_velocity(pos, vel)
 		else:
-			self.set_position_velocity(p,v)
-		time = 0
-		while ((abs(self.get_position() - p) >15)):
+			self.set_position(pos)
+		startingtime = time.monotonic()
+		while abs(self.get_position() - pos) > threshold:
 			time.sleep(0.1)
-			time += 0.1
-			if time >= 3:
-				raise RuntimeError('timeout, can\'t reach position')
+			if timeout is not None and time.monotonic() - startingtime > timeout:
+				raise RuntimeError("can't reach position")
 
 	def gather(self):
 		self.goto(self.gathering_position, self.ax_velocity)
@@ -133,7 +132,7 @@ class AX12(SerialTalksProxy):
 		content = [0x02, 0x04, 0x02, address, length]
 		checksum = ~sum(content) & 0xFF
 		packet = [0xFF, 0xFF] + content + [checksum]
-		thread_safe_send_instruction_packet(self, packet)
+		self.send_instruction_packet(self, packet)
 		time.sleep(0.1)
 		return self.receive_status_packet()[5:-1]
 
@@ -141,7 +140,7 @@ class AX12(SerialTalksProxy):
 		content = [0x02, 3 + len(data), 0x03, address] + data
 		checksum = ~sum(content) & 0xFF
 		packet = [0xFF, 0xFF] + content + [checksum]
-		thread_safe_send_instruction_packet(self, packet)
+		self.send_instruction_packet(self, packet)
 	
 	def get_velocity(self):
 		output = thread_safe_execute(self, _GET_AX_VELOCITY_OPCODE)

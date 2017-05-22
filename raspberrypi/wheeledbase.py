@@ -47,6 +47,7 @@ VELOCITYCONTROL_MAXLINACC_ID    = 0x81
 VELOCITYCONTROL_MAXLINDEC_ID    = 0x82
 VELOCITYCONTROL_MAXANGACC_ID    = 0x83
 VELOCITYCONTROL_MAXANGDEC_ID    = 0x84
+VELOCITYCONTROL_SPINSHUTDOWN_ID = 0x85
 LINVELPID_KP_ID                 = 0xA0
 LINVELPID_KI_ID                 = 0xA1
 LINVELPID_KD_ID                 = 0xA2
@@ -64,7 +65,7 @@ POSITIONCONTROL_ANGVELMAX_ID    = 0xD3
 POSITIONCONTROL_LINPOSTHRESHOLD_ID  = 0xD4
 POSITIONCONTROL_ANGPOSTHRESHOLD_ID  = 0xD5
 PUREPURSUIT_LOOKAHEAD_ID        = 0xE0
-PUREPURSUIT_ENDINGMODE_ID       = 0xE1
+PUREPURSUIT_LOOKAHEADBIS_ID     = 0xE2
 
 
 class WheeledBase(SerialTalksProxy):
@@ -102,6 +103,7 @@ class WheeledBase(SerialTalksProxy):
 		self.max_lindec = WheeledBase.Parameter(self, VELOCITYCONTROL_MAXLINDEC_ID, FLOAT)
 		self.max_angacc = WheeledBase.Parameter(self, VELOCITYCONTROL_MAXANGACC_ID, FLOAT)
 		self.max_angdec = WheeledBase.Parameter(self, VELOCITYCONTROL_MAXANGDEC_ID, FLOAT)
+		self.spin_shutdown = WheeledBase.Parameter(self, VELOCITYCONTROL_SPINSHUTDOWN_ID, BYTE)
 		
 		self.linvel_KP = WheeledBase.Parameter(self, LINVELPID_KP_ID, FLOAT)
 		self.linvel_KI = WheeledBase.Parameter(self, LINVELPID_KI_ID, FLOAT)
@@ -118,8 +120,8 @@ class WheeledBase(SerialTalksProxy):
 		self.linpos_threshold = WheeledBase.Parameter(self, POSITIONCONTROL_LINPOSTHRESHOLD_ID, FLOAT)
 		self.angpos_threshold = WheeledBase.Parameter(self, POSITIONCONTROL_ANGPOSTHRESHOLD_ID, FLOAT)
 		
-		self.lookahead  = WheeledBase.Parameter(self, PUREPURSUIT_LOOKAHEAD_ID, FLOAT)
-		self.endingmode = WheeledBase.Parameter(self, PUREPURSUIT_ENDINGMODE_ID, BYTE)
+		self.lookahead    = WheeledBase.Parameter(self, PUREPURSUIT_LOOKAHEAD_ID, FLOAT)
+		self.lookaheadbis = WheeledBase.Parameter(self, PUREPURSUIT_LOOKAHEADBIS_ID, FLOAT)
 
 	def set_openloop_velocities(self, left, right):
 		self.send(SET_OPENLOOP_VELOCITIES_OPCODE, FLOAT(left), FLOAT(right))
@@ -132,7 +134,7 @@ class WheeledBase(SerialTalksProxy):
 	def set_velocities(self, linear_velocity, angular_velocity):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
-	def purepursuit(self, waypoints, direction='forward', lookahead=None, linvelmax=None, angvelmax=None):
+	def purepursuit(self, waypoints, direction='forward', finalangle=None, lookahead=None, lookaheadbis=None, linvelmax=None, angvelmax=None):
 		if len(waypoints) < 2:
 			raise ValueError('not enough waypoints')
 		self.send(RESET_PUREPURSUIT_OPCODE)
@@ -140,11 +142,15 @@ class WheeledBase(SerialTalksProxy):
 			self.send(ADD_PUREPURSUIT_WAYPOINT_OPCODE, FLOAT(x), FLOAT(y))
 		if lookahead is not None:
 			self.set_parameter_value(PUREPURSUIT_LOOKAHEAD_ID, lookahead, FLOAT)
+		if lookaheadbis is not None:
+			self.set_parameter_value(PUREPURSUIT_LOOKAHEADBIS_ID, lookaheadbis, FLOAT)
 		if linvelmax is not None:
 			self.set_parameter_value(POSITIONCONTROL_LINVELMAX_ID, linvelmax, FLOAT)
 		if angvelmax is not None:
 			self.set_parameter_value(POSITIONCONTROL_ANGVELMAX_ID, angvelmax, FLOAT)
-		self.send(START_PUREPURSUIT_OPCODE, BYTE({'forward':0, 'backward':1}[direction]))
+		if finalangle is None:
+			finalangle = math.atan2(waypoints[-1][1] - waypoints[-2][1], waypoints[-1][0] - waypoints[-2][0])
+		self.send(START_PUREPURSUIT_OPCODE, BYTE({'forward':0, 'backward':1}[direction]), FLOAT(finalangle))
 
 	def turnonthespot(self, theta):
 		self.send(START_TURNONTHESPOT_OPCODE, FLOAT(theta))

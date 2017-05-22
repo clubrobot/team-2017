@@ -13,15 +13,17 @@ class VelocityController : public DifferentialController
 {
 public:
 
-	VelocityController() : m_rampLinVelSetpoint(0), m_rampAngVelSetpoint(0), m_maxLinAcc(INFINITY), m_maxLinDec(INFINITY), m_maxAngAcc(INFINITY), m_maxAngDec(INFINITY){}
+	VelocityController() : m_rampLinVelSetpoint(0), m_rampAngVelSetpoint(0), m_maxLinAcc(INFINITY), m_maxLinDec(INFINITY), m_maxAngAcc(INFINITY), m_maxAngDec(INFINITY), m_spinShutdown(true){}
 
 	void setMaxAcc(float maxLinAcc, float maxAngAcc){m_maxLinAcc = maxLinAcc; m_maxAngAcc = maxAngAcc;}
 	void setMaxDec(float maxLinDec, float maxAngDec){m_maxLinDec = maxLinDec; m_maxAngDec = maxAngDec;}
+	void setSpinShutdown(bool spinShutdown){m_spinShutdown = spinShutdown;}
 
 	float getMaxLinAcc() const {return m_maxLinAcc;}
 	float getMaxAngAcc() const {return m_maxAngAcc;}
 	float getMaxLinDec() const {return m_maxLinDec;}
 	float getMaxAngDec() const {return m_maxAngDec;}
+	bool getSpinShutdown() const {return m_spinShutdown;}
 
 	void load(int address);
 	void save(int address) const;
@@ -39,6 +41,7 @@ protected:
 	float m_maxLinDec; // always positive, in mm/s^2
 	float m_maxAngAcc; // always positive, in rad/s^2
 	float m_maxAngDec; // always positive, in rad/s^2
+	bool m_spinShutdown;
 
 #if ENABLE_VELOCITYCONTROLLER_LOGS
 	friend class VelocityControllerLogs;

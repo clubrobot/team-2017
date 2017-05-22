@@ -25,24 +25,25 @@ public:
 	};
 
 	enum Direction {FORWARD=1, BACKWARD=-1};
-	enum EndingMode {POSITION_ENDING_MODE=0, ANGLE_ENDING_MODE=1};
 
-	PurePursuit() : m_numWaypoints(0), m_direction(FORWARD), m_endingMode(POSITION_ENDING_MODE){}
+	PurePursuit() : m_numWaypoints(0), m_direction(FORWARD){}
 
 	void setDirection(Direction direction);
+	void setFinalAngle(float finalAngle);
 	bool addWaypoint(const Waypoint& waypoint);
 
 	void reset();
 
-	void setLookAhead (float      lookAhead) {m_lookAhead  = lookAhead;}
-	void setEndingMode(EndingMode endingMode){m_endingMode = endingMode;}
+	void setLookAhead   (float lookAhead)   {m_lookAhead    = lookAhead;}
+	void setLookAheadBis(float lookAheadBis){m_lookAheadBis = lookAheadBis;}
 
-	Direction       getDirection()         const {return m_direction;}
+	Direction getDirection() const {return m_direction;}
+	float getFinalAngle() const {return m_finalAngle;}
 	const Waypoint& getWaypoint(int index) const {return m_waypoints[index];}
-	int             getNumWaypoints()      const {return m_numWaypoints;}
+	int getNumWaypoints() const {return m_numWaypoints;}
 
-	float      getLookAhead()  const {return m_lookAhead;}
-	EndingMode getEndingMode() const {return m_endingMode;}
+	float getLookAhead()    const {return m_lookAhead;}
+	float getLookAheadBis() const {return m_lookAheadBis;}
 
 	void load(int address);
 	void save(int address) const;
@@ -60,7 +61,7 @@ protected:
 	Waypoint m_waypoints[PUREPURSUIT_MAX_WAYPOINTS];
 	int m_numWaypoints;
 	Direction m_direction;
-	EndingMode m_endingMode;
+	float m_finalAngle;
 
 	// Computation variables
 	int m_goalIndex;
@@ -69,6 +70,7 @@ protected:
 
 	// Path following tunings
 	float m_lookAhead;
+	float m_lookAheadBis;
 };
 
 #endif // __PUREPURSUIT_H__

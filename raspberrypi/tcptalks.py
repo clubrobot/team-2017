@@ -25,57 +25,57 @@ class NotConnectedError    (ConnectionError): pass
 class AuthentificationError(Exception): pass
 
 
-# Utility functions
-
-def _serversocket(port, timeout):
-	# Create a server
-	serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-	serversocket.bind(('', port))
-	serversocket.listen(1)
-
-	# Wait for the other to connect
-	serversocket.settimeout(timeout)
-	try:
-		clientsocket = serversocket.accept()[0]
-		return clientsocket
-	except socket.timeout:
-		raise ForeverAloneError('no connection request') from None
-	finally:
-		serversocket.close() # The server is no longer needed
-
-
-def _clientsocket(ip, port, timeout):
-	# Create a client
-	clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-	# Connect to the other
-	startingtime = time.monotonic()
-	while timeout is None or time.monotonic() - startingtime < timeout:
-		try:
-			clientsocket.connect((ip, port))
-			return clientsocket
-		except ConnectionRefusedError:
-			continue
-	raise ForeverAloneError('no server found') from None
-
-
-def _loads(rawbytes):
-	a, b = 0, len(rawbytes)
-	while (b - a > 1):
-		i = (a + b) // 2
-		try:
-			output = pickle.loads(rawbytes[:i])
-		except (EOFError, pickle.UnpicklingError, AttributeError):
-			a = i
-		else:
-			b = i
-	return pickle.loads(rawbytes[:b]), rawbytes[b:]
-
-
 # Main class
 
 class TCPTalks:
+
+	@staticmethod
+	def _serversocket(port, timeout):
+		# Create a server
+		serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+		serversocket.bind(('', port))
+		serversocket.listen(1)
+
+		# Wait for the other to connect
+		serversocket.settimeout(timeout)
+		try:
+			clientsocket = serversocket.accept()[0]
+			return clientsocket
+		except socket.timeout:
+			raise ForeverAloneError('no connection request') from None
+		finally:
+			serversocket.close() # The server is no longer needed
+
+	@staticmethod
+	def _clientsocket(ip, port, timeout):
+		# Create a client
+		clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+		# Connect to the other
+		startingtime = time.monotonic()
+		while timeout is None or time.monotonic() - startingtime < timeout:
+			try:
+				clientsocket.connect((ip, port))
+				return clientsocket
+			except ConnectionRefusedError:
+				continue
+		raise ForeverAloneError('no server found') from None
+
+	@staticmethod
+	def _loads(rawbytes):
+		a, b = 0, len(rawbytes)
+		while (b - a > 1):
+			i = (a + b) // 2
+			try:
+				output = pickle.loads(rawbytes[:i])
+			except (EOFError, pickle.UnpicklingError, AttributeError):
+				a = i
+			else:
+				b = i
+		return pickle.loads(rawbytes[:b]), rawbytes[b:]
+	
+	_timeouterror = socket.timeout
 
 	def __init__(self, ip=None, port=25565, password=None):
 		# Instructions
@@ -115,9 +115,9 @@ class TCPTalks:
 			# Create a socket instance depending of what was given during the
 			# instanciation
 			if self.ip is None: # Raspberry Pi
-				self.socket = _serversocket(self.port, timeout)
+				self.socket = self._serversocket(self.port, timeout)
 			else: # Remote controller (Windows or Linux)
-				self.socket = _clientsocket(self.ip, self.port, timeout)
+				self.socket = self._clientsocket(self.ip, self.port, timeout)
 			self.socket.settimeout(1)
 			
 			# Create a listening thread that will wait for inputs
@@ -306,7 +306,7 @@ class TCPListener(Thread):
 				inc = self.parent.socket.recv(256)
 			except (ConnectionResetError, AttributeError):
 				inc = None
-			except socket.timeout:
+			except self.parent._timeouterror:
 				continue
 			
 			# Disconnect if the other is no longer connected
@@ -318,7 +318,7 @@ class TCPListener(Thread):
 			try:
 				while True:
 					# Process the above message
-					message, buffer = _loads(buffer)
+					message, buffer = self.parent._loads(buffer)
 
 					# Try to decode the message using the pickle protocol
 					self.parent.process(message)
