@@ -42,6 +42,7 @@ class Bornibus(Behavior):
 		self.setup_gripper_mandatory = False
 		self.store_module_mandatory = False
 		self.elevator_stucked = False
+		self.stored_modules = 0
 
 		self.automatestep = 0
 
@@ -235,9 +236,11 @@ class Bornibus(Behavior):
 		self.log('store module')
 		try:
 			self.elevator.go_up()
-			time.sleep(delay)
-			self.gripper.open_up()
-			time.sleep(1)
+			if self.stored_modules < 3:
+				time.sleep(delay)
+				self.gripper.open_up()
+				time.sleep(1)
+			self.stored_modules += 1
 		except RuntimeError:
 			self.log('elevator stucked')
 			self.elevator_stucked = True
@@ -338,12 +341,18 @@ class DropModuleAction:
 		
 	def procedure(self, bornibus):
 		bornibus.log('drop module')
+		gripper   = bornibus.gripper
 		dispenser = bornibus.dispenser
 
 		# Drop module
 		dispenser.open()
 		time.sleep(1.2)
 		
+		# Store 4th module if needed
+		if bornibus.stored_modules > 3:
+			gripper.open_up()
+		bornibus.stored_modules -= 1
+
 		# Close dispenser
 		dispenser.close()
 		time.sleep(0.7)
