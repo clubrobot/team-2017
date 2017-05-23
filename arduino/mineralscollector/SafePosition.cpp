@@ -11,7 +11,7 @@ SafePosition::SafePosition(DCMotor* motor){
 	
 	
 void SafePosition::toSafePosition(){
-	m_motor->setVelocity(-4);
+	m_motor->setVelocity(-3);
 	disable();
 	enable();
 }
