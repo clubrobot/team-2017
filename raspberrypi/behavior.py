@@ -71,6 +71,9 @@ class Behavior(Manager):
 	def goto_procedure(self, destination):
 		raise RuntimeError("the 'goto_procedure' method must be overriden")
 
+	def start_procedure(self):
+		pass
+
 	def stop_procedure(self):
 		pass
 
@@ -78,6 +81,7 @@ class Behavior(Manager):
 		self.starttime = time.monotonic()
 		self.stop_event.clear()
 		self.log('start')
+		self.perform(self.start_procedure, timelimit=False)
 		try:
 			while (self.timelimit is None or self.get_elapsed_time() < self.timelimit) and not self.stop_event.is_set():
 				decision = self.make_decision()

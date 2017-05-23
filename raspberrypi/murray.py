@@ -4,7 +4,7 @@
 from behavior import Behavior
 
 from wheeledbase       import WheeledBase
-from mineralscollector import AX12, Hammer, Roller
+from mineralscollector import AX12, Hammer, Roller, LaunchPad
 from display           import LEDMatrix, SevenSegments
 from sensors           import Sensors
 from components        import LightButtonProxy, SwitchProxy
@@ -66,6 +66,7 @@ class Murray(Behavior):
 			self.yellowbutton   = LightButtonProxy(self, 35, 36)
 			self.greenbutton    = LightButtonProxy(self, 21, 22)
 			self.pullswitch     = SwitchProxy(self, 29)
+			self.launchpad      = LaunchPad(self)
 		except:
 			self.disconnect()
 			raise
@@ -200,6 +201,12 @@ class Murray(Behavior):
 
 		# Everything is fine
 		return True
+
+	def start_procedure(self):
+		self.log('start the final countdown')
+		time.sleep(90)
+		self.log('one small step for (a) robot...')
+		self.launchpad.launch()
 
 	def stop_procedure(self):
 		self.wheeledbase.stop()
@@ -449,7 +456,8 @@ class FireMineralsAction:
 		self.actionpoint = geogebra.get('hold_{{{}, action, {}}}'.format(major, minor))
 		self.firingpoint = geogebra.get('hold_{{{}, action, {}, 1}}'.format(major, minor))
 		self.orientation = math.pi + math.atan2(self.firingpoint[1] - self.actionpoint[1], self.firingpoint[0] - self.actionpoint[0])
-		
+		self.hold = geogebra.get('hold_{{{}}}'.format(major))
+
 	def procedure(self, murray):
 		murray.log('fire minerals')
 		wheeledbase = murray.wheeledbase
@@ -470,14 +478,18 @@ class FireMineralsAction:
 		default_angpos_threshold = wheeledbase.angpos_threshold.get()
 		wheeledbase.angpos_threshold.set(0.1)
 		try:
-			wheeledbase.turnonthespot(self.orientation) #TODO:
+			x_in, y_in = wheeledbase.get_position()[:2]
+			theta_sp = math.atan2(self.hold[1] - y_in, self.hold[0] - x_in) + math.pi
+			wheeledbase.turnonthespot(theta_sp)
 			wheeledbase.wait()
 		except RuntimeError:
 			murray.log('blocked while turning on the spot')
 			wheeledbase.set_velocities(100, 0)
 			time.sleep(0.5)
 			try:
-				wheeledbase.turnonthespot(self.orientation) #TODO:
+				x_in, y_in = wheeledbase.get_position()[:2]
+				theta_sp = math.atan2(self.hold[1] - y_in, self.hold[0] - x_in) + math.pi
+				wheeledbase.turnonthespot(theta_sp)
 				wheeledbase.wait()
 			except RuntimeError:
 				murray.log('blocked again')
