@@ -12,6 +12,7 @@ class Brother(Thread):
 
 	def __init__(self, brother, macaddress=None, channel=7):
 		Thread.__init__(self)
+		self.daemon = True
 		self.brother = brother
 		
 		# Create a BlueTalks instance
