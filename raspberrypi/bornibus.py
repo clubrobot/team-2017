@@ -80,6 +80,7 @@ class Bornibus(Behavior):
 		self.geogebra = GeoGebra(filename)
 		self.roadmap = RoadMap.load(self.geogebra)
 
+		# Yellow side
 		module01 = TakePlayfieldModuleAction(self.geogebra, '01', 'a')
 		module03 = TakePlayfieldModuleAction(self.geogebra, '03', 'a')
 		module05 = HoldPlayfieldModuleAction(self.geogebra, '05', 'a')
@@ -97,22 +98,53 @@ class Bornibus(Behavior):
 		odometry00c = RecalibrateOdometryAction(self.geogebra, '00', 'c')
 		odometry02a = RecalibrateOdometryAction(self.geogebra, '02', 'a')
 		odometry02b = RecalibrateOdometryAction(self.geogebra, '02', 'b')
+
+		# Blue side
+		module07 = TakeRocketModuleAction(self.geogebra, '07', 'a')
+		module10 = TakePlayfieldModuleAction(self.geogebra, '10', 'a')
+		module12 = TakePlayfieldModuleAction(self.geogebra, '12', 'a')
+		deposit14 = DropModuleAction(self.geogebra, '14', 'b')
+		deposit15 = DropModuleAction(self.geogebra, '15', 'b')
+		deposit16 = DropModuleAction(self.geogebra, '16', 'b')
+		deposit19 = DropModuleAction(self.geogebra, '19', 'a')
+		deposit20 = DropModuleAction(self.geogebra, '20', 'a')
+		shift1416 = DropAndShiftModuleAction(self.geogebra, '14', 'b', '16', 'b')
+		odometry05b = RecalibrateOdometryAction(self.geogebra, '05', 'b')
+		odometry07b = RecalibrateOdometryAction(self.geogebra, '07', 'b')
 		
 		self.automate = [
-			module03,
-			module01,
-			odometry00b,
-			deposit01,
-			deposit00,
-			module06,
-			module06,
-			module06,
-			module06,
-			odometry02b,
-			deposit05,
-			shift0406,
-			deposit05,
-			deposit04
+			[
+				module03,
+				module01,
+				odometry00b,
+				deposit01,
+				deposit00,
+				module06,
+				module06,
+				module06,
+				module06,
+				odometry02b,
+				deposit05,
+				shift0406,
+				deposit05,
+				deposit04
+			],
+			[
+				module10,
+				module12,
+				odometry07b,
+				deposit20,
+				deposit19,
+				module07,
+				module07,
+				module07,
+				module07,
+				odometry05b,
+				deposit15,
+				shift1416,
+				deposit15,
+				deposit14
+			]
 		]
 
 	def connect_to_brother(self, *args, **kwargs):
@@ -120,7 +152,7 @@ class Bornibus(Behavior):
 		self.brother.start()
 
 	def make_decision(self):
-		action = self.automate[self.automatestep]
+		action = self.automate[self.side][self.automatestep]
 		if isinstance(action, (TakePlayfieldModuleAction, TakeRocketModuleAction, HoldPlayfieldModuleAction)):
 			self.setup_gripper_mandatory = True
 		return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)

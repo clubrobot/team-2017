@@ -45,7 +45,7 @@ class Murray(Behavior):
 		self.minerals_05_storage_position = 280
 		self.minerals_10_storage_position = 230
 		self.minerals_15_storage_position = 160
-		self.firing_cadency = 0.4 # Seconds per mineral
+		self.firing_cadency = 0.3 # Seconds per mineral
 
 		self.automatestep = 0
 
@@ -74,19 +74,37 @@ class Murray(Behavior):
 		self.geogebra = GeoGebra(filename)
 		self.roadmap = RoadMap.load(self.geogebra)
 
+		# Yellow side
 		crater0a = GatherBigCraterAction(self.geogebra, '0', 'a')
 		crater0b = GatherBigCraterAction(self.geogebra, '0', 'b')
 		crater1 = GatherSmallCraterAction(self.geogebra, '1', 'a')
+		crater2 = GatherSmallCraterAction(self.geogebra, '2', 'a')
 		hold0 = FireMineralsAction(self.geogebra, '0', 'a')
-		delay10 = DelayAction(10)
+
+		# Blue side
+		crater3 = GatherSmallCraterAction(self.geogebra, '3', 'a')
+		crater4 = GatherSmallCraterAction(self.geogebra, '4', 'a')
+		crater5a = GatherBigCraterAction(self.geogebra, '5', 'a')
+		crater5b = GatherBigCraterAction(self.geogebra, '5', 'b')
+		hold1 = FireMineralsAction(self.geogebra, '1', 'a')	
 
 		self.automate = [
-			crater1,
-			crater0a,
-			delay10,
-			hold0,
-			crater0b,
-			hold0
+			[
+				crater1,
+				crater0a,
+				hold0,
+				crater2,
+				crater0b,
+				hold0
+			],
+			[
+				crater4,
+				crater5a,
+				hold1,
+				crater3,
+				crater5b,
+				hold1
+			]
 		]
 
 	def connect_to_brother(self, *args, **kwargs):
@@ -94,7 +112,7 @@ class Murray(Behavior):
 		self.brother.start()
 
 	def make_decision(self):
-		action = self.automate[self.automatestep]
+		action = self.automate[self.side][self.automatestep]
 		if hasattr(action, 'actionpoint'):
 			if hasattr(action, 'orientation'):
 				return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
