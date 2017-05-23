@@ -359,8 +359,8 @@ class GatherBigCraterAction:
 				return
 
 		# Get a higher precision if close to the rocket
-		default_angpos_threshold = angpos_threshold.get()
-		if minor == 'a':
+		default_angpos_threshold = wheeledbase.angpos_threshold.get()
+		if self.minor == 'a':
 			wheeledbase.angpos_threshold.set(0.1)
 
 		# Ensure it is properly oriented
@@ -460,14 +460,14 @@ class FireMineralsAction:
 		# Goto the firing point
 		murray.log('go to the firing point')
 		try:
-			wheeledbase.purepursuit([wheeledbase.get_position[:2], self.firingpoint])
+			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.firingpoint], 'backward')
 			wheeledbase.wait()
 		except RuntimeError:
 			murray.log('blocked on the path')
 		
 		# Ensure it is properly oriented
 		murray.log('turn on the spot')
-		default_angpos_threshold = angpos_threshold.get()
+		default_angpos_threshold = wheeledbase.angpos_threshold.get()
 		wheeledbase.angpos_threshold.set(0.1)
 		try:
 			wheeledbase.turnonthespot(self.orientation) #TODO:
