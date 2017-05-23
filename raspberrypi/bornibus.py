@@ -7,7 +7,7 @@ from wheeledbase      import WheeledBase
 from modulescollector import ModulesGripper, ModulesElevator, ModulesDispenser, Mustaches
 from display          import LEDMatrix, SevenSegments
 from sensors          import Sensors
-from gpiodevices      import LightButton, Switch
+from gpiodevices      import LightButtonProxy, SwitchProxy
 
 from brother import Brother
 
