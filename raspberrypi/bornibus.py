@@ -296,6 +296,7 @@ class Bornibus(Behavior):
 			self.gripper.close()
 			time.sleep(0.4)
 			try:
+				self.elevator.go_up()
 				self.elevator.go_down()
 			except RuntimeError:
 				self.log('stucked again')
@@ -320,6 +321,7 @@ class TakePlayfieldModuleAction:
 		# Go to the taking point
 		bornibus.log('go to the taking point')
 		wheeledbase.lookahead.set(70)
+		wheeledbase.lookaheadbis.set(70)
 		try:
 			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.takingpoint], 'forward')
 			wheeledbase.wait()
@@ -366,6 +368,7 @@ class TakeRocketModuleAction:
 		# Go to the taking point
 		bornibus.log('go to the taking point')
 		wheeledbase.lookahead.set(70)
+		wheeledbase.lookaheadbis.set(70)
 		try:
 			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.takingpoint], 'forward')
 			wheeledbase.wait()
@@ -487,6 +490,9 @@ class DropAndShiftModuleAction:
 		else:
 			direction = -1
 		try:
+			wheeledbase.lookahead.set(70)
+			wheeledbase.lookaheadbis.set(70)
+			wheeledbase.max_linvel.set(200)
 			wheeledbase.goto(*self.shiftpoint)
 		except RuntimeError:
 			bornibus.log('blocked on the path')
