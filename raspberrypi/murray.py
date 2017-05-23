@@ -487,6 +487,14 @@ class FireMineralsAction:
 		murray.log('start firing')
 		ballzooka.fire()
 
+		# Define jiggling procedure
+		def jiggling_procedure(low, high):
+			while True:
+				try: rollerarm.goto(low, 1023, threshold=1, timeout=1)
+				except RuntimeError: pass
+				try: rollerarm.goto(high, 1023, threshold=1, timeout=1)
+				except RuntimeError: pass
+
 		# Raise the roller arm slowly
 		if murray.stored_minerals > 5:
 			murray.log('raise the roller arm')
@@ -495,16 +503,24 @@ class FireMineralsAction:
 				rollerarm.goto(murray.minerals_05_storage_position, round(1.7 * raising_velocity), timeout=2 + murray.firing_cadency * (murray.stored_minerals - 5))
 			except RuntimeError:
 				murray.log('blocked while raising the roller arm')
-		
+				try: rollerarm.goto(180)
+				except RuntimeError: pass
+				jiggling = murray.perform(jiggling_procedure, args=(160, 220))
+				time.sleep(4)
+				murray.interrupt(jiggling)
+				try:
+					raising_velocity = (murray.minerals_05_storage_position - rollerarm.get_position()) / (murray.firing_cadency * (murray.stored_minerals - 5))
+					rollerarm.goto(murray.minerals_05_storage_position, round(1.7 * raising_velocity), timeout=2 + murray.firing_cadency * (murray.stored_minerals - 5))
+				except RuntimeError:
+					murray.log('blocked again')
+					roller.stop()
+					ballzooka.stop()
+					murray.stored_minerals -= 5
+					return
+
 		# Start jiggling the roller arm
-		def jiggling_procedure():
-			while True:
-				try: rollerarm.goto(220, 1023, timeout=1)
-				except RuntimeError: pass
-				try: rollerarm.goto(300, 1023, threshold=1, timeout=1)
-				except RuntimeError: pass
-		jiggling = murray.perform(jiggling_procedure)
-		time.sleep(6)
+		jiggling = murray.perform(jiggling_procedure, args=(220, 300))
+		time.sleep(4)
 		murray.interrupt(jiggling)
 
 		# Stop firing
