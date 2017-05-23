@@ -32,7 +32,7 @@ class Brother(Thread):
 	def update_brother(self):
 		position = self.get_brother_position()
 		shape = self.get_brother_shape()
-		self.talks.execute('update', (x, y, theta), shape)
+		self.talks.execute('update', position, shape)
 
 	def run(self):
 		try:
