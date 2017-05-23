@@ -174,10 +174,12 @@ def start(args):
 	robot.connect_to_brother(macaddress=args.bluetooth)
 
 	# Initialization procedure
+	robot.log("let's get ready to rumble")
 	starter = Starter(robot.geogebra, robot.wheeledbase, robot.greenbutton, robot.redbutton, robot.bluebutton, robot.yellowbutton, robot.pullswitch)
 	starter.join()
 	if (starter.state=="Exiting"):
 		robot.log('thank you!')
+		sys.exit(0)
 	
 	# Start match
 	if starter.team == "Yellow":

@@ -25,9 +25,9 @@ class MurrayBrother(Brother):
 	
 	def get_brother_shape(self):
 		x, y, theta = self.brother.wheeledbase.get_position()
-		W = self.geogebra.get('Murray_{width}')
-		F = self.geogebra.get('Murray_{front}')
-		B = self.geogebra.get('Murray_{back}')
+		W = self.brother.geogebra.get('Murray_{width}')
+		F = self.brother.geogebra.get('Murray_{front}')
+		B = self.brother.geogebra.get('Murray_{back}')
 		shape = []
 		for dx, dy in (F / 2, W / 2), (-B / 2, W / 2), (-B / 2, -W / 2), (F / 2, -W / 2):
 			xi = x + dx * math.cos(theta) - dy * math.sin(theta)
