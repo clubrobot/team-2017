@@ -45,7 +45,7 @@ class Murray(Behavior):
 		self.minerals_05_storage_position = 280
 		self.minerals_10_storage_position = 230
 		self.minerals_15_storage_position = 160
-		self.firing_cadency = 0.3 # Seconds per mineral
+		self.firing_cadency = 0.2 # Seconds per mineral
 
 		self.automatestep = 0
 
@@ -248,19 +248,43 @@ class GatherSmallCraterAction:
 		rollerarm   = murray.rollerarm
 		roller      = murray.roller
 
+		# In any case
+		murray.storage_mandatory = True
+
 		# Lower the roller arm and start the roller
-		murray.log('lower the roller arm')
-		rollerarm.enter()
+		murray.log('lower the roller arm to the entry position')
+		try:
+			rollerarm.enter()
+		except RuntimeError:
+			murray.log('blocked while lowering the roller arm')
+			rollerarm.hold(0)
 		roller.gather()
 
 		# Go to the gathering point
 		murray.log('goto the gathering point')
 		wheeledbase.lookahead.set(self.entry_lookahead)
 		wheeledbase.lookaheadbis.set(self.entry_lookahead)
-		wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.gatherpoint], 'forward', self.orientation)
-		wheeledbase.wait()
-		rollerarm.gather()
-	
+		try:
+			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.gatherpoint], 'forward', self.orientation)
+			wheeledbase.wait()
+		except RuntimeError:
+			murray.log('blocked on the path')
+			wheeledbase.set_velocities(-100, 0)
+			time.sleep(1)
+			try:
+				wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.gatherpoint], 'forward', self.orientation)
+				wheeledbase.wait()
+			except RuntimeError:
+				murray.log('blocked again')
+				return
+		
+		# Lower the roller arm inside the crater
+		murray.log('lower the roller arm to the gathering position')
+		try:
+			rollerarm.gather()
+		except RuntimeError:
+			murray.log('blocked while lowering the roller arm')
+
 		# Get to the bottom of the crater
 		murray.log('get to the bottom of the crater')
 		wheeledbase.max_linvel.set(200)
@@ -271,6 +295,9 @@ class GatherSmallCraterAction:
 			wheeledbase.wait()
 		except RuntimeError:
 			murray.log('blocked while going to the bottom of the crater')
+
+		# Update stored minerals number
+		murray.stored_minerals += 5
 
 		# Get off the crater
 		murray.log('get off the crater')
@@ -286,15 +313,14 @@ class GatherSmallCraterAction:
 				wheeledbase.set_velocities(100, 0)
 				time.sleep(0.5)
 			else:
-				break
-
-		# Close the roller arm
-		murray.stored_minerals += 5
-		murray.storage_mandatory = True
+				return
 
 
 class GatherBigCraterAction:
 	def __init__(self, geogebra, major, minor):
+		self.major = major
+		self.minor = minor
+
 		self.actionpoint = geogebra.get('crater_{{{}, action}}'.format(major))
 		self.actionpointbis = geogebra.get('crater_{{{}, action, {}}}'.format(major, minor))
 		self.entrypoint  = geogebra.get('crater_{{{}, action, {}, 1}}'.format(major, minor))
@@ -302,7 +328,7 @@ class GatherBigCraterAction:
 		self.endingpoint = geogebra.get('crater_{{{}, action, {}, 3}}'.format(major, minor))
 		self.orientation = None
 		self.orientationbis = math.atan2(self.gatherpoint[1] - self.entrypoint[1], self.gatherpoint[0] - self.entrypoint[0])
-		
+
 		crater_center = geogebra.get('crater_{{{}, center}}'.format(major))
 		self.entry_lookahead  = math.hypot(crater_center[0] - self.actionpoint[0], crater_center[1] - self.actionpoint[1])
 		self.gather_lookahead = math.hypot(crater_center[0] - self.gatherpoint[0], crater_center[1] - self.gatherpoint[1])
@@ -313,25 +339,73 @@ class GatherBigCraterAction:
 		rollerarm   = murray.rollerarm
 		roller      = murray.roller
 
+		# In any case
+		murray.storage_mandatory = True
+
 		# Goto the entry point
-		wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.actionpointbis, self.entrypoint], 'backward')
-		wheeledbase.wait()
-		wheeledbase.turnonthespot(self.orientationbis)
-		wheeledbase.wait()
+		try:
+			murray.log('get ready to enter the crater')
+			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.actionpointbis, self.entrypoint], 'backward')
+			wheeledbase.wait()
+		except RuntimeError:
+			murray.log('blocked on the path')
+			wheeledbase.set_velocities(100, 0)
+			time.sleep(0.5)
+			try:
+				wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.actionpointbis, self.entrypoint], 'backward')
+				wheeledbase.wait()
+			except RuntimeError:
+				murray.log('blocked again')
+				return
+
+		# Get a higher precision if close to the rocket
+		default_angpos_threshold = angpos_threshold.get()
+		if minor == 'a':
+			wheeledbase.angpos_threshold.set(0.1)
+
+		# Ensure it is properly oriented
+		try:
+			murray.log('turn on the spot')
+			wheeledbase.turnonthespot(self.orientationbis)
+			wheeledbase.wait()
+		except RuntimeError:
+			murray.log('blocked while turning on the spot')
+		wheeledbase.angpos_threshold.set(default_angpos_threshold)
 
 		# Lower the roller arm and start the roller
-		murray.log('lower the roller arm')
-		rollerarm.enter()
+		murray.log('lower the roller arm to the entry position')
+		try:
+			rollerarm.enter()
+		except RuntimeError:
+			murray.log('blocked while lowering the roller arm')
+			rollerarm.hold(0)
 		roller.gather()
 
 		# Go to the gathering point
 		murray.log('goto the gathering point')
 		wheeledbase.lookahead.set(self.entry_lookahead)
 		wheeledbase.lookaheadbis.set(self.entry_lookahead)
-		wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.gatherpoint], 'forward', self.orientationbis)
-		wheeledbase.wait()
-		rollerarm.gather()
-	
+		try:
+			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.gatherpoint], 'forward', self.orientation)
+			wheeledbase.wait()
+		except RuntimeError:
+			murray.log('blocked on the path')
+			wheeledbase.set_velocities(-100, 0)
+			time.sleep(1)
+			try:
+				wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.gatherpoint], 'forward', self.orientation)
+				wheeledbase.wait()
+			except RuntimeError:
+				murray.log('blocked again')
+				return
+		
+		# Lower the roller arm inside the crater
+		murray.log('lower the roller arm to the gathering position')
+		try:
+			rollerarm.gather()
+		except RuntimeError:
+			murray.log('blocked while lowering the roller arm')
+
 		# Get to the bottom of the crater
 		murray.log('get to the bottom of the crater')
 		wheeledbase.max_linvel.set(200)
@@ -350,6 +424,9 @@ class GatherBigCraterAction:
 			except RuntimeError:
 				murray.log('blocked again')
 
+		# Update stored minerals number
+		murray.stored_minerals += 10
+
 		# Get off the crater
 		murray.log('get off the crater')
 		wheeledbase.max_linvel.set(400)
@@ -364,11 +441,7 @@ class GatherBigCraterAction:
 				wheeledbase.set_velocities(100, 0)
 				time.sleep(0.5)
 			else:
-				break
-
-		# Close the roller arm
-		murray.stored_minerals += 10
-		murray.storage_mandatory = True
+				return
 
 
 class FireMineralsAction:
@@ -386,7 +459,29 @@ class FireMineralsAction:
 
 		# Goto the firing point
 		murray.log('go to the firing point')
-		wheeledbase.goto(*self.firingpoint, self.orientation)
+		try:
+			wheeledbase.purepursuit([wheeledbase.get_position[:2], self.firingpoint])
+			wheeledbase.wait()
+		except RuntimeError:
+			murray.log('blocked on the path')
+		
+		# Ensure it is properly oriented
+		murray.log('turn on the spot')
+		default_angpos_threshold = angpos_threshold.get()
+		wheeledbase.angpos_threshold.set(0.1)
+		try:
+			wheeledbase.turnonthespot(self.orientation) #TODO:
+			wheeledbase.wait()
+		except RuntimeError:
+			murray.log('blocked while turning on the spot')
+			wheeledbase.set_velocities(100, 0)
+			time.sleep(0.5)
+			try:
+				wheeledbase.turnonthespot(self.orientation) #TODO:
+				wheeledbase.wait()
+			except RuntimeError:
+				murray.log('blocked again')
+		wheeledbase.angpos_threshold.set(default_angpos_threshold)
 
 		# Start firing
 		murray.log('start firing')
