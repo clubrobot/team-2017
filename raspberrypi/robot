@@ -7,6 +7,104 @@ from argparse import ArgumentParser
 
 from serialtalks import SerialTalks
 from components  import Server
+from bornibus    import Bornibus
+from murray      import Murray
+
+from threading import Thread
+
+
+class Starter(Thread):
+	def __init__(self,ggb,wheeledbase,greenbutton,redbutton,bluebutton,yellowbutton,switch):
+		self.state = "waiting_team"
+
+        ################################################################
+        #waiting_team : en attente du choix d'équipe                   #
+        #waiting_launch : en attente de la validation de lancement     #
+        #launch_asking : Demande le lancement (verif du switch)        #
+        #launching  : lancement (attente du switch)                    # 
+        #launched : fin du lancement                                   #
+        ################################################################
+
+		self.team = "none" # nom de l'équipe choisie
+		self.Ggb = ggb
+		self.WheeledBase = wheeledbase
+		self.RedButton = redbutton
+		self.BlueButton = bluebutton
+		self.YellowButton = yellowbutton
+		self.GreenButton = greenbutton
+		self.Switch = switch
+		self.RedButton.Off()
+		self.BlueButton.Off()
+		self.YellowButton.Off()
+		self.GreenButton.Off()
+		self.RedButton.SetFunction(self.setState,"Red")
+		self.BlueButton.SetFunction(self.setState,"Blue")
+		self.YellowButton.SetFunction(self.setState,"Yellow")
+		self.GreenButton.SetFunction(self.setState,"Green")
+		self.Switch.SetFunction(self.setState,"Switch")
+		Thread.__init__(self)
+		self.daemon = True
+		self.start()
+
+
+	def setState(self,name):
+		if name in ("Blue","Yellow"):
+			self.state="waiting_pos"
+			self.team = name
+
+		if name=="Green" and self.state== "waiting_launch":
+			self.state = "launch_asking"
+
+		if name=="Red":
+			self.state="Exiting"
+
+		if name=="Switch" and self.state =="launching":
+			self.state = "launched"
+
+
+	def run(self):
+		self.BlueButton.On()
+		self.YellowButton.On()
+		self.RedButton.On()
+		while(self.state!="launched" and self.state!="Exiting"):
+
+			time.sleep(0.1)
+			if self.state=="Exiting":
+				self.BlueButton.Off()
+				self.YellowButton.Off()
+				self.RedButton.Off()
+				self.GreenButton.Off()
+
+			if self.state=="waiting_pos":
+				if self.team=="Blue":
+					self.BlueButton.On()
+					self.YellowButton.Off()
+					self.RedButton.On()
+					self.GreenButton.On()
+					x, y = self.Ggb.get('start_{1, position}')
+					theta = self.Ggb.get('start_{1, orientation}')
+					self.WheeledBase.set_position(x, y, theta)
+				else:
+					self.BlueButton.Off()
+					self.YellowButton.On()
+					self.RedButton.On()
+					self.GreenButton.On()
+					x, y = self.Ggb.get('start_{0, position}')
+					theta = self.Ggb.get('start_{0, orientation}')
+					self.WheeledBase.set_position(x, y, theta)
+				self.state = "waiting_launch"
+
+			if self.state=="launch_asking": 
+
+				if self.Switch.state==False:
+                    
+					self.state="waiting_launch"
+				else:
+					self.GreenButton.Off()
+					self.state="launching"         
+
+		self.RedButton.Off()
+		self.GreenButton.Off()
 
 
 def getuuid(args):
@@ -52,6 +150,42 @@ def server(args):
 			sys.stderr.write('{}: {}\n'.format(type(e).__name__, e))
 			continue
 
+
+def start(args):
+	if args.name == 'bornibus':
+		robot = Bornibus(args.ip, timelimit=args.timelimit)
+		robot.log('hi there, this is Bornibus!')
+	elif args.name == 'murray':
+		robot = Murray(args.ip, timelimit=args.timelimit)
+		robot.log('hello everyone, I am Murray!')
+	
+	# Connect to the components server
+	robot.log('connect to server')
+	robot.connect(timeout=args.timeout)
+	robot.log('connected')
+	
+	# Load the roadmap
+	if args.roadmap is not None:
+		robot.log('load roadmap: {}'.format(args.roadmap))
+		robot.load_roadmap(args.roadmap)
+		robot.log('loaded')
+
+	# Bluetooth connection
+	robot.connect_to_other(macaddress=args.bluetooth)
+
+	# Initialization procedure
+	starter = Starter(robot.geogebra, robot.wheeledbase, robot.greenbutton, robot.redbutton, robot.bluebutton, robot.yellowbutton, robot.pullswitch)
+	starter.join()
+	if (starter.state=="Exiting"):
+		robot.log('thank you!')
+	
+	# Start match
+	if starter.team == "Yellow":
+		robot.side = 0
+	elif starter.team == "Blue":
+		robot.side = 1
+	robot.start()
+
 parser = ArgumentParser()
 subparsers = parser.add_subparsers()
 
@@ -65,9 +199,18 @@ getlogs_parser.add_argument('port', type=str)
 getlogs_parser.add_argument('-t', '--timeout', type=float, default=5)
 getlogs_parser.set_defaults(func=getlogs)
 
-modulesrouter_parser = subparsers.add_parser('server')
-modulesrouter_parser.add_argument('-p', '--password', type=str, default=None)
-modulesrouter_parser.set_defaults(func=server)
+server_parser = subparsers.add_parser('server')
+server_parser.add_argument('-p', '--password', type=str, default=None)
+server_parser.set_defaults(func=server)
+
+start_parser = subparsers.add_parser('start')
+start_parser.add_argument('name', type=str, choices=('bornibus', 'murray'))
+start_parser.add_argument('-i', '--ip', type=str, default='localhost')
+start_parser.add_argument('-r', '--roadmap', type=str, default=None)
+start_parser.add_argument('-t', '--timeout', type=int, default=5)
+start_parser.add_argument('-T', '--timelimit', type=int, default=None)
+start_parser.add_argument('-b', '--bluetooth', type=str, default=None)
+start_parser.set_defaults(func=start)
 
 args = parser.parse_args()
 args.func(args)

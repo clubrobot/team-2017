@@ -8,11 +8,31 @@ from mineralscollector import AX12, Hammer, Roller
 from display           import LEDMatrix, SevenSegments
 from sensors           import Sensors
 
+from brother import Brother
+
 from geogebra import GeoGebra
 from roadmap import RoadMap, intersect
 
 import time
 import math
+
+
+class MurrayBrother(Brother):
+
+	def get_brother_position(self):
+		return self.brother.wheeledbase.get_position()
+	
+	def get_brother_shape(self):
+		x, y, theta = self.brother.wheeledbase.get_position()
+		W = self.geogebra.get('Murray_{width}')
+		F = self.geogebra.get('Murray_{front}')
+		B = self.geogebra.get('Murray_{back}')
+		shape = []
+		for dx, dy in (F / 2, W / 2), (-B / 2, W / 2), (-B / 2, -W / 2), (F / 2, -W / 2):
+			xi = x + dx * math.cos(theta) - dy * math.sin(theta)
+			yi = y + dx * math.sin(theta) + dy * math.cos(theta)
+			shape.append((x, y))
+		return shape
 
 
 class Murray(Behavior):
@@ -28,9 +48,9 @@ class Murray(Behavior):
 
 		self.automatestep = 0
 
-	def connect(self):
+	def connect(self, *args, **kwargs):
 		try:
-			Behavior.connect(self)
+			Behavior.connect(self, *args, **kwargs)
 			self.wheeledbase  = WheeledBase(self)
 			self.roller       = Roller(self)
 			self.rollerarm    = AX12(self)
@@ -38,8 +58,13 @@ class Murray(Behavior):
 #			self.left_eye     = LEDMatrix(self, 1)
 #			self.right_eye    = LEDMatrix(self, 2)
 #			self.display      = SevenSegments(self)
-#			self.frontsensors = Sensors(self, 'frontsensors')
-#			self.backsensors  = Sensors(self, 'backsensors')
+			self.frontsensors = Sensors(self, 'frontsensors')
+			self.backsensors  = Sensors(self, 'backsensors')
+			self.redbutton      = LightButtonProxy(m, 15, 16)
+			self.bluebutton     = LightButtonProxy(m, 23, 24)
+			self.yellowbutton   = LightButtonProxy(m, 35, 36)
+			self.greenbutton    = LightButtonProxy(m, 21, 22)
+			self.pullswitch     = SwitchProxy(m, 29)
 		except:
 			self.disconnect()
 			raise
@@ -62,6 +87,10 @@ class Murray(Behavior):
 			crater0b,
 			hold0
 		]
+
+	def connect_to_other(self, *args, **kwargs):
+		self.other = OtherConnection(self, *args, **kwargs)
+		self.other.start()
 
 	def make_decision(self):
 		action = self.automate[self.automatestep]
@@ -189,8 +218,7 @@ class GatherSmallCraterAction:
 		self.gatherpoint = geogebra.get('crater_{{{}, action, {}, 1}}'.format(major, minor))
 		self.endingpoint = geogebra.get('crater_{{{}, action, {}, 2}}'.format(major, minor))
 		self.orientation = math.atan2(self.gatherpoint[1] - self.actionpoint[1], self.gatherpoint[0] - self.actionpoint[0])
-		self.isdone = False
-
+		
 		crater_center = geogebra.get('crater_{{{}, center}}'.format(major))
 		self.entry_lookahead  = math.hypot(crater_center[0] - self.actionpoint[0], crater_center[1] - self.actionpoint[1])
 		self.gather_lookahead = math.hypot(crater_center[0] - self.gatherpoint[0], crater_center[1] - self.gatherpoint[1])
@@ -255,8 +283,7 @@ class GatherBigCraterAction:
 		self.endingpoint = geogebra.get('crater_{{{}, action, {}, 3}}'.format(major, minor))
 		self.orientation = None
 		self.orientationbis = math.atan2(self.gatherpoint[1] - self.entrypoint[1], self.gatherpoint[0] - self.entrypoint[0])
-		self.isdone = False
-
+		
 		crater_center = geogebra.get('crater_{{{}, center}}'.format(major))
 		self.entry_lookahead  = math.hypot(crater_center[0] - self.actionpoint[0], crater_center[1] - self.actionpoint[1])
 		self.gather_lookahead = math.hypot(crater_center[0] - self.gatherpoint[0], crater_center[1] - self.gatherpoint[1])
@@ -330,8 +357,7 @@ class FireMineralsAction:
 		self.actionpoint = geogebra.get('hold_{{{}, action, {}}}'.format(major, minor))
 		self.firingpoint = geogebra.get('hold_{{{}, action, {}, 1}}'.format(major, minor))
 		self.orientation = math.pi + math.atan2(self.firingpoint[1] - self.actionpoint[1], self.firingpoint[0] - self.actionpoint[0])
-		self.isdone = False
-
+		
 	def procedure(self, murray):
 		murray.log('fire minerals')
 		wheeledbase = murray.wheeledbase

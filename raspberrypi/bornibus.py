@@ -8,11 +8,30 @@ from modulescollector import ModulesGripper, ModulesElevator, ModulesDispenser, 
 from display          import LEDMatrix, SevenSegments
 from sensors          import Sensors
 
+from brother import Brother
+
 from geogebra import GeoGebra
 from roadmap import RoadMap, intersect
 
 import time
 import math
+
+
+class BornibusBrother(Brother):
+
+	def get_brother_position(self):
+		return self.brother.wheeledbase.get_position()
+	
+	def get_brother_shape(self):
+		x, y, theta = self.brother.wheeledbase.get_position()
+		W = self.brother.geogebra.get('Bornibus_{width}')
+		L = self.brother.geogebra.get('Bornibus_{length}')
+		shape = []
+		for dx, dy in (L / 2, W / 2), (-L / 2, W / 2), (-L / 2, -W / 2), (L / 2, -W / 2):
+			xi = x + dx * math.cos(theta) - dy * math.sin(theta)
+			yi = y + dx * math.sin(theta) + dy * math.cos(theta)
+			shape.append((x, y))
+		return shape
 
 
 class Bornibus(Behavior):
@@ -25,9 +44,9 @@ class Bornibus(Behavior):
 
 		self.automatestep = 0
 
-	def connect(self):
+	def connect(self, *args, **kwargs):
 		try:
-			Behavior.connect(self)
+			Behavior.connect(self, *args, **kwargs)
 			self.wheeledbase    = WheeledBase(self)
 			self.gripper        = ModulesGripper(self)
 			self.elevator       = ModulesElevator(self)
@@ -38,6 +57,11 @@ class Bornibus(Behavior):
 			self.display        = SevenSegments(self)
 			self.frontsensors   = Sensors(self, 'frontsensors')
 			self.backsensors    = Sensors(self, 'backsensors')
+			self.redbutton      = LightButtonProxy(m, 15, 16)
+			self.bluebutton     = LightButtonProxy(m, 23, 24)
+			self.yellowbutton   = LightButtonProxy(m, 35, 36)
+			self.greenbutton    = LightButtonProxy(m, 21, 22)
+			self.pullswitch     = SwitchProxy(m, 29)
 		except:
 			self.disconnect()
 			raise
@@ -88,6 +112,10 @@ class Bornibus(Behavior):
 			deposit05,
 			deposit04
 		]
+
+	def connect_to_other(self, *args, **kwargs):
+		self.other = OtherConnection(self, *args, **kwargs)
+		self.other.start()
 
 	def make_decision(self):
 		action = self.automate[self.automatestep]
@@ -151,40 +179,6 @@ class Bornibus(Behavior):
 
 			# Manage sensors
 			found_obstacle = False
-			rays = zip(self.frontsensors.get_mesure() + self.backsensors.get_mesure(), self.front_sensors_angles + self.back_sensors_angles)
-			for distance, delta in rays:
-				if distance < 500 and False:
-
-					# Compute the obstacle position
-					obstacle_x = x + distance * math.cos(theta + delta)
-					obstacle_y = y + distance * math.sin(theta + delta)
-					self.log('detect obstacle at: ({:.0f}, {:.0f})'.format(obstacle_x, obstacle_y))
-					self.log('self is at: ({:.0f}, {:.0f}, {:.2f})'.format(x, y, theta))
-					
-					# Ignore the obstacle if it is outside the playfield
-					if obstacle_x < 200 or obstacle_x > 1800 or obstacle_y < 200 or obstacle_y > 2800:
-						self.log('obstacle is outside the playfield')
-						break
-
-					# Compute the obstacle shape
-					obstacle_size = 300
-					obstacle_x1 = obstacle_x + obstacle_size / 2 * math.cos(theta - math.pi / 2)
-					obstacle_y1 = obstacle_y + obstacle_size / 2 * math.sin(theta - math.pi / 2)
-					obstacle_x2 = obstacle_x + obstacle_size / 2 * math.cos(theta + math.pi / 2)
-					obstacle_y2 = obstacle_y + obstacle_size / 2 * math.sin(theta + math.pi / 2)
-					obstacle = (obstacle_x1, obstacle_y1), (obstacle_x2, obstacle_y2)
-					self.log('obstacle shape is: [({:.0f}, {:.0f}), ({:.0f}, {:.0f})]'.format(obstacle_x1, obstacle_y1, obstacle_x2, obstacle_y2))
-					
-					# Check if the obstacle intersect the current path
-					for i in range(len(path) - 1):
-						edge = path[i], path[i+1]
-						if intersect(obstacle, edge):
-							self.log('obstacle is on the path')
-							self.roadmap.cut_edges(obstacle)
-							found_obstacle = True
-							break
-					else:
-						self.log('obstacle is not on the path')
 				
 			# Abort the current action if an obstacle was found
 			if found_obstacle:
@@ -266,8 +260,7 @@ class TakePlayfieldModuleAction:
 		self.actionpoint = geogebra.get('module_{{{}, action, {}}}'.format(major, minor))
 		self.takingpoint = geogebra.get('module_{{{}, action, {}, 1}}'.format(major, minor))
 		self.orientation = math.atan2(self.takingpoint[1] - self.actionpoint[1], self.takingpoint[0] - self.actionpoint[0])
-		self.isdone = False
-
+		
 	def procedure(self, bornibus):
 		bornibus.log('take playfield module')
 		wheeledbase = bornibus.wheeledbase
@@ -285,8 +278,7 @@ class TakePlayfieldModuleAction:
 		# Hold the module
 		gripper.close()
 		time.sleep(0.4)
-		self.isdone = True
-
+		
 		# Store the module during the next route
 		bornibus.store_module_mandatory = True
 
@@ -298,8 +290,7 @@ class TakeRocketModuleAction:
 		self.stabilizationpoint = geogebra.get('module_{{{}, action, {}, 2}}'.format(major, minor))
 		self.orientation = math.atan2(self.takingpoint[1] - self.actionpoint[1], self.takingpoint[0] - self.actionpoint[0])
 		self.remaining = 4
-		self.isdone = False
-		
+				
 	def procedure(self, bornibus):
 		bornibus.log('take rocket module')
 		wheeledbase = bornibus.wheeledbase
@@ -317,9 +308,7 @@ class TakeRocketModuleAction:
 		gripper.close()
 		time.sleep(0.4)
 		self.remaining -= 1
-		if self.remaining == 0:
-			self.isdone = True
-
+			
 		# Stabilize the last module
 		if self.remaining == 1:
 			wheeledbase.goto(*self.stabilizationpoint)
@@ -345,8 +334,7 @@ class DropModuleAction:
 		deposit          = geogebra.get('deposit_{{{}}}'.format(major))
 		self.actionpoint = geogebra.get('deposit_{{{}, action, {}}}'.format(major, minor))
 		self.orientation = math.pi / 2 + math.atan2(deposit[1] - self.actionpoint[1], deposit[0] - self.actionpoint[0])
-		self.isdone = False
-
+		
 	def procedure(self, bornibus):
 		bornibus.log('drop module')
 		dispenser = bornibus.dispenser
@@ -354,8 +342,7 @@ class DropModuleAction:
 		# Drop module
 		dispenser.open()
 		time.sleep(1.2)
-		self.isdone = True
-
+		
 		# Close dispenser
 		dispenser.close()
 		time.sleep(0.7)
@@ -367,8 +354,7 @@ class DropAndShiftModuleAction:
 		self.actionpoint = geogebra.get('deposit_{{{}, action, {}}}'.format(major1, minor1))
 		self.shiftpoint  = geogebra.get('deposit_{{{}, action, {}}}'.format(major2, minor2))
 		self.orientation = math.pi / 2 + math.atan2(deposit[1] - self.actionpoint[1], deposit[0] - self.actionpoint[0])
-		self.isdone = False
-
+		
 	def procedure(self, bornibus):
 		bornibus.log('drop and shift module')
 		wheeledbase = bornibus.wheeledbase
@@ -377,8 +363,7 @@ class DropAndShiftModuleAction:
 		# Drop module
 		dispenser.open()
 		time.sleep(1.2)
-		self.isdone = True
-
+		
 		# Shift module
 		wheeledbase.goto(*self.shiftpoint)
 
@@ -449,8 +434,7 @@ class HoldPlayfieldModuleAction:
 		self.actionpoint = geogebra.get('module_{{{}, action, {}}}'.format(major, minor))
 		self.takingpoint = geogebra.get('module_{{{}, action, {}, 1}}'.format(major, minor))
 		self.orientation = math.atan2(self.takingpoint[1] - self.actionpoint[1], self.takingpoint[0] - self.actionpoint[0])
-		self.isdone = False
-
+		
 	def procedure(self, bornibus):
 		bornibus.log('hold playfield module')
 		wheeledbase = bornibus.wheeledbase
@@ -462,16 +446,14 @@ class HoldPlayfieldModuleAction:
 		# Hold the module
 		gripper.close()
 		time.sleep(0.4)
-		self.isdone = True
-
+		
 
 class ReleaseModuleAction:
 	def __init__(self, geogebra, major, minor):
 		deposit          = geogebra.get('deposit_{{{}}}'.format(major))
 		self.actionpoint = geogebra.get('deposit_{{{}, action, {}}}'.format(major, minor))
 		self.orientation = math.atan2(deposit[1] - self.actionpoint[1], deposit[0] - self.actionpoint[0]) - math.atan2(geogebra.get('BornibusGripper_{xoffset}'), geogebra.get('BornibusGripper_{yoffset}'))
-		self.isdone = False
-
+		
 	def procedure(self, bornibus):
 		bornibus.log('release module')
 		wheeledbase = bornibus.wheeledbase
@@ -480,4 +462,4 @@ class ReleaseModuleAction:
 		# Release the module
 		gripper.open_low()
 		time.sleep(0.4)
-		self.isdone = True
+		
