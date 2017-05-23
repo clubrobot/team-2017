@@ -267,6 +267,7 @@ class Bornibus(Behavior):
 	def store_module_procedure(self, delay=0):
 		self.log('store module')
 		self.store_module_mandatory = False
+		self.gripper.close()
 		try:
 			self.stored_modules += 1
 			self.elevator.go_up()
@@ -278,7 +279,7 @@ class Bornibus(Behavior):
 			except RuntimeError:
 				self.log('stucked again')
 				self.elevator_stucked = True
-		if self.stored_modules < 3:
+		if self.stored_modules <= 3:
 			time.sleep(delay)
 			self.gripper.open_up()
 			time.sleep(1)
@@ -320,14 +321,14 @@ class TakePlayfieldModuleAction:
 		bornibus.log('go to the taking point')
 		wheeledbase.lookahead.set(70)
 		try:
-			wheeledbase.purepursuit([wheeledbase.get_position[:2], self.takingpoint], 'forward')
+			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.takingpoint], 'forward')
 			wheeledbase.wait()
 		except RuntimeError:
 			bornibus.log('blocked on the path')
 			wheeledbase.set_velocities(-100, 0)
 			time.sleep(1)
 			try:
-				wheeledbase.purepursuit([wheeledbase.get_position[:2], self.takingpoint], 'forward')
+				wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.takingpoint], 'forward')
 				wheeledbase.wait()
 			except RuntimeError:
 				bornibus.log('blocked again')
@@ -350,6 +351,7 @@ class TakeRocketModuleAction:
 		self.actionpoint = geogebra.get('module_{{{}, action, {}}}'.format(major, minor))
 		self.takingpoint = geogebra.get('module_{{{}, action, {}, 1}}'.format(major, minor))
 		self.stabilizationpoint = geogebra.get('module_{{{}, action, {}, 2}}'.format(major, minor))
+		self.sweepobstacle = geogebra.get('module_{{{}, action, {}, 3}}'.format(major, minor))
 		self.orientation = math.atan2(self.takingpoint[1] - self.actionpoint[1], self.takingpoint[0] - self.actionpoint[0])
 		self.remaining = 4
 				
@@ -365,18 +367,19 @@ class TakeRocketModuleAction:
 		bornibus.log('go to the taking point')
 		wheeledbase.lookahead.set(70)
 		try:
-			wheeledbase.purepursuit([wheeledbase.get_position[:2], self.takingpoint], 'forward')
+			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.takingpoint], 'forward')
 			wheeledbase.wait()
 		except RuntimeError:
 			bornibus.log('found obstacle')
 
 			# Go backward a little
+			bornibus.log('go backward a little')
 			try:
-				wheeledbase.goto() #TODO:
+				wheeledbase.goto(*self.sweepobstacle)
 			except RuntimeError:
 				bornibus.log('blocked while going backward')
 				return
-			
+
 			# Sweep the obstacle
 			wheeledbase.set_velocities(0, 10)
 			time.sleep(1)
@@ -479,7 +482,7 @@ class DropAndShiftModuleAction:
 		dx = self.shiftpoint[0] - self.actionpoint[0]
 		dy = self.shiftpoint[1] - self.actionpoint[1]
 		delta = math.atan2(dy, dx) - wheeledbase.get_position()[2]
-		if math.cos(delta > 0)
+		if math.cos(delta) > 0:
 			direction = 1
 		else:
 			direction = -1
