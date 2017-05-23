@@ -14,12 +14,8 @@ class Brother(Thread):
 		Thread.__init__(self)
 		self.brother = brother
 		
-		# BlueTooth
-		self.macaddress = macaddress
-		self.channel = channel
-
 		# Create a BlueTalks instance
-		self.talks = BlueTalks(self.macaddress, self.channel)
+		self.talks = BlueTalks(macaddress, channel)
 		self.talks.bind('update', self.update_self)
 
 	def update_self(self, position, shape):

@@ -61,11 +61,11 @@ class Murray(Behavior):
 #			self.display      = SevenSegments(self)
 			self.frontsensors = Sensors(self, 'frontsensors')
 			self.backsensors  = Sensors(self, 'backsensors')
-			self.redbutton      = LightButtonProxy(m, 15, 16)
-			self.bluebutton     = LightButtonProxy(m, 23, 24)
-			self.yellowbutton   = LightButtonProxy(m, 35, 36)
-			self.greenbutton    = LightButtonProxy(m, 21, 22)
-			self.pullswitch     = SwitchProxy(m, 29)
+			self.redbutton      = LightButtonProxy(self, 15, 16)
+			self.bluebutton     = LightButtonProxy(self, 23, 24)
+			self.yellowbutton   = LightButtonProxy(self, 35, 36)
+			self.greenbutton    = LightButtonProxy(self, 21, 22)
+			self.pullswitch     = SwitchProxy(self, 29)
 		except:
 			self.disconnect()
 			raise
@@ -89,9 +89,9 @@ class Murray(Behavior):
 			hold0
 		]
 
-	def connect_to_other(self, *args, **kwargs):
-		self.other = OtherConnection(self, *args, **kwargs)
-		self.other.start()
+	def connect_to_brother(self, *args, **kwargs):
+		self.brother = MurrayBrother(self, *args, **kwargs)
+		self.brother.start()
 
 	def make_decision(self):
 		action = self.automate[self.automatestep]
