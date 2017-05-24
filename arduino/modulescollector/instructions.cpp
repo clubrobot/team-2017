@@ -23,7 +23,6 @@ extern Clock movingTime;
 
 void WRITE_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
 {   
-    
     int val = input.read<int>();
     if (val >= 0)
     {

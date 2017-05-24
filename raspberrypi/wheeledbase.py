@@ -155,9 +155,12 @@ class WheeledBase(SerialTalksProxy):
 	def turnonthespot(self, theta):
 		self.send(START_TURNONTHESPOT_OPCODE, FLOAT(theta))
 
-	def isarrived(self, **kwargs):
-		output = self.execute(POSITION_REACHED_OPCODE, **kwargs)
-		isarrived, spinurgency = output.read(BYTE, BYTE)
+	def isarrived(self, timeout=0.5, **kwargs):
+		try:
+			output = self.execute(POSITION_REACHED_OPCODE, timeout=timeout, **kwargs)
+			isarrived, spinurgency = output.read(BYTE, BYTE)
+		except TimeoutError:
+			isarrived, spinurgency = 0, 0
 		if bool(spinurgency):
 			raise RuntimeError('spin urgency')
 		return bool(isarrived)
