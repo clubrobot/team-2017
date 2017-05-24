@@ -128,7 +128,7 @@ class Server(TCPTalks):
 	def disconnect(self):
 		TCPTalks.disconnect(self)
 		self.cleanup()
-
+		
 	def cleanup(self):
 		for comp in self.components.values():
 			comp._cleanup()
@@ -142,9 +142,6 @@ class Server(TCPTalks):
 	def MAKE_COMPONENT_EXECUTE(self, compid, methodname, args, kwargs):
 		comp = self.components[compid]
 		comp._setup()
-		if '_timeout' in kwargs:
-			kwargs['timeout'] = kwargs['_timeout']
-			del kwargs['_timeout']
 		return getattr(comp, methodname)(*args, **kwargs)
 
 	def GET_COMPONENT_ATTRIBUTE(self, compid, attrname):
@@ -216,8 +213,6 @@ class Proxy():
 		object.__setattr__(self, '_attrlist', attrlist)
 		for methodname in methlist:
 			def method(self, *args, tcptimeout=10, methodname=methodname, **kwargs):
-				if 'timeout' in kwargs:
-					kwargs['_timeout'] = kwargs['timeout']
 				return self._manager.execute(MAKE_COMPONENT_EXECUTE_OPCODE, compid, methodname, args, kwargs, timeout=tcptimeout)
 			object.__setattr__(self, methodname, MethodType(method, self))
 	
