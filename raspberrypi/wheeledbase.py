@@ -157,6 +157,7 @@ class WheeledBase(SerialTalksProxy):
 
 	def isarrived(self, **kwargs):
 		print('isarrived?')
+		print(self.get_position())
 		output = self.execute(POSITION_REACHED_OPCODE, **kwargs)
 		isarrived, spinurgency = output.read(BYTE, BYTE)
 		if bool(spinurgency):
