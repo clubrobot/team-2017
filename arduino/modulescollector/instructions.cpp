@@ -23,9 +23,7 @@ extern Clock movingTime;
 
 void WRITE_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
 {   
-    talks.out << "WRITE_GRIP ";
     int val = input.read<int>();
-    talks.out << val << "\n";
     if (val >= 0)
     {
         if (!gripper.attached())
@@ -42,9 +40,7 @@ void WRITE_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
 
 void OPEN_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
 {
-    talks.out << "OPEN_GRIP "; 
     int val = input.read<int>();
-    talks.out << val << "\n";
     if (val >= 0)
     {
         if (!gripper.attached())
@@ -57,7 +53,6 @@ void OPEN_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
 
 void SET_GRIP_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output){
     gripper.setVelocity(input.read<float>());
-    talks.out << "SET_GRIP_VELOCITY \n";
 }
 
 void WRITE_DISPENSER(SerialTalks &inst, Deserializer &input, Serializer &output)
@@ -92,10 +87,8 @@ void IS_DOWN(SerialTalks &inst, Deserializer &input, Serializer &output)
 
 void SET_MOTOR_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output)
 {
-    talks.out << "SET_MOTOR_VELOCITY \n";
     float vel = input.read<float>();
     bool ok = false;
-    talks.out << " vel : "<< vel <<"\n";
     if (gripper.attached())
     {
         if(gripper.read() <= 5){

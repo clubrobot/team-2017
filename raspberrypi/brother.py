@@ -7,8 +7,6 @@ from bluetalks import BlueTalks
 import time
 import math
 
-from roadmap import intersect
-
 
 class Brother(Thread):
 
@@ -57,39 +55,4 @@ class Brother(Thread):
 			# Unset the variables in case of a Bluetooth crash
 			del self.position
 			del self.shape
-	
-	def get_edges(self, halo=0):
-		try:
-			edges = []
-			for i in range(len(self.shape)):
-				edges.append((self.shape[i], self.shape[(i+1) % len(vertices)]))
-			return edges			
-		except AttributeError:
-			return []
 
-	def get_distance(self, x, y):
-		distance = math.inf
-		for edge in self.get_edges(halo=0):
-			dx = x - edge[0][0]
-			dy = y - edge[0][1]
-			edgedx = edge[1][0] - edge[0][0]
-			edgedy = edge[1][1] - edge[0][1]
-			edgelength = math.hypot(edgedx, edgedy)
-			t = (edgedx * dx + edgedy * dy) / edgelength**2
-			if t > 1:
-				h = math.hypot(x - edge[1][0], y - edge[1][1])
-			elif t < 0:
-				h = math.hypot(x - edge[0][0], y - edge[0][1])
-			else:
-				h = abs(edgedx * dy - edgedy * dx) / edgelength;
-			if distance > h:
-				distance = h
-		return distance
-
-	def is_on_path(self, path):
-		edges = self.get_edges()
-		for subpath in zip(path[:-1], path[1:]):
-			for edge in edges:
-				if intersect(edge, subpath):
-					return True
-		return False
