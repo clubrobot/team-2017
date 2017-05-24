@@ -155,10 +155,20 @@ class Bornibus(Behavior):
 		action = self.automate[self.side][self.automatestep]
 		if isinstance(action, (TakePlayfieldModuleAction, TakeRocketModuleAction, HoldPlayfieldModuleAction)):
 			self.setup_gripper_mandatory = True
-		return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
+		if hasattr(action, 'actionpoint'):
+			if hasattr(action, 'orientation'):
+				return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
+			else:
+				return action.procedure, (self,), {}, action.actionpoint + (None,)
+		else:
+			return action.procedure, (self,), {}, None
 
 	def goto_procedure(self, destination):
 		wheeledbase = self.wheeledbase
+
+		# Try to avoid Murray
+		for edge in self.brother.get_edges():
+			self.roadmap.cut_edges(edge)
 
 		# Pathfinding
 		path_not_found = False
@@ -174,9 +184,10 @@ class Bornibus(Behavior):
 		self.log('reset edges')
 		self.roadmap.reset_edges()
 
-		# Return there is no path available		
+		# Return if there is no path available		
 		if path_not_found:
 			self.log('no path found')
+			wheeledbase.stop()
 			time.sleep(1)
 			return False
 
@@ -209,7 +220,30 @@ class Bornibus(Behavior):
 		while not isarrived:
 
 			# Get current position
-			x, y, theta = wheeledbase.get_position()
+			x_in, y_in, theta_in = wheeledbase.get_position()
+
+			# Check for Murray's position
+			brother_distance = self.brother.get_distance(x_in, y_in)
+			if brother_distance < 700:
+				self.log('detected brother at distance: {:.0f}'.format(brother_distance))
+				if self.brother.is_on_path(path):
+					self.log('detected that brother is on the path')
+					edges = self.brother.get_edges()
+					for edge in edges:
+						self.log('cut edges: [{}]'.format('({0[0]:.0f}, {0[1]:.0f})'.format(edge)))
+						self.roadmap.cut_edges(edge)
+					try:
+						path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
+						self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
+						wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
+					except RuntimeError:
+						path_not_found = True
+					self.roadmap.reset_edges()
+					if path_not_found:
+						self.log('no path found')
+						wheeledbase.stop()
+						time.sleep(1)
+						return False
 
 			# Manage sensors
 			found_obstacle = False

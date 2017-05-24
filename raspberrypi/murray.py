@@ -59,17 +59,22 @@ class Murray(Behavior):
 #			self.left_eye     = LEDMatrix(self, 1)
 #			self.right_eye    = LEDMatrix(self, 2)
 #			self.display      = SevenSegments(self)
-			self.frontsensors = Sensors(self, 'frontsensors')
-			self.backsensors  = Sensors(self, 'backsensors')
-			self.redbutton      = LightButtonProxy(self, 15, 16)
-			self.bluebutton     = LightButtonProxy(self, 23, 24)
-			self.yellowbutton   = LightButtonProxy(self, 35, 36)
-			self.greenbutton    = LightButtonProxy(self, 21, 22)
-			self.pullswitch     = SwitchProxy(self, 29)
-			self.launchpad      = LaunchPad(self)
+			self.redbutton    = LightButtonProxy(self, 15, 16)
+			self.bluebutton   = LightButtonProxy(self, 23, 24)
+			self.yellowbutton = LightButtonProxy(self, 35, 36)
+			self.greenbutton  = LightButtonProxy(self, 21, 22)
+			self.pullswitch   = SwitchProxy(self, 29)
+			self.launchpad    = LaunchPad(self)
 		except:
 			self.disconnect()
 			raise
+		try:
+			frontsensors = Sensors(self, 'frontsensors')
+			backsensors  = Sensors(self, 'backsensors')
+			self.frontsensors = frontsensors
+			self.backsensors = backsensors
+		except:
+			pass
 
 	def load_roadmap(self, filename):
 		self.geogebra = GeoGebra(filename)
@@ -88,7 +93,8 @@ class Murray(Behavior):
 		crater4 = GatherSmallCraterAction(self.geogebra, '4', 'a')
 		crater5a = GatherBigCraterAction(self.geogebra, '5', 'a')
 		crater5b = GatherBigCraterAction(self.geogebra, '5', 'b')
-		hold1 = FireMineralsAction(self.geogebra, '1', 'a')	
+		hold1 = FireMineralsAction(self.geogebra, '1', 'a')
+		module08 = StrikeModuleAction(self.geogebra, '08', 'a')
 
 		self.automate = [
 			[
@@ -106,7 +112,8 @@ class Murray(Behavior):
 				hold1,
 				crater3,
 				crater5b,
-				hold1
+				hold1,
+				module08
 			]
 		]
 
@@ -137,6 +144,13 @@ class Murray(Behavior):
 		except RuntimeError:
 			path_not_found = True
 
+		# Return if there is no path available		
+		if path_not_found:
+			self.log('no path found')
+			wheeledbase.stop()
+			time.sleep(1)
+			return False
+
 		# Pure Pursuit configuration
 		if math.cos(math.atan2(path[1][1] - path[0][1], path[1][0] - path[0][0]) - theta_in) >= 0:
 			direction = 1
@@ -165,6 +179,26 @@ class Murray(Behavior):
 
 			# Get current position
 			x_in, y_in, theta_in = wheeledbase.get_position()
+
+			# Check for Bornibus' position
+			brother_distance = self.brother.get_distance(x_in, y_in)
+			if brother_distance < 700:
+				self.log('detected brother at distance: {:.0f}'.format(brother_distance))
+				if self.brother.is_on_path(path):
+					self.log('detected that brother is on the path')
+					edges = self.brother.get_edges()
+					try:
+						path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
+						self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
+						wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
+					except RuntimeError:
+						path_not_found = True
+					path_not_found |= self.brother.is_on_path(path)
+					if path_not_found:
+						self.log('no path found')
+						wheeledbase.stop()
+						time.sleep(1)
+						return False
 
 			# Get trajectory planner situation
 			try:
