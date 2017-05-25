@@ -225,7 +225,7 @@ class Bornibus(Behavior):
 					self.log('detected that brother is on the path')
 					edges = self.brother.get_edges()
 					for edge in edges:
-						self.log('cut edges: [{}]'.format('(({0[0]:.0f}, {0[1]:.0f}), ({1[0]:.0f}, {1[1]:.0f}))'.format(*edge))
+						self.log('cut edges: [{}]'.format('(({0[0]:.0f}, {0[1]:.0f}), ({1[0]:.0f}, {1[1]:.0f}))'.format(*edge)))
 						self.roadmap.cut_edges(edge)
 					try:
 						path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
@@ -366,7 +366,7 @@ class TakeRocketModuleAction:
 		except RuntimeError: pass
 		
 		# Get to the bottom of the rocket
-		wheeledbase.set_velocities(45, -0.3); time.sleep(0.2)
+		wheeledbase.set_velocities(45, -0.15); time.sleep(0.5)
 		wheeledbase.set_velocities(0, 0)
 		
 		# Hold the module
