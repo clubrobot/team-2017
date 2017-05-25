@@ -13,12 +13,6 @@
 #define _SET_AX_VELOCITY_MOVE_OPCODE			0X08
 #define _PING_AX_OPCODE							0x09
 #define _SET_AX_HOLD_OPCODE						0X0A
-#define _GET_AX_VELOCITY_OPCODE					0x0C
-#define _GET_AX_MOVING_OPCODE					0x0D
-
-#define _SET_ROLLER_VELOCITY_OPCODE 			0x03
-#define _SET_FIRING_HAMMER_VELOCITY_OPCODE		0x04
-#define _RETURN_TO_SAFE_POSITION_OPCODE			0x0B
 
 #define AX12_SEND_INSTRUCTION_PACKET_OPCODE 0x0E
 #define AX12_RECEIVE_STATUS_PACKET_OPCODE   0x0F
@@ -46,9 +40,6 @@ void AX12_SEND_INSTRUCTION_PACKET(SerialTalks& talks, Deserializer& input, Seria
 
 void AX12_RECEIVE_STATUS_PACKET(SerialTalks& talks, Deserializer& input, Serializer& output);
 
-void GET_AX_VELOCITY(SerialTalks& talks, Deserializer& input, Serializer& output);
-
-void GET_AX_MOVING(SerialTalks& talks, Deserializer& input, Serializer& output);
 
 
 #endif

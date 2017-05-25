@@ -20,8 +20,6 @@ _GET_AX_TORQUE_OPCODE				=	0X07
 _SET_AX_VELOCITY_MOVE_OPCODE		=	0X08
 _PING_AX_OPCODE						=	0x09
 _SET_AX_HOLD_OPCODE					=	0X0A
-_GET_AX_VELOCITY_OPCODE				=	0x0C
-_GET_AX_MOVING_OPCODE				=	0x0D
 
 
 AX12_SEND_INSTRUCTION_PACKET_OPCODE = 0x0E
@@ -30,10 +28,8 @@ AX12_RECEIVE_STATUS_PACKET_OPCODE   = 0x0F
 class AX12(SerialTalksProxy):	
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
-		self.theorical_high_position = 300		
-		self.closed_position = 300
+		self.closed_position = 282
 		self.collecting_position = 70
-		self.mid_position = 200
 		self.ax_lock = RLock()
 		self.thread_safe_execute(_SETUP_AX_OPCODE)
 
@@ -57,13 +53,6 @@ class AX12(SerialTalksProxy):
 		return int(trq)
 	
 	def set_position_velocity(self, p, v):
-		self.send(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
-
-	def set_r_position(self, p):
-		self.set_position(a - self.theorical_high_position + self.closed_position)
-
-	def set_r_position_velocity(self, p, v):
-		self.set_position_velocity(a - self.theorical_high_position + self.closed_position, v)
 		self.thread_safe_execute(_SET_AX_VELOCITY_MOVE_OPCODE, FLOAT(p), INT(v))
 	
 	def ping(self):
@@ -75,10 +64,10 @@ class AX12(SerialTalksProxy):
 		self.thread_safe_execute(_SET_AX_HOLD_OPCODE, INT(i))
 
 	def gather(self):
-		self.set_r_position_velocity(self.collecting_position self.closed_position, 400)
+		self.set_position(self.collecting_position)
 	
 	def close(self):
-		self.set_position_velocity(self.closed_position, 400)
+		self.set_position(self.closed_position)
 
 	def set_closed_position(self, a):
 		self.closed_position = a
@@ -110,18 +99,6 @@ class AX12(SerialTalksProxy):
 		checksum = ~sum(content) & 0xFF
 		packet = [0xFF, 0xFF] + content + [checksum]
 		self.send_instruction_packet(packet)
-	
-	def get_velocity(self):
-		output = self.execute()
-		vel = output.read(INT)
-		return int(vel)
-	
-	def is_Moving(self):
-		output = self.execute()
-		mov = output.read(BYTE)
-		time.sleep(0.1)
-		return bool(mov)
-
 
 class Hammer(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
@@ -137,7 +114,7 @@ class Hammer(SerialTalksProxy):
 	def stop(self):
 		self.set_velocity(0)
 
-	def move_to_safe_position(self):
+	def safePositioning(self):
 		self.send(_RETURN_TO_SAFE_POSITION_OPCODE)
 
 class Roller(SerialTalksProxy):

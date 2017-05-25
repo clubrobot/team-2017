@@ -4,7 +4,6 @@
 #include "../common/VelocityServo.h"
 #include "../common/SerialTalks.h"
 #include "../common/FullSpeedServo.h"
-#include "../common/Clock.h"
 #include <Servo.h>
 #include "PIN.h"
 
@@ -17,9 +16,6 @@ extern EndStop lowStop;
 extern EndStop leftmustache;
 extern EndStop rightmustache;
 extern DCMotor gripperMotor;
-extern bool elevatorMoving;
-extern bool motorError;
-extern Clock movingTime;
 
 void WRITE_GRIP(SerialTalks &inst, Deserializer &input, Serializer &output)
 {   
@@ -76,14 +72,12 @@ void WRITE_DISPENSER(SerialTalks &inst, Deserializer &input, Serializer &output)
 
 void IS_UP(SerialTalks &inst, Deserializer &input, Serializer &output)
 {
-    output.write<bool>(highStop.getState());
-    output.write<bool>(motorError);
+    output.write<int>(highStop.getState());
 }
 
 void IS_DOWN(SerialTalks &inst, Deserializer &input, Serializer &output)
 {
-    output.write<bool>(lowStop.getState());
-    output.write<bool>(motorError);
+    output.write<int>(lowStop.getState());
 }
 
 void SET_MOTOR_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output)
@@ -101,18 +95,8 @@ void SET_MOTOR_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &outp
         gripperMotor.setVelocity(vel);
         ok = true;
     }
-    if(ok){
-        if(vel != 0){
-            elevatorMoving = true;
-            movingTime.restart();
-            motorError = false;
-        }
-        if (vel < 0){
-            gripper.detach();
-        }
-        if(vel == 0){
-            elevatorMoving = false;
-        }
+    if(vel > 0 && ok){
+        gripper.detach();
     }
     output.write<bool>(ok);
     
