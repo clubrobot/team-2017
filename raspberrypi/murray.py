@@ -166,7 +166,7 @@ class Murray(Behavior):
 
 			# Check for Bornibus' position
 			brother_distance = self.brother.get_distance(x_in, y_in)
-			if brother_distance < 500:
+			if brother_distance < 200:
 				self.log('detected brother at distance: {:.0f}'.format(brother_distance))
 				if self.brother.is_on_path(path):
 					self.log('detected that brother is on the path')
