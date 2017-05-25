@@ -160,8 +160,28 @@ class Murray(Behavior):
 		blocked = False
 		while not isarrived:
 
-			# Get current position
+						# Get current position
 			x_in, y_in, theta_in = wheeledbase.get_position()
+
+			# Check for Bornibus' position
+			brother_distance = self.brother.get_distance(x_in, y_in)
+			if brother_distance < 700:
+				self.log('detected brother at distance: {:.0f}'.format(brother_distance))
+				if self.brother.is_on_path(path):
+					self.log('detected that brother is on the path')
+					edges = self.brother.get_edges()
+					try:
+						path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
+						self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
+						wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
+					except RuntimeError:
+						path_not_found = True
+					path_not_found |= self.brother.is_on_path(path)
+					if path_not_found:
+						self.log('no path found')
+						wheeledbase.stop()
+						time.sleep(1)
+						return False
 
 			# Get trajectory planner situation
 			try:
