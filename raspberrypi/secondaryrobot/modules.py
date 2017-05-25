@@ -187,8 +187,8 @@ class ModulesGripper(Module):
 class ModulesDispenser(Module):
 	def __init__(self, parent, uuid='modulescollector'):
 		Module.__init__(self, parent, uuid)
-		self.open_dispenser_angle = 180
-		self.close_dispenser_angle = 0
+		self.open_dispenser_angle = 0
+		self.close_dispenser_angle = 180
 	
 	def set_position(self,a, t): 
 		self.send(_WRITE_DISPENSER_OPCODE, INT(a), FLOAT(t))
