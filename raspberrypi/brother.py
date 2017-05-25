@@ -62,7 +62,7 @@ class Brother(Thread):
 		try:
 			edges = []
 			for i in range(len(self.shape)):
-				edges.append((self.shape[i], self.shape[(i+1) % len(vertices)]))
+				edges.append((self.shape[i], self.shape[(i+1) % len(self.shape)]))
 			return edges			
 		except AttributeError:
 			return []
@@ -93,4 +93,3 @@ class Brother(Thread):
 				if intersect(edge, subpath):
 					return True
 		return False
-		
