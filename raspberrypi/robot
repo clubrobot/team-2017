@@ -171,7 +171,7 @@ def start(args):
 		robot.log('loaded')
 
 	# Bluetooth connection
-	robot.connect_to_brother(macaddress=args.bluetooth)
+	# robot.connect_to_brother(macaddress=args.bluetooth)
 
 	# Initialization procedure
 	robot.log("let's get ready to rumble")
@@ -190,7 +190,7 @@ def start(args):
 		robot.start()
 	finally:
 		print(robot.wheeledbase.getout())
-		if name == 'bornibus':
+		if args.name == 'bornibus':
 			print(robot.gripper.getout())
 
 parser = ArgumentParser()
