@@ -61,9 +61,10 @@ class Brother(Thread):
 	def get_edges(self, halo=0):
 		try:
 			edges = []
+			print('shape', self.shape)
 			for i in range(len(self.shape)):
 				edges.append((self.shape[i], self.shape[(i+1) % len(self.shape)]))
-			print(edges)
+			print('edges', edges)
 			return edges			
 		except AttributeError:
 			return []
