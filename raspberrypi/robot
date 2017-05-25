@@ -186,7 +186,12 @@ def start(args):
 		robot.side = 0
 	elif starter.team == "Blue":
 		robot.side = 1
-	robot.start()
+	try:
+		robot.start()
+	finally:
+		print(robot.wheeledbase.getout())
+		if name == 'bornibus':
+			print(robot.gripper.getout())
 
 parser = ArgumentParser()
 subparsers = parser.add_subparsers()
