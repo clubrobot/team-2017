@@ -219,6 +219,7 @@ class Bornibus(Behavior):
 			brother_distance = self.brother.get_distance(x_in, y_in)
 			if brother_distance < 700:
 				self.log('detected brother at distance: {:.0f}'.format(brother_distance))
+				self.log(self.brother.shape)
 				if self.brother.is_on_path(path):
 					self.log('detected that brother is on the path')
 					edges = self.brother.get_edges()
