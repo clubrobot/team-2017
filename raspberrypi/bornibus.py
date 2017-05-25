@@ -25,7 +25,7 @@ class BornibusBrother(Brother):
 	
 	def get_brother_shape(self):
 		x, y, theta = self.brother.wheeledbase.get_position()
-		halo = 200
+		halo = 150
 		W = self.brother.geogebra.get('Bornibus_{width}')
 		L = self.brother.geogebra.get('Bornibus_{length}')
 		shape = []
@@ -225,7 +225,7 @@ class Bornibus(Behavior):
 					self.log('detected that brother is on the path')
 					edges = self.brother.get_edges()
 					for edge in edges:
-						self.log('cut edges: [{}]'.format('({0[0]:.0f}, {0[1]:.0f})'.format(edge)))
+						self.log('cut edges: [{}]'.format('(({0[0]:.0f}, {0[1]:.0f}), ({1[0]:.0f}, {1[1]:.0f}))'.format(*edge))
 						self.roadmap.cut_edges(edge)
 					try:
 						path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))

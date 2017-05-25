@@ -25,7 +25,7 @@ class MurrayBrother(Brother):
 	
 	def get_brother_shape(self):
 		x, y, theta = self.brother.wheeledbase.get_position()
-		halo = 200
+		halo = 150
 		W = self.brother.geogebra.get('Murray_{width}')
 		F = self.brother.geogebra.get('Murray_{front}')
 		B = self.brother.geogebra.get('Murray_{back}')
@@ -161,12 +161,12 @@ class Murray(Behavior):
 		blocked = False
 		while not isarrived:
 
-						# Get current position
+			# Get current position
 			x_in, y_in, theta_in = wheeledbase.get_position()
 
 			# Check for Bornibus' position
 			brother_distance = self.brother.get_distance(x_in, y_in)
-			if brother_distance < 700:
+			if brother_distance < 500:
 				self.log('detected brother at distance: {:.0f}'.format(brother_distance))
 				if self.brother.is_on_path(path):
 					self.log('detected that brother is on the path')
@@ -397,7 +397,8 @@ class FireMineralsAction:
 		self.actionpoint = geogebra.get('hold_{{{}, action, {}}}'.format(major, minor))
 		self.firingpoint = geogebra.get('hold_{{{}, action, {}, 1}}'.format(major, minor))
 		self.orientation = math.pi + math.atan2(self.firingpoint[1] - self.actionpoint[1], self.firingpoint[0] - self.actionpoint[0])
-		
+		self.hold = geogebra.get('hold_{{{}}}'.format(major))
+
 	def procedure(self, murray):
 		murray.log('fire minerals')
 		wheeledbase = murray.wheeledbase
@@ -407,7 +408,13 @@ class FireMineralsAction:
 
 		# Goto the firing point
 		murray.log('go to the firing point')
-		wheeledbase.goto(*self.firingpoint, self.orientation)
+		wheeledbase.goto(*self.firingpoint)
+
+		# Ensure it has the right orientation
+		x_in, y_in = wheeledbase.get_position()[:2]
+		theta_sp = math.atan2(self.hold[1] - y_in, self.hold[0] - x_in) + math.pi
+		wheeledbase.turnonthespot(theta_sp)
+		wheeledbase.wait()
 
 		# Start firing
 		murray.log('start firing')
