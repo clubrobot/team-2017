@@ -33,6 +33,7 @@ class MurrayBrother(Brother):
 			xi = x + dx * math.cos(theta) - dy * math.sin(theta)
 			yi = y + dx * math.sin(theta) + dy * math.cos(theta)
 			shape.append((xi, yi))
+		print('murray', shape)
 		return shape
 
 
