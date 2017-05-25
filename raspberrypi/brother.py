@@ -24,6 +24,7 @@ class Brother(Thread):
 	def update_self(self, position, shape):
 		self.position = position
 		self.shape = shape
+		print('update', shape)
 
 	def get_brother_position(self):
 		raise RuntimeError("the 'get_brother_position' method must be overriden")
