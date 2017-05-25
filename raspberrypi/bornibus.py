@@ -31,7 +31,7 @@ class BornibusBrother(Brother):
 		for dx, dy in (L / 2, W / 2), (-L / 2, W / 2), (-L / 2, -W / 2), (L / 2, -W / 2):
 			xi = x + dx * math.cos(theta) - dy * math.sin(theta)
 			yi = y + dx * math.sin(theta) + dy * math.cos(theta)
-			shape.append((x, y))
+			shape.append((xi, yi))
 		return shape
 
 

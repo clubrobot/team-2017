@@ -32,7 +32,7 @@ class MurrayBrother(Brother):
 		for dx, dy in (F / 2, W / 2), (-B / 2, W / 2), (-B / 2, -W / 2), (F / 2, -W / 2):
 			xi = x + dx * math.cos(theta) - dy * math.sin(theta)
 			yi = y + dx * math.sin(theta) + dy * math.cos(theta)
-			shape.append((x, y))
+			shape.append((xi, yi))
 		return shape
 
 
