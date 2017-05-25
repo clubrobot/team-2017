@@ -155,20 +155,10 @@ class Bornibus(Behavior):
 		action = self.automate[self.side][self.automatestep]
 		if isinstance(action, (TakePlayfieldModuleAction, TakeRocketModuleAction, HoldPlayfieldModuleAction)):
 			self.setup_gripper_mandatory = True
-		if hasattr(action, 'actionpoint'):
-			if hasattr(action, 'orientation'):
-				return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
-			else:
-				return action.procedure, (self,), {}, action.actionpoint + (None,)
-		else:
-			return action.procedure, (self,), {}, None
+		return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
 
 	def goto_procedure(self, destination):
 		wheeledbase = self.wheeledbase
-
-		# Try to avoid Murray
-		# for edge in self.brother.get_edges():
-		# 	self.roadmap.cut_edges(edge)
 
 		# Pathfinding
 		path_not_found = False
@@ -184,10 +174,9 @@ class Bornibus(Behavior):
 		self.log('reset edges')
 		self.roadmap.reset_edges()
 
-		# Return if there is no path available		
+		# Return there is no path available		
 		if path_not_found:
 			self.log('no path found')
-			wheeledbase.stop()
 			time.sleep(1)
 			return False
 
@@ -220,30 +209,7 @@ class Bornibus(Behavior):
 		while not isarrived:
 
 			# Get current position
-			x_in, y_in, theta_in = wheeledbase.get_position()
-
-			# Check for Murray's position
-			# brother_distance = self.brother.get_distance(x_in, y_in)
-			# if brother_distance < 700:
-			# 	self.log('detected brother at distance: {:.0f}'.format(brother_distance))
-			# 	if self.brother.is_on_path(path):
-			# 		self.log('detected that brother is on the path')
-			# 		edges = self.brother.get_edges()
-			# 		for edge in edges:
-			# 			self.log('cut edges: [{}]'.format('({0[0]:.0f}, {0[1]:.0f})'.format(edge)))
-			# 			self.roadmap.cut_edges(edge)
-			# 		try:
-			# 			path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
-			# 			self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
-			# 			wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
-			# 		except RuntimeError:
-			# 			path_not_found = True
-			# 		self.roadmap.reset_edges()
-			# 		if path_not_found:
-			# 			self.log('no path found')
-			# 			wheeledbase.stop()
-			# 			time.sleep(1)
-			# 			return False
+			x, y, theta = wheeledbase.get_position()
 
 			# Manage sensors
 			found_obstacle = False
@@ -286,7 +252,6 @@ class Bornibus(Behavior):
 		self.log('rotation ended at: ({0[0]:.0f}, {0[1]:.0f}, {0[2]:.2f})'.format(wheeledbase.get_position()))
 		
 		# Wait for mandatory actions
-		self.log('wait for mandatory actions')
 		self.get(parallel_actions)
 		self.automatestep += 1
 
@@ -301,42 +266,29 @@ class Bornibus(Behavior):
 
 	def store_module_procedure(self, delay=0):
 		self.log('store module')
-		self.store_module_mandatory = False
-		self.gripper.close()
 		try:
-			self.stored_modules += 1
 			self.elevator.go_up()
+			if self.stored_modules < 3:
+				time.sleep(delay)
+				self.gripper.open_up()
+				time.sleep(1)
+			self.stored_modules += 1
 		except RuntimeError:
 			self.log('elevator stucked')
-			try:
-				self.elevator.go_down()
-				self.elevator.go_up()
-			except RuntimeError:
-				self.log('stucked again')
-				self.elevator_stucked = True
-		if self.stored_modules <= 3:
-			time.sleep(delay)
-			self.gripper.open_up()
-			time.sleep(1)
+			self.elevator_stucked = True
+		self.store_module_mandatory = False
 
 	def setup_gripper_procedure(self):
 		self.log('setup gripper')
-		self.setup_gripper_mandatory = False
 		self.gripper.close()
 		time.sleep(0.4)
 		try:
 			self.elevator.go_down()
+			self.gripper.open_low()
 		except RuntimeError:
 			self.log('elevator stucked')
-			self.gripper.close()
-			time.sleep(0.4)
-			try:
-				self.elevator.go_up()
-				self.elevator.go_down()
-			except RuntimeError:
-				self.log('stucked again')
-				self.elevator_stucked = True
-		self.gripper.open_low()
+			self.elevator_stucked = True
+		self.setup_gripper_mandatory = False
 
 
 class TakePlayfieldModuleAction:
@@ -350,37 +302,21 @@ class TakePlayfieldModuleAction:
 		wheeledbase = bornibus.wheeledbase
 		gripper     = bornibus.gripper
 
-		# In any case
-		bornibus.store_module_mandatory = True
-
 		# Go to the taking point
-		bornibus.log('go to the taking point')
 		wheeledbase.lookahead.set(70)
-		wheeledbase.lookaheadbis.set(70)
-		try:
-			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.takingpoint], 'forward')
-			wheeledbase.wait()
-		except RuntimeError:
-			bornibus.log('blocked on the path')
-			wheeledbase.set_velocities(-100, 0)
-			time.sleep(1)
-			try:
-				wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.takingpoint], 'forward')
-				wheeledbase.wait()
-			except RuntimeError:
-				bornibus.log('blocked again')
-				return
+		wheeledbase.goto(*self.takingpoint)
 
 		# Do an adjustment procedure
-		bornibus.log('do an adjustment procedure')
 		wheeledbase.set_velocities(30,  0.0); time.sleep(0.6)
 		wheeledbase.set_velocities(20, -1.0); time.sleep(0.4)
 		wheeledbase.set_velocities(0, 0)
 		
 		# Hold the module
-		bornibus.log('hold the module')
 		gripper.close()
 		time.sleep(0.4)
+		
+		# Store the module during the next route
+		bornibus.store_module_mandatory = True
 
 
 class TakeRocketModuleAction:
@@ -412,34 +348,23 @@ class TakeRocketModuleAction:
 
 			# Go backward a little
 			bornibus.log('go backward a little')
-			try:
-				wheeledbase.goto(*self.sweepobstacle)
-			except RuntimeError:
-				bornibus.log('blocked while going backward')
-				return
-
+			wheeledbase.goto(*self.sweepobstacle)
+			
 			# Sweep the obstacle
+			bornibus.log('sweep the obstacle')
 			wheeledbase.set_velocities(0, 10)
 			time.sleep(1)
-			try:
-				wheeledbase.turnonthespot(self.orientation)
-				wheeledbase.wait()
-			except RuntimeError:
-				bornibus.log('blocked while turning on the spot')
-				return
+			wheeledbase.turnonthespot(self.orientation)
+			wheeledbase.wait()
 
 			# Second try
 			bornibus.log('try again going to the taking point')
 			wheeledbase.lookahead.set(70)
-			try:
-				wheeledbase.goto(*self.takingpoint)
-			except RuntimeError:
-				bornibus.log('blocked again')
-				return
+			wheeledbase.goto(*self.takingpoint)
 			
 		# Get to the bottom of the rocket
 		bornibus.log('get to the bottom of the rocket')
-		wheeledbase.set_velocities(45, -0.2); time.sleep(0.4)
+		wheeledbase.set_velocities(45, -0.2); time.sleep(0.5)
 		wheeledbase.set_velocities(0, 0)
 		
 		# Hold the module
@@ -451,17 +376,11 @@ class TakeRocketModuleAction:
 		# Stabilize the last module
 		if self.remaining == 1:
 			bornibus.log('stabilize the last module')
-			try:
-				wheeledbase.goto(*self.stabilizationpoint)
-			except RuntimeError:
-				bornibus.log('blocked on the path')
-
+			wheeledbase.goto(*self.stabilizationpoint)
+			
 		# Go backward
-		try:
-			wheeledbase.goto(*self.actionpoint)
-		except RuntimeError:
-			bornibus.log('blocked on the path')
-
+		wheeledbase.goto(*self.actionpoint)
+		
 		# Do an adjustment procedure
 		bornibus.log('do an adjustment procedure')
 		gripper.open_low()
@@ -473,6 +392,8 @@ class TakeRocketModuleAction:
 		gripper.close()
 		time.sleep(0.4)
 
+		# Store the module during the next route
+		bornibus.store_module_mandatory = True
 
 
 class DropModuleAction:
@@ -533,10 +454,7 @@ class DropAndShiftModuleAction:
 			bornibus.log('blocked on the path')
 			wheeledbase.set_velocities(-direction * 100, 0)
 			time.sleep(1)
-			try:
-				wheeledbase.goto(*self.shiftpoint)
-			except RuntimeError:
-				bornibus.log('blocked again')
+			wheeledbase.goto(*self.shiftpoint)
 
 		# Close dispenser
 		dispenser.close()
@@ -568,25 +486,16 @@ class RecalibrateOdometryAction:
 		
 			# Go backward a little
 			bornibus.log('go backward a little')
-			try:
-				wheeledbase.goto(*self.sweepobstacle)
-			except RuntimeError:
-				bornibus.log('blocked while going backward')
-				return
+			wheeledbase.goto(*self.sweepobstacle)
 
 			# Quickly turn on the spot to sweep the obstacle away
 			wheeledbase.set_velocities(0, 10)
 			time.sleep(1)
 
 			# Run at the wall again
-			try:
-				bornibus.log('run at the wall again')
-				wheeledbase.turnonthespot(self.orientation)
-				wheeledbase.wait()
-			except RuntimeError:
-				bornibus.log('blocked while sweeping the obstacle')
-				return
-
+			bornibus.log('run at the wall again')
+			wheeledbase.turnonthespot(self.orientation)
+			wheeledbase.wait()
 			wheeledbase.set_velocities(200, 0)
 			try: wheeledbase.wait()
 			except RuntimeError: wheeledbase.set_openloop_velocities(500, 500)
