@@ -90,7 +90,7 @@ class Murray(Behavior):
 		crater5a = GatherBigCraterAction(self.geogebra, '5', 'a')
 		crater5b = GatherBigCraterAction(self.geogebra, '5', 'b')
 		hold1 = FireMineralsAction(self.geogebra, '1', 'a')
-		module08 = StrikeModuleAction(self.geogebra, '08', 'a')
+		module09 = StrikeModuleAction(self.geogebra, '09', 'a')
 
 		self.automate = [
 			[
@@ -109,7 +109,7 @@ class Murray(Behavior):
 				crater3,
 				crater5b,
 				hold1,
-				module08
+				module09
 			]
 		]
 
