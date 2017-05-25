@@ -45,7 +45,7 @@ class Murray(Behavior):
 		self.stored_minerals = 0
 		self.minerals_05_storage_position = 280
 		self.minerals_10_storage_position = 230
-		self.minerals_15_storage_position = 160
+		self.minerals_15_storage_position = 170
 		self.firing_cadency = 0.3 # Seconds per mineral
 
 		self.automatestep = 0
@@ -82,13 +82,15 @@ class Murray(Behavior):
 		crater1 = GatherSmallCraterAction(self.geogebra, '1', 'a')
 		crater2 = GatherSmallCraterAction(self.geogebra, '2', 'a')
 		hold0 = FireMineralsAction(self.geogebra, '0', 'a')
+		module04 = StrikeModuleAction(self.geogebra, '04', 'a')
 
 		# Blue side
 		crater3 = GatherSmallCraterAction(self.geogebra, '3', 'a')
 		crater4 = GatherSmallCraterAction(self.geogebra, '4', 'a')
 		crater5a = GatherBigCraterAction(self.geogebra, '5', 'a')
 		crater5b = GatherBigCraterAction(self.geogebra, '5', 'b')
-		hold1 = FireMineralsAction(self.geogebra, '1', 'a')	
+		hold1 = FireMineralsAction(self.geogebra, '1', 'a')
+		module08 = StrikeModuleAction(self.geogebra, '08', 'a')
 
 		self.automate = [
 			[
@@ -97,7 +99,8 @@ class Murray(Behavior):
 				hold0,
 				crater2,
 				crater0b,
-				hold0
+				hold0,
+				module04
 			],
 			[
 				crater4,
@@ -105,7 +108,8 @@ class Murray(Behavior):
 				hold1,
 				crater3,
 				crater5b,
-				hold1
+				hold1,
+				module08
 			]
 		]
 
@@ -452,3 +456,28 @@ class FireMineralsAction:
 		roller.stop()
 		ballzooka.stop()
 		murray.stored_minerals = 0
+
+
+class StrikeModuleAction:
+	def __init__(self, geogebra, major, minor):
+		self.actionpoint = geogebra.get('module_{{{}, action, {}}}'.format(major, minor))
+		self.strikepoint = geogebra.get('module_{{{}, action, {}, 1}}'.format(major, minor))
+		self.orientation = math.atan2(self.strikepoint[1] - self.actionpoint[1], self.strikepoint[0] - self.actionpoint[0])
+
+	def procedure(self, murray):
+		murray.log('strike module')
+		wheeledbase = murray.wheeledbase
+		rollerarm   = murray.rollerarm
+
+		# Put the roller arm in a medium position
+		rollerarm.goto(150, 1023)
+
+		# Run at the module
+		wheeledbase.goto(*self.strikepoint)
+		
+		# Turn a little
+		wheeledbase.set_velocities(0, 0.5)
+		time.sleep(0.5)
+
+		# Raise the roller arm
+		rollerarm.close()
