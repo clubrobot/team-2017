@@ -51,9 +51,9 @@ void VelocityController::process(float timestep)
 /*		talks.out << linSpinUrgency << ", " << angSpinUrgency << "\n";
 		talks.out << m_linVelOutput << ", " << m_linInput << ", " << m_linPID->getMaxOutput() << "\n";
 		talks.out << m_angVelOutput << ", " << m_angInput << ", " << m_angPID->getMaxOutput() << "\n";
-*/		m_leftWheel ->setVelocity(0);
+*/	/*	m_leftWheel ->setVelocity(0);
 		m_rightWheel->setVelocity(0);
-		disable();
+		disable();*/
 	}
 		
 	// Restore setpoints
