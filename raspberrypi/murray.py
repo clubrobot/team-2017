@@ -4,7 +4,7 @@
 from behavior import Behavior
 
 from wheeledbase       import WheeledBase
-from mineralscollector import AX12, Hammer, Roller
+from mineralscollector import AX12, Hammer, Roller, LaunchPad
 from display           import LEDMatrix, SevenSegments
 from sensors           import Sensors
 from components        import LightButtonProxy, SwitchProxy
@@ -67,6 +67,7 @@ class Murray(Behavior):
 			self.yellowbutton   = LightButtonProxy(self, 35, 36)
 			self.greenbutton    = LightButtonProxy(self, 21, 22)
 			self.pullswitch     = SwitchProxy(self, 29)
+			self.launchpad      = LaunchPad(self)
 		except:
 			self.disconnect()
 			raise
@@ -221,6 +222,12 @@ class Murray(Behavior):
 
 		# Everything is fine
 		return True
+
+	def start_procedure(self):
+		self.log('start the final countdown')
+		time.sleep(90)
+		self.log('one small step for (a) robot...')
+		self.launchpad.launch()
 
 	def stop_procedure(self):
 		self.wheeledbase.stop()
