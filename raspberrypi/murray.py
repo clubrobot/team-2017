@@ -46,7 +46,7 @@ class Murray(Behavior):
 		self.minerals_05_storage_position = 280
 		self.minerals_10_storage_position = 230
 		self.minerals_15_storage_position = 170
-		self.firing_cadency = 0.3 # Seconds per mineral
+		self.firing_cadency = 0.25 # Seconds per mineral
 
 		self.automatestep = 0
 
@@ -148,8 +148,8 @@ class Murray(Behavior):
 		wheeledbase.lookahead.set(200)
 		wheeledbase.lookaheadbis.set(200)
 		wheeledbase.max_linvel.set(500)
-		wheeledbase.max_angvel.set(1.5)
-		wheeledbase.linpos_threshold.set(5)
+		wheeledbase.max_angvel.set(1.6)
+		wheeledbase.linpos_threshold.set(7)
 		wheeledbase.angpos_threshold.set(0.3)
 
 		# Trajectory

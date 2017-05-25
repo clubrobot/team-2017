@@ -52,7 +52,7 @@ class Brother(Thread):
 				self.update_brother()
 
 				# Repeat
-				time.sleep(0.5)
+				time.sleep(0.2)
 		finally:
 			# Unset the variables in case of a Bluetooth crash
 			del self.position

@@ -366,7 +366,7 @@ class TakeRocketModuleAction:
 		except RuntimeError: pass
 		
 		# Get to the bottom of the rocket
-		wheeledbase.set_velocities(45, -0.15); time.sleep(0.5)
+		wheeledbase.set_velocities(60, -0.1); time.sleep(0.5)
 		wheeledbase.set_velocities(0, 0)
 		
 		# Hold the module
@@ -433,7 +433,7 @@ class DropAndShiftModuleAction:
 
 		# Drop module
 		dispenser.open()
-		time.sleep(1.2)
+		time.sleep(1)
 		
 		# Shift module
 		wheeledbase.goto(*self.shiftpoint)
