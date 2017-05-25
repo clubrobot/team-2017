@@ -15,14 +15,15 @@ LOCAL_CPP_SRCS = \
     $(COMMON)/PeriodicProcess.cpp \
     $(COMMON)/SerialTalks.cpp \
     $(COMMON)/DCMotor.cpp \
-
+    $(COMMON)/EndStop.cpp \
+    $(COMMON)/Clock.cpp
 
 
 #sketch libraries
 ARDUINO_LIBS = EEPROM Servo
 
 # Increas max opcode number
-#CPPFLAGS += -DSERIALTALKS_MAX_OPCODE=0x20
+CPPFLAGS += -DSERIALTALKS_MAX_OPCODE=0x20
 
 # Congratulations! You made a pretty Makefile :)
 # Now let the grown-ups do the hard work :D

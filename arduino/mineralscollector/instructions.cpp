@@ -4,6 +4,7 @@
 #include "PIN.h"
 #include "../common/SoftwareSerial.h"
 #include "SafePosition.h"
+#include <Servo.h>
 
 extern AX12 servoax;
 
@@ -14,6 +15,8 @@ extern DCMotor hammerMotor;
 extern SafePosition safeHammer;
 
 extern SoftwareSerial SoftSerial;
+
+extern Servo launchPad; 
 
 void SET_ROLLER_VELOCITY(SerialTalks &inst, Deserializer &input, Serializer &output){
 	rollerMotor.setVelocity(input.read<float>());
@@ -43,7 +46,6 @@ void SETUP_AX(SerialTalks& talks, Deserializer& input, Serializer& output)
 }
 
 void SET_AX_POSITION(SerialTalks &inst, Deserializer &input, Serializer &output){
-	servoax.hold(1);
 	servoax.setMaxTorqueRAM(1023);
 	servoax.move(input.read<float>());
 	output.write<int>(true);
@@ -57,6 +59,7 @@ void GET_AX_TORQUE(SerialTalks &inst, Deserializer &input, Serializer &output){
 void SET_AX_VELOCITY_MOVE(SerialTalks &inst, Deserializer &input, Serializer &output){
 	float position = input.read<float>();
 	int velocity = input.read<int>();
+	servoax.setMaxTorqueRAM(1023);
 	servoax.moveSpeed(position, velocity);
 	output.write<int>(true);
 }
@@ -100,4 +103,16 @@ void AX12_RECEIVE_STATUS_PACKET(SerialTalks& talks, Deserializer& input, Seriali
 
 void RETURN_TO_SAFE_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output){
 	safeHammer.toSafePosition();
+}
+
+void GET_AX_VELOCITY(SerialTalks& talks, Deserializer& input, Serializer& output){
+	output.write<int>(servoax.readSpeed());
+}
+
+void GET_AX_MOVING(SerialTalks& talks, Deserializer& input, Serializer& output){
+	output.write<int>(servoax.moving());
+}
+
+void LAUNCHPAD_SET_POSITION(SerialTalks& talks, Deserializer& input, Serializer& output){
+	launchPad.write(input.read<int>());
 }
