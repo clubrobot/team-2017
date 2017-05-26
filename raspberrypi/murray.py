@@ -139,6 +139,7 @@ class Murray(Behavior):
 			self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
 		except RuntimeError:
 			path_not_found = True
+		path_not_found |= self.brother.is_on_path(path)
 
 		# Pure Pursuit configuration
 		if math.cos(math.atan2(path[1][1] - path[0][1], path[1][0] - path[0][0]) - theta_in) >= 0:
