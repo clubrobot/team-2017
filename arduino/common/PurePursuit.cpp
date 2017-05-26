@@ -201,8 +201,6 @@ void PurePursuit::computeVelSetpoints(float timestep)
 		goal.x = m_waypoints[i].x + t * cos(m_finalAngle);
 		goal.y = m_waypoints[i].y + t * sin(m_finalAngle);
 	}
-	talks.out << "self: (" << x << ", " << y << ", " << theta << ")\n";
-	talks.out << "goal: (" << goal.x << ", " << goal.y << ")\n";
 
 	// Compute the norm and the argument of the vector going from the robot to its goal.
 	float chord = sqrt((goal.x - x) * (goal.x - x) + (goal.y - y) * (goal.y - y));
@@ -236,8 +234,6 @@ void PurePursuit::computeVelSetpoints(float timestep)
 	// This could be computed elsewhere but here is convenient. 
 	m_goalReached = abs(chord + getDistAfterGoal()) < getLinPosThreshold();
 
-	talks.out << "linvel_sp: " << linVelSetpoint << "\n";
-	talks.out << "angvel_sp: " << angVelSetpoint << "\n";
 	setVelSetpoints(linVelSetpoint, angVelSetpoint);
 }
 

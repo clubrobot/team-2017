@@ -11,7 +11,7 @@ from threading	import Thread, RLock, Event, current_thread
 
 from serialutils import Deserializer, IntegerType, FloatType, StringType
 
-BAUDRATE = 115200
+BAUDRATE = 19200
 
 MASTER_BYTE = b'R'
 SLAVE_BYTE  = b'A'
