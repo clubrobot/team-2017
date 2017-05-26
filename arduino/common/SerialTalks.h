@@ -5,7 +5,7 @@
 #include "serialutils.h"
 
 #ifndef SERIALTALKS_BAUDRATE
-#define SERIALTALKS_BAUDRATE 115200
+#define SERIALTALKS_BAUDRATE 19200
 #endif
 
 #ifndef SERIALTALKS_INPUT_BUFFER_SIZE
