@@ -23,6 +23,11 @@ public:
 	void load(int address);
 	void save(int address) const;
 
+	bool m_spinShutdown;
+
+	bool getSpinShutdown() const {return m_spinShutdown;}
+	void setSpinShutdown(bool spinShutdown){m_spinShutdown = spinShutdown;}
+
 protected:
 
 	float genRampSetpoint(float stepSetpoint, float input, float rampSetpoint, float maxAcc, float maxDec, float timestep);
