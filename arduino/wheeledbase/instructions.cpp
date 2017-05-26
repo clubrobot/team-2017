@@ -66,14 +66,17 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 	velocityControl.setSetpoints(linVelSetpoint, angVelSetpoint);
 }
 
+int print_id = 0;
 void RESET_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
+	talks.out << print_id << " [";
 	purePursuit.reset();
 	positionControl.disable();
 }
 
 void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
+	talks.out << "]\n";
 	// Setup PurePursuit
 	byte direction = input.read<byte>();
 	switch (direction)
@@ -87,7 +90,7 @@ void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& outp
 	const PurePursuit::Waypoint wp0 = purePursuit.getWaypoint(purePursuit.getNumWaypoints() - 2);
 	const PurePursuit::Waypoint wp1 = purePursuit.getWaypoint(purePursuit.getNumWaypoints() - 1);
 	positionControl.setPosSetpoint(Position(wp1.x, wp1.y, atan2(wp1.y - wp0.y, wp1.x - wp0.x) + direction * M_PI));
-	
+
 	// Enable PurePursuit controller
 	velocityControl.enable();
 	positionControl.setMoveStrategy(purePursuit);
@@ -100,6 +103,7 @@ void ADD_PUREPURSUIT_WAYPOINT(SerialTalks& talks, Deserializer& input, Serialize
 	float x = input.read<float>();
 	float y = input.read<float>();
 	purePursuit.addWaypoint(PurePursuit::Waypoint(x, y));
+	talks.out << "(" << x << ", " << y << "), ";
 }
 
 void START_TURNONTHESPOT(SerialTalks& talks, Deserializer& input, Serializer& output)
