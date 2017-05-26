@@ -58,6 +58,7 @@ class SerialTalks:
 		# Serial things
 		self.port = port
 		self.is_connected = False
+		self.stream_lock = RLock()
 
 		# Threading things
 		self.queues_dict = dict()
@@ -115,8 +116,6 @@ class SerialTalks:
 		self.is_connected = False
 
 	def rawsend(self, rawbytes):
-		for b in rawbytes:
-			print(int(b))
 		try:
 			if hasattr(self, 'stream') and self.stream.is_open:
 				sentbytes = self.stream.write(rawbytes)
@@ -128,7 +127,11 @@ class SerialTalks:
 		retcode = random.randint(0, 0xFFFFFFFF)
 		content = BYTE(opcode) + ULONG(retcode) + bytes().join(args)
 		prefix  = MASTER_BYTE + BYTE(len(content))
-		self.rawsend(prefix + content)
+		try:
+			self.stream_lock.acquire()
+			self.rawsend(prefix + content)
+		finally:
+			self.stream_lock.release()
 		return retcode
 
 	def get_queue(self, retcode):

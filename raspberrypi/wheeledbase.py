@@ -134,10 +134,7 @@ class WheeledBase(SerialTalksProxy):
 	def set_velocities(self, linear_velocity, angular_velocity):
 		self.send(SET_VELOCITIES_OPCODE, FLOAT(linear_velocity), FLOAT(angular_velocity))
 
-	print_id = 0
 	def purepursuit(self, waypoints, direction='forward', finalangle=None, lookahead=None, lookaheadbis=None, linvelmax=None, angvelmax=None):
-		print(WheeledBase.print_id, waypoints)
-		WheeledBase.print_id += 1
 		if len(waypoints) < 2:
 			raise ValueError('not enough waypoints')
 		self.send(RESET_PUREPURSUIT_OPCODE)
