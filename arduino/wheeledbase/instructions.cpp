@@ -69,7 +69,7 @@ void SET_VELOCITIES(SerialTalks& talks, Deserializer& input, Serializer& output)
 int print_id = 0;
 void RESET_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	talks.out << print_id << " [";
+	talks.out << "\"" << print_id << " [\"";
 	print_id += 1;
 	purePursuit.reset();
 	positionControl.disable();
@@ -77,7 +77,7 @@ void RESET_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& outp
 
 void START_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
-	talks.out << "]\n";
+	talks.out << "\"]\n\"";
 	// Setup PurePursuit
 	byte direction = input.read<byte>();
 	switch (direction)
@@ -104,7 +104,7 @@ void ADD_PUREPURSUIT_WAYPOINT(SerialTalks& talks, Deserializer& input, Serialize
 	float x = input.read<float>();
 	float y = input.read<float>();
 	purePursuit.addWaypoint(PurePursuit::Waypoint(x, y));
-	talks.out << "(" << x << ", " << y << "), ";
+	talks.out << "\"(" << x << ", " << y << "), \"";
 }
 
 void START_TURNONTHESPOT(SerialTalks& talks, Deserializer& input, Serializer& output)

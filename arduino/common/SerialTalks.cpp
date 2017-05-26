@@ -131,7 +131,7 @@ bool SerialTalks::execute()
 		// Read the incoming byte
 		byte inc = byte(m_stream->read());
 		m_lastTime = currentTime;
-		talks.out << inc;
+		talks.out << inc << " ";
 		
 		// Use a state machine to process the above byte
 		switch (m_state)

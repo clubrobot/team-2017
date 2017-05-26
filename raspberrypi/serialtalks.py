@@ -115,6 +115,8 @@ class SerialTalks:
 		self.is_connected = False
 
 	def rawsend(self, rawbytes):
+		for b in rawbytes:
+			print(int(b))
 		try:
 			if hasattr(self, 'stream') and self.stream.is_open:
 				sentbytes = self.stream.write(rawbytes)
