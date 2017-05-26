@@ -118,7 +118,9 @@ class SerialTalks:
 	def rawsend(self, rawbytes):
 		try:
 			if hasattr(self, 'stream') and self.stream.is_open:
-				sentbytes = self.stream.write(rawbytes)
+				sentbytes = 0
+				while sentbytes < len(rawbytes):
+					sentbytes += self.stream.write(rawbytes)
 				return sentbytes
 		except SerialException: pass
 		raise NotConnectedError('\'{}\' is not connected.'.format(self.port)) from None
