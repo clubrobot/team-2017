@@ -152,6 +152,7 @@ def server(args):
 
 
 def start(args):
+	global robot
 	if args.name == 'bornibus':
 		robot = Bornibus(args.ip, timelimit=args.timelimit)
 		robot.log('hi there, this is Bornibus!')

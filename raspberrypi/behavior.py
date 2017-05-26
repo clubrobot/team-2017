@@ -71,6 +71,9 @@ class Behavior(Manager):
 	def goto_procedure(self, destination):
 		raise RuntimeError("the 'goto_procedure' method must be overriden")
 
+	def start_procedure(self):
+		pass
+
 	def stop_procedure(self):
 		pass
 
@@ -79,9 +82,10 @@ class Behavior(Manager):
 		self.stop_event.clear()
 		self.log('start')
 		try:
+			start = self.perform(self.start_procedure, timelimit=False)
 			while (self.timelimit is None or self.get_elapsed_time() < self.timelimit) and not self.stop_event.is_set():
 				decision = self.make_decision()
-				procedure, args, kwargs, location = decision
+				procedure, args, kwargs, (location, thresholds) = decision
 				if procedure is None:
 					self.log('no decision')
 					time.sleep(1)
@@ -91,23 +95,25 @@ class Behavior(Manager):
 						self.log('goto: ({0[0]:.0f}, {0[1]:.0f}, {0[2]:.2f})'.format(location))
 					else:
 						self.log('goto: ({0[0]:.0f}, {0[1]:.0f})'.format(location))
-					goto = self.perform(self.goto_procedure, args=(location,))
+					goto = self.perform(self.goto_procedure, args=(location, thresholds))
 					success = self.get(goto)
 				else:
 					success = True
 				if success:
-					self.log('start procedure')
 					action = self.perform(procedure, args=args, kwargs=kwargs)
 					self.get(action)
 				else:
 					self.log('goto failed')
+		except:
+			self.whitelist.clear()
+			raise
 		finally:
 			self.stop()
+			self.get(start)
 			self.whitelist.add(id(current_thread()))
 
 	def stop(self):
 		self.log('stop')
-		self.whitelist.clear()
 		self.perform(self.stop_procedure, timelimit=False)
 		self.stop_event.set()
 
