@@ -105,7 +105,9 @@ class WheeledBase(Module):
 
 	def isarrived(self, **kwargs):
 		output = self.execute(POSITION_REACHED_OPCODE, **kwargs)
-		isarrived = output.read(BYTE)
+		isarrived, spinurgency = output.read(BYTE, BYTE)
+			if spinurgency:
+				raise RuntimeError('Spin error')
 		return bool(isarrived)
 
 	def wait(self, timestep=0.1, **kwargs):
