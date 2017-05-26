@@ -70,6 +70,7 @@ int print_id = 0;
 void RESET_PUREPURSUIT(SerialTalks& talks, Deserializer& input, Serializer& output)
 {
 	talks.out << print_id << " [";
+	print_id += 1;
 	purePursuit.reset();
 	positionControl.disable();
 }
