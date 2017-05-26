@@ -25,7 +25,7 @@ class BornibusBrother(Brother):
 	
 	def get_brother_shape(self):
 		x, y, theta = self.brother.wheeledbase.get_position()
-		halo = 120
+		halo = 150
 		W = self.brother.geogebra.get('Bornibus_{width}')
 		L = self.brother.geogebra.get('Bornibus_{length}')
 		shape = []
