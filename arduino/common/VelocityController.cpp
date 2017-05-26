@@ -58,6 +58,8 @@ void VelocityController::process(float timestep)
 	// Restore setpoints
 	m_linSetpoint = stepLinVelSetpoint;
 	m_angSetpoint = stepAngVelSetpoint;
+
+	}
 }
 
 void VelocityController::onProcessEnabling()

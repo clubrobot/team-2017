@@ -8,18 +8,18 @@
 void DifferentialController::process(float timestep)
 {
 	// Compute linear and angular velocities outputs
-	float linVelOutput = m_linPID->compute(m_linSetpoint, m_linInput, timestep);
-	float angVelOutput = m_angPID->compute(m_angSetpoint, m_angInput, timestep);
+	m_linVelOutput = m_linPID->compute(m_linSetpoint, m_linInput, timestep);
+	m_angVelOutput = m_angPID->compute(m_angSetpoint, m_angInput, timestep);
 
 #if OUTPUT_CONTROL_VARIABLES
 	talks.out << millis() << "\t";
-	talks.out << m_linSetpoint << "\t" << m_linInput << "\t" << linVelOutput << "\t";
-	talks.out << m_angSetpoint << "\t" << m_angInput << "\t" << angVelOutput << "\n";
+	talks.out << m_linSetpoint << "\t" << m_linInput << "\t" << m_linVelOutput << "\t";
+	talks.out << m_angSetpoint << "\t" << m_angInput << "\t" << m_angVelOutput << "\n";
 #endif
 
 	// Convert linear and angular velocities into wheels' velocities
-	m_leftWheel ->setVelocity(linVelOutput - angVelOutput * m_axleTrack / 2);
-	m_rightWheel->setVelocity(linVelOutput + angVelOutput * m_axleTrack / 2);
+	m_leftWheel ->setVelocity(m_linVelOutput - m_angVelOutput * m_axleTrack / 2);
+	m_rightWheel->setVelocity(m_linVelOutput + m_angVelOutput * m_axleTrack / 2);
 }
 
 void DifferentialController::onProcessEnabling()
