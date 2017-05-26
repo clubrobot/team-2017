@@ -124,4 +124,4 @@ class Behavior(Manager):
 			return 0
 
 	def log(self, message):
-		pass#print('[{:>8.2f}] {}'.format(self.get_elapsed_time(), message))
+		print('[{:>8.2f}] {}'.format(self.get_elapsed_time(), message))
