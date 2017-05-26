@@ -7,6 +7,7 @@ from wheeledbase      import WheeledBase
 from modulescollector import ModulesGripper, ModulesElevator, ModulesDispenser, Mustaches
 from display          import LEDMatrix, SevenSegments
 from sensors          import Sensors
+from components       import LightButtonProxy, SwitchProxy
 
 from geogebra import GeoGebra
 from roadmap import RoadMap, intersect
@@ -25,9 +26,9 @@ class Bornibus(Behavior):
 
 		self.automatestep = 0
 
-	def connect(self):
+	def connect(self, *args, **kwargs):
 		try:
-			Behavior.connect(self)
+			Behavior.connect(self, *args, **kwargs)
 			self.wheeledbase    = WheeledBase(self)
 			self.gripper        = ModulesGripper(self)
 			self.elevator       = ModulesElevator(self)
@@ -38,6 +39,11 @@ class Bornibus(Behavior):
 			self.display        = SevenSegments(self)
 			self.frontsensors   = Sensors(self, 'frontsensors')
 			self.backsensors    = Sensors(self, 'backsensors')
+			self.redbutton    = LightButtonProxy(self, 15, 16)
+			self.bluebutton   = LightButtonProxy(self, 23, 24)
+			self.yellowbutton = LightButtonProxy(self, 35, 36)
+			self.greenbutton  = LightButtonProxy(self, 21, 22)
+			self.pullswitch   = SwitchProxy(self, 29)
 		except:
 			self.disconnect()
 			raise

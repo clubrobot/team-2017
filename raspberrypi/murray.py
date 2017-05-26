@@ -7,6 +7,7 @@ from wheeledbase       import WheeledBase
 from mineralscollector import AX12, Hammer, Roller
 from display           import LEDMatrix, SevenSegments
 from sensors           import Sensors
+from components        import LightButtonProxy, SwitchProxy
 
 from geogebra import GeoGebra
 from roadmap import RoadMap, intersect
@@ -28,18 +29,23 @@ class Murray(Behavior):
 
 		self.automatestep = 0
 
-	def connect(self):
+	def connect(self, *args, **kwargs):
 		try:
-			Behavior.connect(self)
+			Behavior.connect(self, *args, **kwargs)
 			self.wheeledbase  = WheeledBase(self)
 			self.roller       = Roller(self)
 			self.rollerarm    = AX12(self)
 			self.ballzooka    = Hammer(self)
-#			self.left_eye     = LEDMatrix(self, 1)
-#			self.right_eye    = LEDMatrix(self, 2)
-#			self.display      = SevenSegments(self)
-#			self.frontsensors = Sensors(self, 'frontsensors')
-#			self.backsensors  = Sensors(self, 'backsensors')
+			self.left_eye     = LEDMatrix(self, 1)
+			self.right_eye    = LEDMatrix(self, 2)
+			self.display      = SevenSegments(self)
+			self.frontsensors = Sensors(self, 'frontsensors')
+			self.backsensors  = Sensors(self, 'backsensors')
+			self.redbutton    = LightButtonProxy(self, 15, 16)
+			self.bluebutton   = LightButtonProxy(self, 23, 24)
+			self.yellowbutton = LightButtonProxy(self, 35, 36)
+			self.greenbutton  = LightButtonProxy(self, 21, 22)
+			self.pullswitch   = SwitchProxy(self, 29)
 		except:
 			self.disconnect()
 			raise
