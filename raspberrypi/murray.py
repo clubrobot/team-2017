@@ -372,7 +372,7 @@ class GatherBigCraterAction:
 		wheeledbase.angpos_threshold.set(0.3)
 		# Goto the entry point
 		if self.minor == 'a':
-			wheeledbase.angpos_threshold.set(0.1)
+			wheeledbase.angpos_threshold.set(0.05)
 
 		wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.actionpointbis, self.entrypoint], 'backward')
 		wheeledbase.wait()
