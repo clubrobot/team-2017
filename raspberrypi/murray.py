@@ -133,6 +133,11 @@ class Murray(Behavior):
 		#Mise par defaut des valeurs seuils
 		self.wheeledbase.linpos_threshold.set(self.default_linpos_threshold)
 		self.wheeledbase.angpos_threshold.set(self.default_angpos_threshold)
+		if isinstance(action, FireMineralsAction):
+			self.wheeledbase.linpos_threshold.set(12)
+			self.wheeledbase.angpos_threshold.set(0.5)
+
+
 
 		return decision
 
