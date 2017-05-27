@@ -442,8 +442,8 @@ class FireMineralsAction:
 		rollerarm   = murray.rollerarm
 		roller      = murray.roller
 		ballzooka   = murray.ballzooka
-		wheeledbase.angpos_threshold.set(7)
-		wheeledbase.linpos_threshold.set(0.3)
+		wheeledbase.angpos_threshold.set(12)
+		wheeledbase.linpos_threshold.set(0.5)
 
 
 		# Goto the firing point
