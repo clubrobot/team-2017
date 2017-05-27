@@ -501,14 +501,20 @@ class StrikeModuleAction:
 		rollerarm   = murray.rollerarm
 
 		# Put the roller arm in a medium position
-		rollerarm.goto(150, 1023)
+		rollerarm.goto(155, 1023)
+		b.set_openloop_velocities(1000,1000)
+		time.sleep(0.6)
 
+		#b.set_velocities(0, 0.5)
+		#time.sleep(0.5)
+		b.stop()
+		
 		# Run at the module
-		wheeledbase.goto(*self.strikepoint)
+		#wheeledbase.goto(*self.strikepoint)
 		
 		# Turn a little
-		wheeledbase.set_velocities(0, 0.5)
-		time.sleep(0.5)
+		#wheeledbase.set_velocities(0, 0.5)
+		#time.sleep(0.5)
 
 		# Raise the roller arm
 		rollerarm.close()
