@@ -136,6 +136,9 @@ class Murray(Behavior):
 		if isinstance(action, FireMineralsAction):
 			self.wheeledbase.linpos_threshold.set(12)
 			self.wheeledbase.angpos_threshold.set(0.5)
+		if isinstance(action,GatherBigCraterAction):
+			self.wheeledbase.linpos_threshold.set(12)
+			self.wheeledbase.angpos_threshold.set(0.5)
 
 
 
@@ -363,7 +366,8 @@ class GatherBigCraterAction:
 		wheeledbase = murray.wheeledbase
 		rollerarm   = murray.rollerarm
 		roller      = murray.roller
-
+		wheeledbase.angpos_threshold.set(self.default_angpos_threshold)
+		wheeledbase.angpos_threshold.set(self.default_linpos_threshold)
 		# Goto the entry point
 		if self.minor == 'a':
 			wheeledbase.angpos_threshold.set(0.1)
@@ -438,6 +442,9 @@ class FireMineralsAction:
 		rollerarm   = murray.rollerarm
 		roller      = murray.roller
 		ballzooka   = murray.ballzooka
+		wheeledbase.angpos_threshold(default_angpos_threshold)
+		wheeledbase.linpos_threshold(default_linpos_threshold)
+
 
 		# Goto the firing point
 		murray.log('go to the firing point')
@@ -445,6 +452,7 @@ class FireMineralsAction:
 
 		# Ensure it has the right orientation
 		wheeledbase.angpos_threshold.set(0.1)
+
 		x_in, y_in = wheeledbase.get_position()[:2]
 		theta_sp = math.atan2(self.hold[1] - y_in, self.hold[0] - x_in) + math.pi
 		wheeledbase.turnonthespot(theta_sp)
