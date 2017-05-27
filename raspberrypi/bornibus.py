@@ -124,11 +124,12 @@ class Bornibus(Behavior):
 				module06,
 				module06,
 				#module06,
-				odometry02b,
+				#odometry02b,
+				odometry02a,
+				deposit04,
+				#shift0406,
 				deposit05,
-				shift0406,
-				deposit05,
-				deposit04
+				deposit06
 			],
 			[
 				module10,
@@ -140,11 +141,12 @@ class Bornibus(Behavior):
 				module07,
 				module07,
 				#module07,
-				odometry05b,
+				#odometry05b,
+				odometry05a,
+				deposit14,
+				#shift1416,
 				deposit15,
-				shift1416,
-				deposit15,
-				deposit14
+				deposit16
 			]
 		]
 
