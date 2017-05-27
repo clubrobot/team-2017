@@ -157,7 +157,7 @@ class AX12(SerialTalksProxy):
 class Hammer(SerialTalksProxy):
 	def __init__(self, parent, uuid='mineralscollector'):
 		SerialTalksProxy.__init__(self, parent, uuid)
-		self.firing_velocity = 9	
+		self.firing_velocity = 11	
 
 	def set_velocity(self, a):
 		thread_safe_send(self, _SET_FIRING_HAMMER_VELOCITY_OPCODE, FLOAT(a))
