@@ -316,14 +316,16 @@ class GatherSmallCraterAction:
 		# Get to the bottom of the crater
 		murray.log('get to the bottom of the crater')
 		wheeledbase.max_linvel.set(200)
+
 		wheeledbase.lookahead.set(self.gather_lookahead)
 		wheeledbase.lookaheadbis.set(self.gather_lookahead)
+		wheeledbase.linpos_threshold.set(1000)
 		try:
 			wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.endingpoint], 'forward', self.orientation)
-			wheeledbase.wait()
+			time.sleep(1)
 		except RuntimeError:
 			murray.log('blocked while going to the bottom of the crater')
-
+		wheeledbase.linpos_threshold.set(7)
 		# Get off the crater
 		murray.log('get off the crater')
 		wheeledbase.max_linvel.set(400)
