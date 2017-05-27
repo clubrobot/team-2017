@@ -57,7 +57,7 @@ class Behavior(Manager):
 		thread_id = id(current_thread())
 		denyaccess = thread_id in self.blacklist
 		if not thread_id in self.whitelist:
-			denyaccess &= self.stop_event.is_set()
+			denyaccess |= self.stop_event.is_set()
 		if denyaccess:
 			raise AccessDenied(thread_id)
 		else:
