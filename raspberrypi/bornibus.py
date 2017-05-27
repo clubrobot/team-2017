@@ -53,8 +53,8 @@ class Bornibus(Behavior):
 		longway_goto.lookahead = 150
 		longway_goto.brother_avoidance = True
 		longway_goto.brother_distance = 200
-		longway_goto.linpos_threshold.set(3)
-		longway_goto.angpos_threshold.set(0.1)
+		longway_goto.linpos_threshold = 3
+		longway_goto.angpos_threshold = 0.1
 
 		longway_goto = GotoBehavior(self)
 		longway_goto.max_linvel = 500
@@ -62,8 +62,8 @@ class Bornibus(Behavior):
 		longway_goto.lookahead = 150
 		longway_goto.brother_avoidance = True
 		longway_goto.brother_distance = 200
-		longway_goto.linpos_threshold.set(3)
-		longway_goto.angpos_threshold.set(0.1)
+		longway_goto.linpos_threshold = 3
+		longway_goto.angpos_threshold = 0.1
 
 		self.automatestep = 0
 
