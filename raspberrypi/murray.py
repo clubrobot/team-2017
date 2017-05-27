@@ -68,6 +68,8 @@ class Murray(Behavior):
 			self.greenbutton    = LightButtonProxy(self, 21, 22)
 			self.pullswitch     = SwitchProxy(self, 29)
 			self.launchpad      = LaunchPad(self)
+			self.default_linpos_threshold = 7
+			self.default_angpos_threshold = 0.3
 		except:
 			self.disconnect()
 			raise
@@ -121,11 +123,18 @@ class Murray(Behavior):
 		action = self.automate[self.side][self.automatestep]
 		if hasattr(action, 'actionpoint'):
 			if hasattr(action, 'orientation'):
-				return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
+				decision = action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
 			else:
-				return action.procedure, (self,), {}, action.actionpoint + (None,)
+				decision = action.procedure, (self,), {}, action.actionpoint + (None,)
 		else:
-			return action.procedure, (self,), {}, None
+			decision = action.procedure, (self,), {}, None
+		#if isinstance(action, GatherSmallCraterAction):
+
+		#Mise par defaut des valeurs seuils
+		self.wheeledbase.linpos_threshold.set(self.default_linpos_threshold)
+		self.wheeledbase.angpos_threshold.set(self.default_angpos_threshold)
+
+		return decision
 
 	def goto_procedure(self, destination):
 		wheeledbase = self.wheeledbase
@@ -341,6 +350,8 @@ class GatherBigCraterAction:
 		crater_center = geogebra.get('crater_{{{}, center}}'.format(major))
 		self.entry_lookahead  = math.hypot(crater_center[0] - self.actionpoint[0], crater_center[1] - self.actionpoint[1])
 		self.gather_lookahead = math.hypot(crater_center[0] - self.gatherpoint[0], crater_center[1] - self.gatherpoint[1])
+		self.minor = minor
+
 
 	def procedure(self, murray):
 		murray.log('gather big crater')
@@ -349,6 +360,9 @@ class GatherBigCraterAction:
 		roller      = murray.roller
 
 		# Goto the entry point
+		if self.minor == 'a':
+			wheeledbase.angpos_threshold.set(0.1)
+
 		wheeledbase.purepursuit([wheeledbase.get_position()[:2], self.actionpointbis, self.entrypoint], 'backward')
 		wheeledbase.wait()
 		wheeledbase.turnonthespot(self.orientationbis)
@@ -425,6 +439,7 @@ class FireMineralsAction:
 		wheeledbase.goto(*self.firingpoint)
 
 		# Ensure it has the right orientation
+		wheeledbase.angpos_threshold.set(0.1)
 		x_in, y_in = wheeledbase.get_position()[:2]
 		theta_sp = math.atan2(self.hold[1] - y_in, self.hold[0] - x_in) + math.pi
 		wheeledbase.turnonthespot(theta_sp)
