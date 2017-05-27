@@ -188,8 +188,8 @@ class Bornibus(Behavior):
 				self.setup_gripper_procedure()
 		parallel_actions = self.perform(mandatory_procedures)
 
-		# Return if there is no path available		
-		success = self.longway_goto(*destination):
+		# Return if there is no path available
+		success = self.longway_goto(*destination)
 		if not success:
 			self.interrupt(parallel_actions)
 			time.sleep(1)
