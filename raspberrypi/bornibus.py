@@ -111,6 +111,7 @@ class Bornibus(Behavior):
 		deposit20 = DropModuleAction(self.geogebra, '20', 'a')
 		shift1416 = DropAndShiftModuleAction(self.geogebra, '14', 'b', '16', 'b')
 		odometry05b = RecalibrateOdometryAction(self.geogebra, '05', 'b')
+		odometry05a = RecalibrateOdometryAction(self.geogebra,' 05', 'a')
 		odometry07b = RecalibrateOdometryAction(self.geogebra, '07', 'b')
 		
 		self.automate = [
