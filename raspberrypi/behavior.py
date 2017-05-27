@@ -106,10 +106,11 @@ class Behavior(Manager):
 				else:
 					self.log('goto failed')
 		except:
-			self.whitelist.clear()
+			self.interrupt(start)
+		else:
+			self.get(start)
 		finally:
 			self.stop()
-			self.get(start)
 			self.whitelist.add(id(current_thread()))
 
 	def stop(self):
