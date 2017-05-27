@@ -48,7 +48,7 @@ class Starter(Thread):
 
 
 	def setState(self,name):
-		if name in ("Blue","Yellow"):
+		if name in ("Blue","Yellow") and self.state=="waiting_team":
 			self.state="waiting_pos"
 			self.team = name
 
