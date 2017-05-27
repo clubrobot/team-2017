@@ -25,7 +25,7 @@ class MurrayBrother(Brother):
 	
 	def get_brother_shape(self):
 		x, y, theta = self.brother.wheeledbase.get_position()
-		halo = 120
+		halo = 150
 		W = self.brother.geogebra.get('Murray_{width}')
 		F = self.brother.geogebra.get('Murray_{front}')
 		B = self.brother.geogebra.get('Murray_{back}')
