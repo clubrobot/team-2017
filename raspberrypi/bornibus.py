@@ -14,6 +14,8 @@ from brother import Brother
 from geogebra import GeoGebra
 from roadmap import RoadMap, intersect
 
+from gotobehavior import GotoBehavior
+
 import time
 import math
 
@@ -44,6 +46,24 @@ class Bornibus(Behavior):
 		self.store_module_mandatory = False
 		self.elevator_stucked = False
 		self.stored_modules = 0
+
+		longway_goto = GotoBehavior(self)
+		longway_goto.max_linvel = 500
+		longway_goto.max_angvel = 6.0
+		longway_goto.lookahead = 150
+		longway_goto.brother_avoidance = True
+		longway_goto.brother_distance = 200
+		longway_goto.linpos_threshold.set(3)
+		longway_goto.angpos_threshold.set(0.1)
+
+		longway_goto = GotoBehavior(self)
+		longway_goto.max_linvel = 500
+		longway_goto.max_angvel = 6.0
+		longway_goto.lookahead = 150
+		longway_goto.brother_avoidance = True
+		longway_goto.brother_distance = 200
+		longway_goto.linpos_threshold.set(3)
+		longway_goto.angpos_threshold.set(0.1)
 
 		self.automatestep = 0
 
@@ -159,47 +179,7 @@ class Bornibus(Behavior):
 		return action.procedure, (self,), {}, action.actionpoint + (action.orientation,)
 
 	def goto_procedure(self, destination):
-		wheeledbase = self.wheeledbase
-
-		# Try to avoid Murray
-		for edge in self.brother.get_edges():
-		 	self.roadmap.cut_edges(edge)
-
-		# Pathfinding
-		path_not_found = False
-		x_in, y_in, theta_in = wheeledbase.get_position()
-		x_sp, y_sp, theta_sp = destination
-		try:
-			path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
-			self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
-		except RuntimeError:
-			path_not_found = True
-
-		# Reset detected obstacles
-		self.log('reset edges')
-		self.roadmap.reset_edges()
-
-		# Return there is no path available		
-		if path_not_found:
-			self.log('no path found')
-			time.sleep(1)
-			return False
-
-		# Pure Pursuit configuration
-		if math.cos(math.atan2(path[1][1] - path[0][1], path[1][0] - path[0][0]) - theta_in) >= 0:
-			direction = 1
-		else:
-			direction = -1
-		wheeledbase.lookahead.set(150)
-		wheeledbase.lookaheadbis.set(150)
-		wheeledbase.max_linvel.set(500)
-		wheeledbase.max_angvel.set(6.0)
-		wheeledbase.linpos_threshold.set(3)
-		wheeledbase.angpos_threshold.set(0.1)
-
-		# Trajectory
-		wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
-
+		
 		# Do mandatory procedures
 		def mandatory_procedures():		
 			if self.store_module_mandatory:
@@ -208,78 +188,13 @@ class Bornibus(Behavior):
 				self.setup_gripper_procedure()
 		parallel_actions = self.perform(mandatory_procedures)
 
-		# Wait until destination is reached
-		isarrived = False
-		blocked = False
-		while not isarrived:
+		# Return if there is no path available		
+		success = self.longway_goto(*destination):
+		if not success:
+			self.interrupt(parallel_actions)
+			time.sleep(1)
+			return False
 
-			# Get current position
-			x_in, y_in, theta_in = wheeledbase.get_position()
-
-			# Check for Murray's position
-			brother_distance = self.brother.get_distance(x_in, y_in)
-			if brother_distance < 400:
-				self.log('detected brother at distance: {:.0f}'.format(brother_distance))
-				self.log('brother shape is: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(vertex) for vertex in self.brother.shape)))
-				if self.brother.is_on_path(path):
-					self.log('detected that brother is on the path')
-					edges = self.brother.get_edges()
-					for edge in edges:
-						self.log('cut edges: [{}]'.format('(({0[0]:.0f}, {0[1]:.0f}), ({1[0]:.0f}, {1[1]:.0f}))'.format(*edge)))
-						self.roadmap.cut_edges(edge)
-					try:
-						path = self.roadmap.get_shortest_path((x_in, y_in), (x_sp, y_sp))
-						self.log('follow path: [{}]'.format(', '.join('({0[0]:.0f}, {0[1]:.0f})'.format(waypoint) for waypoint in path)))
-						wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
-					except RuntimeError:
-						path_not_found = True
-					self.roadmap.reset_edges()
-					if path_not_found:
-						self.log('no path found')
-						wheeledbase.stop()
-						time.sleep(1)
-						return False
-
-			# Manage sensors
-			found_obstacle = False
-				
-			# Abort the current action if an obstacle was found
-			if found_obstacle:
-				wheeledbase.stop()
-				self.interrupt(parallel_actions)
-				return False
-
-			# Get trajectory planner situation
-			try:
-				isarrived = wheeledbase.isarrived()
-			except RuntimeError:
-				self.log('blocked while following path')
-				blocked = True
-			
-			# Handle spin urgency
-			if blocked:
-				self.log('go backward a little')
-				wheeledbase.set_velocities(-direction * 100, 0)
-				time.sleep(1)
-				self.log('resume path')
-				wheeledbase.purepursuit(path, direction={1:'forward', -1:'backward'}[direction])
-				blocked = False
-			
-			# Delay
-			time.sleep(0.1)
-		self.log('path ended at: ({0[0]:.0f}, {0[1]:.0f}, {0[2]:.2f})'.format(wheeledbase.get_position()))
-
-		# Turn on the spot
-		if theta_sp is not None:
-			self.log('turn on the spot: {:.2f}'.format(theta_sp))
-			wheeledbase.turnonthespot(theta_sp)		
-			try:
-				wheeledbase.wait()
-			except RuntimeError:
-				self.log('blocked while turning on the spot')
-				return False
-		self.log('rotation ended at: ({0[0]:.0f}, {0[1]:.0f}, {0[2]:.2f})'.format(wheeledbase.get_position()))
-		
 		# Wait for mandatory actions
 		self.get(parallel_actions)
 		self.automatestep += 1
