@@ -57,9 +57,7 @@ class Behavior(Manager):
 		thread_id = id(current_thread())
 		denyaccess = thread_id in self.blacklist
 		if not thread_id in self.whitelist:
-			if self.timelimit is not None:
-				denyaccess |= (self.get_elapsed_time() > self.timelimit)
-			denyaccess |= self.stop_event.is_set()
+			denyaccess &= self.stop_event.is_set()
 		if denyaccess:
 			raise AccessDenied(thread_id)
 		else:
@@ -77,13 +75,19 @@ class Behavior(Manager):
 	def stop_procedure(self):
 		pass
 
+	def timer_procedure(self):
+		time.sleep(self.timelimit)
+		self.stop()
+
 	def start(self):
 		self.starttime = time.monotonic()
 		self.stop_event.clear()
 		self.log('start')
 		start = self.perform(self.start_procedure, timelimit=False)
+		if self.timelimit:
+			self.perform(self.timer_procedure, timelimit=False)
 		try:
-			while (self.timelimit is None or self.get_elapsed_time() < self.timelimit) and not self.stop_event.is_set():
+			while not self.stop_event.is_set():
 				decision = self.make_decision()
 				procedure, args, kwargs, location = decision
 				if procedure is None:
@@ -110,7 +114,6 @@ class Behavior(Manager):
 		else:
 			self.get(start)
 		finally:
-			self.stop()
 			self.whitelist.add(id(current_thread()))
 
 	def stop(self):
