@@ -366,8 +366,8 @@ class GatherBigCraterAction:
 		wheeledbase = murray.wheeledbase
 		rollerarm   = murray.rollerarm
 		roller      = murray.roller
-		wheeledbase.angpos_threshold.set(self.default_angpos_threshold)
-		wheeledbase.angpos_threshold.set(self.default_linpos_threshold)
+		wheeledbase.angpos_threshold.set(7)
+		wheeledbase.angpos_threshold.set(0.3)
 		# Goto the entry point
 		if self.minor == 'a':
 			wheeledbase.angpos_threshold.set(0.1)
@@ -442,8 +442,8 @@ class FireMineralsAction:
 		rollerarm   = murray.rollerarm
 		roller      = murray.roller
 		ballzooka   = murray.ballzooka
-		wheeledbase.angpos_threshold(default_angpos_threshold)
-		wheeledbase.linpos_threshold(default_linpos_threshold)
+		wheeledbase.angpos_threshold(7)
+		wheeledbase.linpos_threshold(0.3)
 
 
 		# Goto the firing point
