@@ -55,9 +55,6 @@ class Starter(Thread):
 		if name=="Green" and self.state== "waiting_launch":
 			self.state = "launch_asking"
 
-		if name=="Red":
-			self.state="Exiting"
-
 		if name=="Switch" and self.state =="launching":
 			self.state = "launched"
 
