@@ -124,6 +124,7 @@ class SerialTalks:
 	
 	def send(self, opcode, *args):
 		retcode = random.randint(0, 0xFFFFFFFF)
+		
 		content = BYTE(opcode) + ULONG(retcode) + bytes().join(args)
 		prefix  = MASTER_BYTE + BYTE(len(content))
 		self.rawsend(prefix + content)
